@@ -6,6 +6,14 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import userRoutes from './routes/userRoutes.js';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+
+import authRoutes from './routes/authRoutes.js';
+import profileRoutes from './routes/profileRoutes.js';
+import taskRoutes from './routes/taskRoutes.js';
+
 
 dotenv.config(); // Loads .env (MONGO_URI, PORT, etc.)
 
@@ -25,6 +33,14 @@ app.use('/api/users', userRoutes);
 
 // Optional: Parse URL-encoded form bodies (e.g., HTML forms)
 app.use(express.urlencoded({ extended: false }));
+
+app.use(helmet());
+app.use(morgan('dev'));
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200 })); // limit abuse
+
+app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/tasks', taskRoutes);
 
 // ---------------------------
 // Health / Root routes
