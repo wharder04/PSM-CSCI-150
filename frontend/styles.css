@@ -1,7 +1,21 @@
 h2 {
-    font-family: Verdana;
+    font-family: Cambria;
 }
 
-div {
-    font-family: Verdana;
+#login {
+    font-family: Cambria;
+    display: flex;
+    flex-direction: row;
+}
+
+input {
+    color: grey;
+}
+
+button {
+    color: grey;
+}
+
+a {
+    color:black;
 }
