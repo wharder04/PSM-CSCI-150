@@ -1,5 +1,11 @@
 h2 {
     font-family: Cambria;
+    font-size: 50px;
+}
+
+h3 {
+    font-family: Cambria;
+    font-size: 25px;
 }
 
 #login {
