@@ -1,15 +1,15 @@
 h2 {
-    font-family: Cambria;
+    font-family: Verdana;
     font-size: 50px;
 }
 
 h3 {
-    font-family: Cambria;
+    font-family: Verdana;
     font-size: 25px;
 }
 
 #login {
-    font-family: Cambria;
+    font-family: Verdana;
     display: flex;
     flex-direction: row;
 }
