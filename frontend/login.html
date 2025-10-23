@@ -6,14 +6,20 @@
 </head>
 <body>
 <section id="login">
-    <h2>Welcome Back</h2>
-    <h3>Login in to your account</h3>
-    <p>Email</p>
-    <p>Password</p>
     <div>
-        <p>Sign in<p>
     </div>
-    <p>Don't have an account? Sign up<p>
+    <div>
+        <h2>Welcome Back</h2>
+        <h3>Login in to your account</h3>
+        <form>
+            <label for="username">Username:</label><br>
+            <input type="text" id="username" name="username"><br>
+            <label for="password">Password:</label><br>
+            <input type="text" id="password" name="password">
+        </form>
+        <p id ="signin">Sign in</p>
+        <p>Don't have an account? <a href="#">Sign up</a><p>
+    </div>
 </section>
 <script src="script.js"></script>
 </body>
