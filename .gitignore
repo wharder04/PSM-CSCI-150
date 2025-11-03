@@ -1,8 +1,6 @@
 # Node modules
-node_modules/
 server/node_modules/
 client/node_modules/
-old-client/node_modules/
 
 # Environment variables
 server/.env
