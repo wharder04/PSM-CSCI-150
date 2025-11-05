@@ -1,6 +1,6 @@
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
-import SetPassword from "./pages/SetPassword.jsx";
+import SetPassword from "./pages/Setpassword.jsx";
 import Verfication from "./pages/Verification.jsx";
 import Login from "./pages/Login.jsx";
 import Landing from "./pages/Landing.jsx";
