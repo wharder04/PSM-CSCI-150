@@ -1,13 +1,23 @@
 import "./ForgotPassword.css";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
+  const[email, setEmail] = useState("");
 
   function handleResetButton() {
-    navigate("/Verify");
+    
+    if (email.trim()!=="") {
+      console.log("Reset password for email:", email);
+      navigate("/auth/verify");
+    } else {
+      console.log("Please enter a valid email address.");
+      return;
+    }
   }
   function handleBackArrow() {
+    navigate("/auth/login");
     console.log("Back arrow clicked");
   }
   function handlebSignIn() {
@@ -29,7 +39,12 @@ export default function ForgotPassword() {
             Your Password?
           </h1>
           <p> Email</p>
-          <input type="email" placeholder="Enter your email" />
+          <input 
+          type="email" 
+          placeholder="Enter your email" 
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          />
           <button onClick={handleResetButton}>Reset Password</button>
           <button onClick={handlebSignIn}>Back to Sign In</button>
         </div>
