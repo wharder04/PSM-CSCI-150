@@ -1,58 +1,73 @@
 import Task from '../models/Task.js';
 
-// POST /api/tasks
-export const createTask = async (req, res, next) => {
+// CREATE
+export async function createTask(req, res, next) {
   try {
-    const task = await Task.create({ ...req.body, createdBy: req.user._id });
+    const payload = {
+      ...req.body,
+      projectId: req.params.projectId || req.body.projectId,
+      createdBy: req.user?._id
+    };
+    const task = await Task.create(payload);
     res.status(201).json({ ok: true, data: task });
-  } catch (err) {
-    next(err);
-  }
-};
+  } catch (err) { next(err); }
+}
 
-// GET /api/tasks
-export const getTasks = async (req, res, next) => {
+// LIST
+export async function listTasks(req, res, next) {
   try {
-    const tasks = await Task.find().populate('assignedTo', 'name email').sort({ createdAt: -1 });
+    const q = {};
+    if (req.params.projectId) q.projectId = req.params.projectId;
+    if (req.query.status) q.status = req.query.status;
+    if (req.query.priority) q.priority = req.query.priority;
+    if (req.query.assignee) q.assignee = req.query.assignee;
+    const tasks = await Task.find(q).populate('assignee', 'name email').sort({ createdAt: -1 });
     res.json({ ok: true, data: tasks });
-  } catch (err) {
-    next(err);
-  }
-};
+  } catch (err) { next(err); }
+}
+export { listTasks as getTasks }; // alias for any older imports
 
-// PUT /api/tasks/:id
-export const updateTask = async (req, res, next) => {
+// READ
+export async function getTask(req, res, next) {
   try {
-    const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const f = { _id: req.params.taskId };
+    if (req.params.projectId) f.projectId = req.params.projectId;
+    const task = await Task.findOne(f);
     if (!task) return res.status(404).json({ ok: false, error: 'Task not found' });
     res.json({ ok: true, data: task });
-  } catch (err) {
-    next(err);
-  }
-};
+  } catch (err) { next(err); }
+}
 
-// DELETE /api/tasks/:id
-export const deleteTask = async (req, res, next) => {
+// UPDATE
+export async function updateTask(req, res, next) {
   try {
-    const task = await Task.findByIdAndDelete(req.params.id);
+    const f = { _id: req.params.taskId };
+    if (req.params.projectId) f.projectId = req.params.projectId;
+    const task = await Task.findOneAndUpdate(f, req.body, { new: true, runValidators: true });
+    if (!task) return res.status(404).json({ ok: false, error: 'Task not found' });
+    res.json({ ok: true, data: task });
+  } catch (err) { next(err); }
+}
+
+// DELETE
+export async function deleteTask(req, res, next) {
+  try {
+    const f = { _id: req.params.taskId };
+    if (req.params.projectId) f.projectId = req.params.projectId;
+    const task = await Task.findOneAndDelete(f);
     if (!task) return res.status(404).json({ ok: false, error: 'Task not found' });
     res.json({ ok: true, data: { _id: task._id } });
-  } catch (err) {
-    next(err);
-  }
-};
+  } catch (err) { next(err); }
+}
 
-// GET /api/tasks/progress
-export const getProgress = async (req, res, next) => {
+// PROGRESS
+export async function getProgress(req, res, next) {
   try {
-    const total = await Task.countDocuments();
-    const completed = await Task.countDocuments({ status: 'Completed' });
+    const f = {};
+    if (req.params.projectId) f.projectId = req.params.projectId;
+    const total = await Task.countDocuments(f);
+    const completed = await Task.countDocuments({ ...f, status: 'Completed' });
     const percent = total ? Math.round((completed / total) * 100) : 0;
     res.json({ ok: true, data: { completed, total, percent } });
-  } catch (err) {
-    next(err);
-  }
-};
+  } catch (err) { next(err); }
+}

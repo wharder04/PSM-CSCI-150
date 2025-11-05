@@ -1,17 +1,13 @@
-import express from 'express';
+import { Router } from 'express';
+import auth from '../middleware/auth.js';
 import { body } from 'express-validator';
 import { handleValidation } from '../middleware/validate.js';
-import { protect } from '../middleware/authMiddleware.js';
 import { getProfile, updateProfile } from '../controllers/profileController.js';
 
-const router = express.Router();
+const r = Router();
+const statusRule = body('status').optional().isIn(['Active','Offline','Busy','In a Meeting']);
 
-const statusRule = body('status')
-  .optional()
-  .isIn(['Active', 'Offline', 'Busy', 'In a Meeting'])
-  .withMessage('Invalid status');
+r.get('/me', auth, getProfile);
+r.put('/me', auth, statusRule, handleValidation, updateProfile);
 
-router.get('/me', protect, getProfile);
-router.put('/me', protect, statusRule, handleValidation, updateProfile);
-
-export default router;
+export default r;

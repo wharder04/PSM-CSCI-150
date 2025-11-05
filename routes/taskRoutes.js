@@ -1,28 +1,28 @@
-import express from 'express';
+import { Router } from 'express';
 import { body, param } from 'express-validator';
-import { protect } from '../middleware/authMiddleware.js';
+import auth from '../middleware/auth.js';
 import { handleValidation } from '../middleware/validate.js';
 import {
-  createTask, getTasks, updateTask, deleteTask, getProgress,
+  createTask, listTasks, getTask, updateTask, deleteTask, getProgress
 } from '../controllers/taskController.js';
 
-const router = express.Router();
+const r = Router({ mergeParams: true });
 
-const titleRule = body('title').isString().trim().notEmpty().withMessage('Title required');
-const statusRule = body('status')
-  .optional()
-  .isIn(['To-Do', 'In Progress', 'Completed'])
+const titleRule  = body('title').isString().trim().notEmpty().withMessage('Title required');
+const statusRule = body('status').optional()
+  .isIn(['UnAssigned','Assigned','InProgress','Testing','Completed','InComplete'])
   .withMessage('Invalid status');
-const idRule = param('id').isMongoId().withMessage('Invalid id');
+const idRule = param('taskId').isMongoId().withMessage('Invalid task id');
 
-router.get('/progress', protect, getProgress);
+r.get('/progress', auth, getProgress);
 
-router.route('/')
-  .post(protect, titleRule, handleValidation, createTask)
-  .get(protect, getTasks);
+r.route('/')
+  .get(auth, listTasks)
+  .post(auth, titleRule, handleValidation, createTask);
 
-router.route('/:id')
-  .put(protect, idRule, handleValidation, statusRule, handleValidation, updateTask)
-  .delete(protect, idRule, handleValidation, deleteTask);
+r.route('/:taskId')
+  .get(auth, idRule, handleValidation, getTask)
+  .put(auth, idRule, handleValidation, statusRule, handleValidation, updateTask)
+  .delete(auth, idRule, handleValidation, deleteTask);
 
-export default router;
+export default r;
