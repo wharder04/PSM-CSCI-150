@@ -5,7 +5,19 @@
   text-align: center;
 }
 
-p {
+#leftSide h2 {
+  color: black;
+}
+
+#rightSide h2 {
+  color: black;
+}
+
+#rightSide h3 {
+  color: black;
+}
+
+#rightSide p {
   color: black;
 }
 
@@ -13,16 +25,28 @@ p {
   display: flex;
 }
 
-#leftSide {
+.login #leftSide {
   background-color: grey;
   width: 550px;
-  height: 550px
+  height: 550px;
 }
 
-#rightSide {
+.login #rightSide {
   flex: 1;
+  background-color: white;
 }
 
 .createAccount {
   display: flex;
+}
+
+.createAccount #leftSide {
+  background-color: grey;
+  width: 550px;
+  height: 550px;
+}
+
+.createAccount #rightSide {
+  flex: 1;
+  background-color: white;
 }
