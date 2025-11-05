@@ -1,0 +1,74 @@
+html, body, #root { height: 100%; }
+body { display: block; }           /* overrides Vite’s flex centering */
+#root { max-width: none; padding: 0; }
+
+
+.SetPass-page .Pass-Page{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100vh;
+  width: 100vw;
+}
+
+.SetPass-page .left-side {
+  background-color: rgb(194, 189, 189);
+}
+
+.SetPass-page .right-side {
+  position: relative;
+  background-color: white;
+  color: black;
+  padding-top: 150px;
+  padding-left: 60px;
+  display: flex;
+  flex-direction: column;
+}
+.SetPass-page .right-side h1 {
+  margin-bottom: 10px;
+}
+
+.SetPass-page .right-side p {
+  margin-top: 0px;
+  font-size: 10px;
+    margin-bottom: 30px;
+}
+
+.SetPass-page .right-side input {
+  margin-top: 5px;
+  margin-left: 5px;
+  margin-right: 60px;
+  margin-bottom: 20px;
+  padding: 12px;
+  background-color: rgb(194, 189, 189);
+  border: none;
+  border-radius: 8px;
+}
+.SetPass-page .right-side button {
+  margin-top: 5px;
+  margin-left: 5px;
+  margin-right: 60px;
+  margin-bottom: 20px;
+  padding: 12px;
+  background-color: rgb(194, 189, 189);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+
+.SetPass-page .back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 40px;              /* make sure width and height are equal */
+  height: 40px;
+  border-radius: 50% !important;    /* perfect circle */
+  background-color: black !important;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

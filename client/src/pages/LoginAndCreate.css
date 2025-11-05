@@ -1,0 +1,28 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+p {
+  color: black;
+}
+
+.login {
+  display: flex;
+}
+
+#leftSide {
+  background-color: grey;
+  width: 550px;
+  height: 550px
+}
+
+#rightSide {
+  flex: 1;
+}
+
+.createAccount {
+  display: flex;
+}

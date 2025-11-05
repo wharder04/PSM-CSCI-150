@@ -1,13 +1,12 @@
 # Node modules
-node_modules/
+server/node_modules/
+client/node_modules/
 
 # Environment variables
+server/.env
+client/.env
 .env
+.env.*
 
-# Logs
-npm-debug.log
-yarn-error.log
-
-# OS
-.DS_Store
-Thumbs.db
+#Build ouputs
+dist/
