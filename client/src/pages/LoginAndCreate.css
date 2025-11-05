@@ -1,33 +1,33 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
+html, body, #root { height: 100%; }
+body { display: block; }           /* overrides Vite’s flex centering */
+#root { max-width: none; padding: 0; }
 
 .loginPage .login {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   height: 100vh;
   width: 100vw;
 }
 
 .createAccountPage .createAccount {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   height:100vh;
   width: 100vw;
 }
-
-#leftSide h2 {
+.leftSide h2 {
   color: black;
 }
 
-#rightSide h2 {
+.rightSide h2 {
   color: black;
 }
 
-#rightSide h3 {
+.rightSide h3 {
   color: black;
 }
 
-#rightSide p {
+.rightSide p {
   color: black;
 }
 
@@ -35,13 +35,13 @@
   display: flex;
 }
 
-.login #leftSide {
+.login .leftSide {
   background-color: grey;
   width: 550px;
   height: 550px;
 }
 
-.login #rightSide {
+.login .rightSide {
   flex: 1;
   background-color: white;
 }
@@ -50,13 +50,13 @@
   display: flex;
 }
 
-.createAccount #leftSide {
+.createAccount .leftSide {
   background-color: grey;
   width: 550px;
   height: 550px;
 }
 
-.createAccount #rightSide {
+.createAccount .rightSide {
   flex: 1;
   background-color: white;
 }

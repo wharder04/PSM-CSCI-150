@@ -18,10 +18,10 @@ function AccountCreate() {
     <>
       <div className ="createAccountPage">
         <div className="createAccount">
-          <div id="leftSide">
+          <div className="leftSide">
             <h2>Let's Get Started</h2>
           </div>
-          <div id="rightSide">
+          <div className="rightSide">
             <h2>Create Account</h2>
             <p>Enter your details to create account</p>
             <label for="fname">First name:</label>

@@ -18,8 +18,8 @@ function Login() {
     <>
       <div className="loginPage">
         <div className="login">
-          <div id="leftSide"></div>
-          <div id="rightSide">
+          <div className="leftSide"></div>
+          <div className="rightSide">
             <h2>Welcome Back</h2>
             <h3>Login in to your account</h3>
             <label for="username">Username:</label>
