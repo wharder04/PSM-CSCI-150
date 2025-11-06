@@ -5,6 +5,7 @@ import Verfication from "./pages/Verification.jsx";
 import Login from "./pages/Login.jsx";
 import Landing from "./pages/Landing.jsx";
 import AccountCreate from "./pages/AccountCreate.jsx";
+import ProjectsPage from "./pages/Dashboard/ProjectsPage.jsx";
 
 export default function App() {
   return (
