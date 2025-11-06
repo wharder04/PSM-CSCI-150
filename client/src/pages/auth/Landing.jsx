@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 function Landing() {
   const navigate = useNavigate();
 
-
   return (
     <>
       <h1 className="">Landing Page Here</h1>

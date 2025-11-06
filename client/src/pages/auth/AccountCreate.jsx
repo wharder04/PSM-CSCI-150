@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./LoginAndCreate.css";
-import { authService } from "../../services/api";
+import { authService } from "../../../services/api";
 
 function AccountCreate() {
   const [fname, setFname] = useState("");
   const [lname, setLname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleRegister = async (event) => {
     event.preventDefault();
@@ -21,6 +22,7 @@ function AccountCreate() {
     const data = await authService.register(obj);
     if (data.success) {
       alert("User Registration Succesfull");
+      navigate("/login");
     } else {
       alert("Something Went Wrong");
     }

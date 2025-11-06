@@ -1,11 +1,11 @@
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
-import ForgotPassword from "./pages/ForgotPassword.jsx";
-import SetPassword from "./pages/Setpassword.jsx";
-import Verfication from "./pages/Verification.jsx";
-import Login from "./pages/Login.jsx";
-import Landing from "./pages/Landing.jsx";
-import AccountCreate from "./pages/AccountCreate.jsx";
-import ProjectsPage from "./pages/Dashboard/ProjectsPage.jsx";
+import SetPassword from "./pages/auth/Setpassword.jsx";
+import Verfication from "./pages/auth/Verification.jsx";
+import Login from "./pages/auth/Login.jsx";
+import Landing from "./pages/auth/Landing.jsx";
+import AccountCreate from "./pages/auth/AccountCreate.jsx";
+import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
+import ProjectsPage from "./pages/projects/ProjectsPage.jsx";
 
 export default function App() {
   return (
@@ -17,6 +17,8 @@ export default function App() {
         <Route path="/auth/forgot" element={<ForgotPassword />} />
         <Route path="/auth/verify" element={<Verfication />} />
         <Route path="/auth/reset" element={<SetPassword />} />
+        <Route path="/home" />
+        <Route path="/projects" element={<ProjectsPage />} />
       </Routes>
     </div>
   );
