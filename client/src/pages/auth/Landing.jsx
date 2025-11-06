@@ -9,7 +9,7 @@ function Landing() {
     <>
       <h1 className="">Landing Page Here</h1>
       <button onClick={() => navigate("/auth/login")}>Go to Login</button>
-      <button onClick={() => navigate("/auth/projects")}>Go to Projects</button>
+      <button onClick={() => navigate("/projects")}>Go to Projects</button>
     </>
   );
 }
