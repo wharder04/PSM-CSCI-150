@@ -17,6 +17,7 @@ export default function App() {
         <Route path="/auth/forgot" element={<ForgotPassword />} />
         <Route path="/auth/verify" element={<Verfication />} />
         <Route path="/auth/reset" element={<SetPassword />} />
+
         <Route path="/home" />
         <Route path="/projects" element={<ProjectsPage />} />
       </Routes>
