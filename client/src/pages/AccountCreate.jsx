@@ -1,52 +1,93 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import './LoginAndCreate.css';
+import "./LoginAndCreate.css";
+import { authService } from "../../services/api";
 
 function AccountCreate() {
-  const [userName, setUserName] = useState("");
+  const [fname, setFname] = useState("");
+  const [lname, setLname] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleUserName = (e) => {
-    setUserName(e.target.value);
-  };
+  const handleRegister = async (event) => {
+    event.preventDefault();
+    const obj = {
+      fname: fname,
+      lname: lname,
+      email: email,
+      password: password,
+    };
 
-  const handlePassword = (e) => {
-    setPassword(e.target.value);
+    const data = await authService.register(obj);
+    if (data.success) {
+      alert("User Registration Succesfull");
+    } else {
+      alert("Something Went Wrong");
+    }
   };
 
   return (
     <>
-      <div className ="createAccountPage">
+      <div className="createAccountPage">
         <div className="createAccount">
           <div className="leftSide">
             <h2>Let's Get Started</h2>
           </div>
-          <div className="rightSide">
+          <form onSubmit={handleRegister} className="rightSide">
             <h2>Create Account</h2>
             <p>Enter your details to create account</p>
-            <label for="fname">First name:</label>
-            <br />
-            <input type="text" id="fname" name="fname" />
-            <br />
-            <label for="lname">Last name:</label>
-            <br />
-            <input type="text" id="lname" name="lname" />
-            <br />
-            <label for="email">Email:</label>
-            <br />
-            <input type="text" id="email" name="email" />
-            <br />
-            <label for="password">Password:</label>
-            <br />
-            <input type="text" id="password" name="password" />
-            <br />
-            <button type="signup">Sign up</button>
-            <p>or</p>
-            <br />
-            <button>Google</button>
+            <div className="input-field">
+              <label for="fname">First name:</label>
+              <input
+                type="text"
+                id="fname"
+                name="fname"
+                value={fname}
+                onChange={(e) => setFname(e.target.value)}
+              />
+            </div>
+
+            <div className="input-field">
+              <label for="lname">Last name:</label>
+              <input
+                type="text"
+                id="lname"
+                name="lname"
+                value={lname}
+                onChange={(e) => setLname(e.target.value)}
+              />
+            </div>
+            <div className="input-field">
+              <label for="email">Email:</label>
+              <input
+                type="text"
+                id="email"
+                name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="input-field">
+              <label for="password">Password:</label>
+              <input
+                type="text"
+                id="password"
+                name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+
+            <div className="buttons-section">
+              <button type="signup">Sign up</button>
+              <p>or</p>
+              <br />
+              <button>Google</button>
+            </div>
+
             <p>Already have an account?</p>
             <Link to="/auth/login">Login here</Link>
-          </div>
+          </form>
         </div>
       </div>
     </>
