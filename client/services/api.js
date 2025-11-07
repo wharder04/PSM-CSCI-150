@@ -41,7 +41,6 @@ export const authService = {
       });
       return response.data;
     } catch (error) {
-      alert("Error in Login");
       console.log("error obj", error);
     }
   },

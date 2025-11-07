@@ -16,10 +16,10 @@ function Login() {
       if (data.success) {
         alert(data.user.name + " LoggedIn Succesfully");
         navigate("/home"); // Redirect to dashboard
-        return;
       } else {
-        alert("Invalid Credentials");
+        alert(data.message);
       }
+      return;
     } catch (error) {
       console.log("Login page Error: ", error);
     }

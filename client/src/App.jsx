@@ -10,7 +10,7 @@ import Dashboard from "./pages/dashboard/DashboardPage.jsx";
 
 export default function App() {
   return (
-    <div>
+    <div className="w-full">
       <Routes>
         <Route path="/" element={<Landing />}></Route>
         <Route path="/auth/login" element={<Login />}></Route>

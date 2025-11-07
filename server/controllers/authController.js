@@ -47,11 +47,11 @@ export const loginUser = async (req, res, next) => {
     const { email, password, remember = true } = req.body;
     const user = await User.findOne({ email: email }).select("+password");
     if (!user)
-      return res.status(401).json({ ok: false, error: "Invalid credentials" });
+      return res.json({ success: false, message: "Invalid credentials" });
 
     const match = await user.comparePassword(password);
     if (!match)
-      return res.status(401).json({ ok: false, error: "Invalid credentials" });
+      return res.json({ success: false, message: "Invalid credentials" });
 
     const token = sign(user._id, remember);
     setAuthCookie(res, token, remember);
