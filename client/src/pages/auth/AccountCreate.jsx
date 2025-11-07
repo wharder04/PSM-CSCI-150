@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "./LoginAndCreate.css";
 import { authService } from "../../../services/api";
 
 function AccountCreate() {
@@ -29,70 +28,69 @@ function AccountCreate() {
   };
 
   return (
-    <>
-      <div className="createAccountPage">
-        <div className="createAccount">
-          <div className="leftSide">
-            <h2>Let's Get Started</h2>
-          </div>
-          <form onSubmit={handleRegister} className="rightSide">
-            <h2>Create Account</h2>
-            <p>Enter your details to create account</p>
-            <div className="input-field">
-              <label for="fname">First name:</label>
-              <input
-                type="text"
-                id="fname"
-                name="fname"
-                value={fname}
-                onChange={(e) => setFname(e.target.value)}
-              />
-            </div>
-
-            <div className="input-field">
-              <label for="lname">Last name:</label>
-              <input
-                type="text"
-                id="lname"
-                name="lname"
-                value={lname}
-                onChange={(e) => setLname(e.target.value)}
-              />
-            </div>
-            <div className="input-field">
-              <label for="email">Email:</label>
-              <input
-                type="text"
-                id="email"
-                name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="input-field">
-              <label for="password">Password:</label>
-              <input
-                type="text"
-                id="password"
-                name="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-
-            <div className="buttons-section">
-              <button type="signup">Sign up</button>
-              <p>or</p>
-              <br />
-              <button>Google</button>
-            </div>
-
-            <p>Already have an account?</p>
-            <Link to="/auth/login">Login here</Link>
-          </form>
+    <form onSubmit={handleRegister} className="w-full h-screen flex">
+      <div className="bg-gray-300 w-1/2 h-full"></div>
+      <div className="w-1/2 h-full flex flex-col justify-center items-center bg-gray-800">
+        <p className="text-5xl font-medium mb-4">Create Account</p>
+        <p className="text-lg font-medium mb-8">
+          Enter your details to create account
+        </p>
+        <div className="w-[40%] flex flex-col mb-8 text-white">
+          <label>First name:</label>
+          <input
+            type="text"
+            id="fname"
+            name="fname"
+            value={fname}
+            onChange={(e) => setFname(e.target.value)}
+            className="px-4 py-3 rounded-xl bg-gray-700"
+          />
         </div>
+
+        <div className="w-[40%] flex flex-col mb-8 text-white">
+          <label>Last name:</label>
+          <input
+            type="text"
+            id="lname"
+            name="lname"
+            value={lname}
+            onChange={(e) => setLname(e.target.value)}
+            className="px-4 py-3 rounded-xl bg-gray-700"
+          />
+        </div>
+        <div className="w-[40%] flex flex-col mb-8 text-white">
+          <label>Email:</label>
+          <input
+            type="text"
+            id="email"
+            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="px-4 py-3 rounded-xl bg-gray-700"
+          />
+        </div>
+        <div className="w-[40%] flex flex-col mb-8 text-white">
+          <label>Password:</label>
+          <input
+            type="text"
+            id="password"
+            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="px-4 py-3 rounded-xl bg-gray-700"
+          />
+        </div>
+
+        <div className="flex gap-4 items-center mb-4">
+          <button type="signup">Sign up</button>
+          <p>or</p>
+          <button>Google</button>
+        </div>
+
+        <p>Already have an account?</p>
+        <Link to="/auth/login">Login here</Link>
       </div>
-    </>
+    </form>
   );
 }
 

@@ -1,0 +1,9 @@
+.projects-page {
+  height: 100vh;
+  width: 100vw;
+  background-color: White;
+}
+
+.projects-page h1 {
+  color: grey;
+}

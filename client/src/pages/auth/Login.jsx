@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import "./LoginAndCreate.css";
 import { authService } from "../../../services/api";
 import { useNavigate } from "react-router-dom";
 
@@ -11,57 +10,59 @@ function Login() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const data = await authService.login(email, password);
-    console.log(data);
-    if (data.success) {
-      alert(data.user.name + " LoggedIn Succesfully");
-      navigate("/home"); // Redirect to dashboard
-      return;
-    } else {
-      alert("Invalid Credentials");
+    try {
+      const data = await authService.login(email, password);
+      // console.log(data);
+      if (data.success) {
+        alert(data.user.name + " LoggedIn Succesfully");
+        navigate("/home"); // Redirect to dashboard
+        return;
+      } else {
+        alert("Invalid Credentials");
+      }
+    } catch (error) {
+      console.log("Login page Error: ", error);
     }
   };
 
   return (
-    <>
-      <div className="loginPage">
-        <form onSubmit={handleSubmit} className="login">
-          <div className="leftSide"></div>
-          <div className="rightSide">
-            <h2>Welcome Back</h2>
-            <h3>Login in to your account</h3>
-            <div className="input-field">
-              <label for="email">Email:</label>
-              <input
-                type="text"
-                id="email"
-                name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="input-field">
-              <label for="password">Password:</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <br />
-            <button type="submit">Sign in</button>
-            <p>
-              <Link to="/auth/forgot"> Forgot Password </Link>
-            </p>
-            <p>
-              Don't have an account? <Link to="/auth/register">Sign up</Link>
-            </p>
-          </div>
-        </form>
+    <form onSubmit={handleSubmit} className="w-full h-screen flex">
+      <div className="bg-gray-300 w-1/2 h-full"></div>
+      <div className="w-1/2 h-full flex flex-col justify-center items-center bg-gray-800">
+        <p className="text-5xl font-medium mb-4">Welcome Back</p>
+        <p className="text-lg font-medium mb-8">Login in to your account</p>
+        <div className="w-[40%] flex flex-col mb-8 text-white">
+          <label className="font-medium">Email:</label>
+          <input
+            type="text"
+            id="email"
+            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="px-4 py-3 rounded-xl bg-gray-700"
+          />
+        </div>
+        <div className="w-[40%] flex flex-col mb-8 text-white">
+          <label className="font-medium">Password:</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="px-4 py-3 rounded-xl bg-gray-700"
+          />
+        </div>
+        <br />
+        <button type="submit">Sign in</button>
+        <p>
+          <Link to="/auth/forgot"> Forgot Password </Link>
+        </p>
+        <p>
+          Don't have an account? <Link to="/auth/register">Sign up</Link>
+        </p>
       </div>
-    </>
+    </form>
   );
 }
 

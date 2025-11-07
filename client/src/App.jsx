@@ -6,6 +6,7 @@ import Landing from "./pages/auth/Landing.jsx";
 import AccountCreate from "./pages/auth/AccountCreate.jsx";
 import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 import ProjectsPage from "./pages/projects/ProjectsPage.jsx";
+import Dashboard from "./pages/dashboard/DashboardPage.jsx";
 
 export default function App() {
   return (
@@ -18,7 +19,7 @@ export default function App() {
         <Route path="/auth/verify" element={<Verfication />} />
         <Route path="/auth/reset" element={<SetPassword />} />
 
-        <Route path="/home" />
+        <Route path="/home" element={<Dashboard />} />
         <Route path="/projects" element={<ProjectsPage />} />
       </Routes>
     </div>

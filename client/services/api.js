@@ -41,7 +41,8 @@ export const authService = {
       });
       return response.data;
     } catch (error) {
-      console.log(error);
+      alert("Error in Login");
+      console.log("error obj", error);
     }
   },
   register: async (userData) => {

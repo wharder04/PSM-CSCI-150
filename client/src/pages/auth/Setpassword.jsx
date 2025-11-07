@@ -1,5 +1,5 @@
 import React from "react";
-import "./SetPass.css";
+import "../../css/SetPass.css";
 import { useNavigate } from "react-router-dom";
 
 export default function SetPassword() {
@@ -13,19 +13,23 @@ export default function SetPassword() {
     console.log("Continue clicked");
   }
 
-
-    return (
+  return (
     <div className="SetPass-page">
-    <div className="Pass-Page">
-      <div className="left-side"></div>
-      <div className="right-side">
-        <h1>Set Password</h1>
-        <p>Password requires minimum of 8 characters and contains a capital letter, number and symbol</p>
-        <input type="password" placeholder="Enter your password" />
-        <button onClick={continueClicked}>Continue</button>
-        <button className="back-button" onClick={handleBackArrow}>←</button>
+      <div className="Pass-Page">
+        <div className="left-side"></div>
+        <div className="right-side">
+          <h1>Set Password</h1>
+          <p>
+            Password requires minimum of 8 characters and contains a capital
+            letter, number and symbol
+          </p>
+          <input type="password" placeholder="Enter your password" />
+          <button onClick={continueClicked}>Continue</button>
+          <button className="back-button" onClick={handleBackArrow}>
+            ←
+          </button>
         </div>
-    </div>
+      </div>
     </div>
   );
 }

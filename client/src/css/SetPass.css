@@ -1,9 +1,4 @@
-html, body, #root { height: 100%; }
-body { display: block; }           /* overrides Vite’s flex centering */
-#root { max-width: none; padding: 0; }
-
-
-.SetPass-page .Pass-Page{
+.SetPass-page .Pass-Page {
   display: grid;
   grid-template-columns: 1fr 1fr;
   height: 100vh;
@@ -30,7 +25,7 @@ body { display: block; }           /* overrides Vite’s flex centering */
 .SetPass-page .right-side p {
   margin-top: 0px;
   font-size: 10px;
-    margin-bottom: 30px;
+  margin-bottom: 30px;
 }
 
 .SetPass-page .right-side input {
@@ -55,14 +50,13 @@ body { display: block; }           /* overrides Vite’s flex centering */
   cursor: pointer;
 }
 
-
 .SetPass-page .back-button {
   position: absolute;
   top: 20px;
   left: 20px;
-  width: 40px;              /* make sure width and height are equal */
+  width: 40px; /* make sure width and height are equal */
   height: 40px;
-  border-radius: 50% !important;    /* perfect circle */
+  border-radius: 50% !important; /* perfect circle */
   background-color: black !important;
   border: none;
   color: white;

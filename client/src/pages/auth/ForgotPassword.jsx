@@ -1,14 +1,13 @@
-import "./ForgotPassword.css";
+import "../../css/ForgotPassword.css";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
-  const[email, setEmail] = useState("");
+  const [email, setEmail] = useState("");
 
   function handleResetButton() {
-    
-    if (email.trim()!=="") {
+    if (email.trim() !== "") {
       console.log("Reset password for email:", email);
       navigate("/auth/verify");
     } else {
@@ -39,11 +38,11 @@ export default function ForgotPassword() {
             Your Password?
           </h1>
           <p> Email</p>
-          <input 
-          type="email" 
-          placeholder="Enter your email" 
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
           <button onClick={handleResetButton}>Reset Password</button>
           <button onClick={handlebSignIn}>Back to Sign In</button>

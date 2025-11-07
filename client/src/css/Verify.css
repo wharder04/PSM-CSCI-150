@@ -1,20 +1,15 @@
-html, body, #root { height: 100%; }
-body { display: block; }           /* overrides Vite’s flex centering */
-#root { max-width: none; padding: 0; }
-
-
-.forgot-page .forgot{
+.verification-page .verify-page {
   display: grid;
   grid-template-columns: 1fr 1fr;
   height: 100vh;
   width: 100vw;
 }
 
-.forgot-page .left-side {
+.verification-page .left-side {
   background-color: rgb(194, 189, 189);
 }
 
-.forgot-page .right-side {
+.verification-page .right-side {
   position: relative;
   background-color: white;
   color: black;
@@ -23,20 +18,24 @@ body { display: block; }           /* overrides Vite’s flex centering */
   display: flex;
   flex-direction: column;
 }
-.forgot-page .right-side h1 {
-  margin-bottom: 40px;
+.verification-page .right-side h1 {
+  margin-bottom: 2px;
 }
-.forgot-page .right-side input {
-  margin-top: 5px;
+.verification-page .right-side p {
+  margin-top: 0px;
+  font-size: small;
+}
+.verification-page .right-side input {
+  margin-top: 75px;
   margin-left: 5px;
   margin-right: 60px;
-  margin-bottom: 75px;
+  margin-bottom: 10px;
   padding: 12px;
   background-color: rgb(194, 189, 189);
   border: none;
   border-radius: 8px;
 }
-.forgot-page .right-side button {
+.verification-page .right-side button {
   margin-top: 5px;
   margin-left: 5px;
   margin-right: 60px;
@@ -48,15 +47,13 @@ body { display: block; }           /* overrides Vite’s flex centering */
   cursor: pointer;
 }
 
-
-
-.forgot-page .back-button {
+.verification-page .back-button {
   position: absolute;
   top: 20px;
   left: 20px;
-  width: 40px;              
+  width: 40px; /* make sure width and height are equal */
   height: 40px;
-  border-radius: 50% !important;    /* perfect circle */
+  border-radius: 50% !important; /* perfect circle */
   background-color: black !important;
   border: none;
   color: white;

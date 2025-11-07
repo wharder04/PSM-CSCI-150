@@ -1,5 +1,5 @@
-import "./Projects-Page.css";
-import DashboardLayout from "../Dashboard/DashboardLayout.jsx";
+import "../../css/Projects-Page.css";
+import DashboardLayout from "../dashboard/DashboardLayout.jsx";
 
 export default function ProjectsPage() {
   return (
