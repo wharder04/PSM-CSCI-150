@@ -11,19 +11,21 @@ function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen p-8 bg-gray-100">
+      <div className="min-h-screen p-8 bg-gray-100 text-black">
         <div className="mb-10">
-          <h2 className="text-3xl font-bold mb-6">My Dashboard</h2>
+          <h2 className="text-3xl font-bold text-black font-sans mb-6">My Dashboard</h2>
           <div className="bg-gray-300 rounded-xl p-10 shadow-inner">
-            <p className="text-2xl font-semibold">Good Morning</p>
+            <p className="text-2xl text-black font-sans font-semibold">Good Morning</p>
           </div>
         </div>
         <div className="flex gap-10">
           <div className="flex-1">
-            <h2 className="text-xl font-bold">Your Projects</h2>
-            <p className="text-gray-500">Here's an overview of your group projects</p>
+            <h2 className="text-xl text-black font-sans font-bold">Your Projects</h2>
+            <p className="text-gray-500 font-sans">Here's an overview of your group projects</p>
           </div>
-          <div className="flex-1"></div>
+          <div className="flex-1">
+            <button className ="bg-gray-300 text-black font-sans rounded w-32 h-10">Create New</button>
+          </div>
         </div>
       </div>
     </DashboardLayout>

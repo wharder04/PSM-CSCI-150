@@ -5,24 +5,24 @@ function TaskBoard () {
         <DashboardLayout>
             <div>
                 <div>
-                    <h2>Task Board</h2>
-                    <p>Drag tasks to update their status</p>
+                    <h2 className="text-3xl font-bold text-black mb-6">Task Board</h2>
+                    <p className="text-2xl text-black font-semibold">Drag tasks to update their status</p>
                 </div>
                 <div>
                     <div>
-                        <p>Unassigned</p>
+                        <p className="text-black font-sans">Unassigned</p>
                     </div>
                     <div>
-                        <p>Assigned</p>
+                        <p className="text-black font-sans">Assigned</p>
                     </div>
                     <div>
-                        <p>In Progress</p>
+                        <p className="text-black font-sans">In Progress</p>
                     </div>
                     <div>
-                        <p>Completed</p>
+                        <p className="text-black font-sans">Completed</p>
                     </div>
                     <div>
-                        <p>Incomplete</p>
+                        <p className="text-black font-sans">Incomplete</p>
                     </div>
                 </div>
             </div>
