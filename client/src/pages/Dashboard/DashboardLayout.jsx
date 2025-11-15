@@ -1,4 +1,8 @@
+import { Link } from "react-router-dom";
 import "../../css/./DashboardLayout.css";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../AuthContext.jsx";
+
 import {
   MdHome,
   MdCheckCircle,
@@ -8,22 +12,42 @@ import {
   MdLogout,
 } from "react-icons/md";
 export default function DashboardLayout({ children }) {
+  const navigate = useNavigate();
+
+  const { logout } = useAuth();
+  const handleLogout = async (event) => {
+    event.preventDefault();
+    logout();
+    alert("User Logged Out Successfully!");
+    navigate("/");
+  };
+
   return (
     <div className="dashboard-layout">
       <div className="dashboard-sidebar">
         <div className="sidebar-icons">
-          <MdHome size={30} />
-          <MdCheckCircle size={30} />
-          <MdFolder size={30} />
+          <Link to="/home">
+            <MdHome size={30} />
+          </Link>
+
+          <Link to="/auth/forgot">
+            <MdCheckCircle size={30} />
+          </Link>
+
+          <Link to="/projects">
+            <MdFolder size={30} />
+          </Link>
 
           <div className="sidebar-spacer"></div>
 
-          <MdSettings size={30} />
+          <Link to="/settings">
+            <MdSettings size={30} />
+          </Link>
 
           <div className="sidebar-spacer"></div>
-
-          <MdAdd size={30} />
-          <MdLogout size={30} />
+          <button onClick={handleLogout}>
+            <MdLogout size={30} />
+          </button>
         </div>
       </div>
       <div className="dashboard-content">{children}</div>

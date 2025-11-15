@@ -44,6 +44,7 @@ function AccountCreate() {
             value={fname}
             onChange={(e) => setFname(e.target.value)}
             className="px-4 py-3 rounded-xl bg-gray-700"
+            required
           />
         </div>
 
@@ -56,6 +57,7 @@ function AccountCreate() {
             value={lname}
             onChange={(e) => setLname(e.target.value)}
             className="px-4 py-3 rounded-xl bg-gray-700"
+            required
           />
         </div>
         <div className="w-[40%] flex flex-col mb-8 text-white">
@@ -67,6 +69,7 @@ function AccountCreate() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="px-4 py-3 rounded-xl bg-gray-700"
+            required
           />
         </div>
         <div className="w-[40%] flex flex-col mb-8 text-white">
@@ -78,6 +81,7 @@ function AccountCreate() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="px-4 py-3 rounded-xl bg-gray-700"
+            required
           />
         </div>
 

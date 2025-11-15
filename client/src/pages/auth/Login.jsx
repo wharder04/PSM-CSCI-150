@@ -2,11 +2,13 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { authService } from "../../../services/api";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../AuthContext.jsx";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -14,6 +16,7 @@ function Login() {
       const data = await authService.login(email, password);
       // console.log(data);
       if (data.success) {
+        login(data.user, data.token); // Store user data and token in context
         alert(data.user.name + " LoggedIn Succesfully");
         navigate("/home"); // Redirect to dashboard
       } else {

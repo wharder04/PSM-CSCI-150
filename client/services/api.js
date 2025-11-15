@@ -19,18 +19,18 @@ function getCookie(name) {
 }
 
 // Add request interceptor to add auth token only for authenticated requests
-// api.interceptors.request.use(
-//   (config) => {
-//     const token = getCookie("token");
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   }
-// );
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 export const authService = {
   login: async (email, password) => {
