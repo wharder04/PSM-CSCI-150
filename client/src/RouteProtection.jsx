@@ -9,6 +9,8 @@ import AccountCreate from "./pages/auth/AccountCreate.jsx";
 import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 import ProjectsPage from "./pages/projects/ProjectsPage.jsx";
 import Dashboard from "./pages/dashboard/DashboardPage.jsx";
+import TaskBoard from "./pages/TaskBoard/TaskBoard.jsx";
+import DashboardLayout from "./pages/dashboard/DashboardLayout.jsx";
 
 const RouteProtection = () => {
   const { isAuthenticated } = useAuth();
@@ -53,7 +55,9 @@ const RouteProtection = () => {
         path="/home"
         element={
           isAuthenticated ? (
-            <Dashboard />
+            <DashboardLayout>
+              <Dashboard />
+            </DashboardLayout>
           ) : (
             <Navigate to="/auth/login" replace />
           )
@@ -63,7 +67,21 @@ const RouteProtection = () => {
         path="/projects"
         element={
           isAuthenticated ? (
-            <ProjectsPage />
+            <DashboardLayout>
+              <ProjectsPage />
+            </DashboardLayout>
+          ) : (
+            <Navigate to="/auth/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/tasks"
+        element={
+          isAuthenticated ? (
+            <DashboardLayout>
+              <TaskBoard />
+            </DashboardLayout>
           ) : (
             <Navigate to="/auth/login" replace />
           )

@@ -37,6 +37,9 @@ export default function DashboardLayout({ children }) {
           <Link to="/projects">
             <MdFolder size={30} />
           </Link>
+          <Link to="/tasks">
+            <MdSettings size={30} />
+          </Link>
 
           <div className="sidebar-spacer"></div>
 

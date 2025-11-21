@@ -21,7 +21,7 @@ function AccountCreate() {
     const data = await authService.register(obj);
     if (data.success) {
       alert("User Registration Succesfull");
-      navigate("/login");
+      navigate("auth/login");
     } else {
       alert("Something Went Wrong");
     }
