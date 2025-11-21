@@ -10,7 +10,7 @@ function Dashboard() {
   const [totalTasksCompleted, setTotalTasksCompleted] = useState(0);
 
   return (
-    <div className="min-h-screen p-8 bg-gray-100 text-black">
+    <div className="flex w-full h-screen p-8 bg-gray-100 text-black">
       <div className="mb-10">
         <h2 className="text-3xl font-bold text-black font-sans mb-6">
           My Dashboard

@@ -9,7 +9,7 @@ function TaskBoard() {
   const [incompleteTasks, setIncompleteTasks] = useState([]);
 
   return (
-    <div className="min-h-screen p-8 bg-gray-100 text-black">
+    <div className="flex w-full h-screen p-8 bg-gray-100 text-black">
       <div>
         <h2 className="text-3xl font-bold text-black mb-6">Task Board</h2>
         <p className="text-2xl text-black font-semibold">
