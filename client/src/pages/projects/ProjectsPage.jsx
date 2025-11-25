@@ -19,7 +19,7 @@ function ProjectCard({
     : percent;
 
   return (
-    // Outermost card container
+    // Outer card container
     <div className="w-[320px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
       <div className="bg-[rgb(194,189,189)] px-5 pt-5 pb-4">
         <h3 className="text-xl font-semibold text-black leading-snug">
@@ -109,6 +109,13 @@ export default function ProjectsPage() {
             remainingTasks={project.remainingTasks}
           />
         ))}
+      </div>
+
+
+      <div className="fixed bottom-10 right-10 z-50">
+        <button className="bg-[rgb(194,189,189)] text-black px-6 py-2 rounded-full shadow-md hover:bg-gray-800">
+          Create New +
+        </button>
       </div>
     </div>
   );
