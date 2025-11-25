@@ -12,5 +12,18 @@
         "dueDate": "11/30/2025",
         "class": "CSCI 200",
         "status": "Completed"
+    },
+    {
+        "id": 3,
+        "name": "Mobile App Prototype",
+        "description": "This is a mobile development project focusing on a functional prototype.",
+        "totalTasks": 5,
+        "assignedTasks": 4,
+        "incompleteTasks": 2,
+        "completedTasks": 2,
+        "overdueTasks": 1,
+        "dueDate": "12/15/2025",
+        "class": "CSCI 150",
+        "status":"In Progress"
     }
 ]
