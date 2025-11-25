@@ -3,8 +3,10 @@
         "id": 1,
         "name": "PSM",
         "dueDate": "12/15/2025",
-        "class": "CSCI 150",
-        "status": "In Progress"
+        "classname": "CSCI 150",
+        "status": "In Progress",
+        "progress": 60,
+        "remainingTasks": 8
     },
     {
         "id": 2,

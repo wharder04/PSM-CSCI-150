@@ -1,7 +1,71 @@
+import projectData from "../../data/projects.json";
 
+// Component for individual project cards
+function ProjectCard({
+  name,
+  className,
+  dueDate,
+  status,
+  progress,
+  remainingTasks,
+}) {
+  // calculations for effective progress, in case of finished project
+  const tasks = Number(remainingTasks ?? 0);
+  const allTasksDone = tasks === 0;
 
+  const percent = Number(progress);
+  const effectiveProgress = Number.isNaN(percent)
+    ? (allTasksDone ? 100 : 0)
+    : percent;
+
+  return (
+    // Outermost card container
+    <div className="w-[320px] bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+      <div className="bg-[rgb(194,189,189)] px-5 pt-5 pb-4">
+        <h3 className="text-xl font-semibold text-black leading-snug">
+          {name}
+        </h3>
+        <p className="mt-1 text-xs text-gray-700 italic">
+          {className}
+        </p>
+      </div>
+
+      {/* BOTTOM SECTION */}
+      <div className="px-5 py-4">
+        <div className="flex items-center justify-between text-xs text-gray-700">
+          <span>
+            {allTasksDone
+              ? "All Tasks Completed"
+              : `${tasks} Incomplete Tasks`}
+          </span>
+
+          <span className="flex items-center gap-1">
+            <span className="text-[11px]"></span>
+            <span>{dueDate}</span>
+          </span>
+        </div>
+
+        {/* progress bar */}
+        <div className="mt-4 h-2 w-full rounded-full bg-gray-300">
+          <div
+            className="h-full rounded-full bg-gray-600"
+            style={{ width: `${effectiveProgress}%` }}
+          />
+        </div>
+
+        <p className="mt-2 text-xs text-gray-700">
+          Completed: <span className="font-semibold">{effectiveProgress}%</span>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+//Projects page ui
 export default function ProjectsPage() {
   let name = "PSM Group";
+
+  console.log("projectData =", projectData);
 
   return (
     <div className="min-h-screen w-full bg-white">
@@ -31,6 +95,20 @@ export default function ProjectsPage() {
         <button className="rounded-lg bg-white px-4 py-2 text-black cursor-pointer">
           Completed
           </button>
+      </div>
+
+      <div className="mt-8 ml-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {projectData.slice(0, 2).map((project) => (
+          <ProjectCard
+            key={project.id}
+            name={project.name}
+            className={project.className}
+            dueDate={project.dueDate}
+            status={project.status}
+            progress={project.progress}
+            remainingTasks={project.remainingTasks}
+          />
+        ))}
       </div>
     </div>
   );
