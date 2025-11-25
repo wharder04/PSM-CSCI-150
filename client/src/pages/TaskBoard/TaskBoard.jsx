@@ -1,12 +1,20 @@
 import { useState } from "react";
+import tasksData from "../../data/tasks.json";
 import { MdAdd } from "react-icons/md";
 
+
+
 function TaskBoard() {
-  const [unAssignedTasks, setUnassignedTasks] = useState([]);
-  const [assignedTasks, setAssignedTasks] = useState([]);
-  const [inProgressTasks, setInProgressTasks] = useState([]);
-  const [completedTasks, setCompletedTasks] = useState([]);
-  const [incompleteTasks, setIncompleteTasks] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const unAssignedTasks = tasks.filter(task => task.assignedTo.trim() === "");
+  const assignedTasks = tasks.filter(task => task.assignedTo.trim() !== "");
+  const inProgressTasks = tasks.filter(task => task.status === "In Progress");
+  const completedTasks = tasks.filter(task => task.status === "Completed");
+  const incompleteTasks = tasks.filter(task => task.status === "Incomplete");
+
+  useEffect(() => {
+    setTasks(tasksData);
+  })
 
   return (
     <div className="flex w-full min-h-screen p-8 bg-gray-100 text-black">
