@@ -1,15 +1,25 @@
 import { useState } from "react";
+import tasksData from "../../data/tasks.json";
+import projects from "../../data/projects.json";
+import teams from "../../data/team.json";
 
 function KanbanBoard () {
-    const [projDescription, setProjDescription] = useState("");
-    const [totalTasks, setTotalTasks] = useState(0);
-    const [assignedTasks, setAssignedTasks] = useState(0);
-    const [incompleteTasks, setIncompleteTasks] = useState(0);
-    const [completedTasks, setCompletedTasks] = useState(0);
-    const [overdueTasks, setOverdueTasks] = useState(0);
+    const projDescription = project.description;
+    const totalTasks = project.totalTasks;
+    const assignedTasks = project.assignedTasks;
+    const incompleteTasks = project.incompleteTasks;
+    const completedTasks = project.completedTasks;
+    const overdueTasks = project.overdueTasks;
+    const [project, setProject] = useState([]);
     const [tasks, setTasks] = useState([]);
     const [team, setTeam] = useState([]);
     const [activeSection, setActiveSection] = useState("tasksActive");
+
+    useEffect(() => {
+        setProject(projects[2]);
+        setTeam(teams);
+        setTasks(tasksData);
+    })
     
     return (
         <div className="min-h-screen w-full flex flex-col p-10 bg-gray-100 text-black">
@@ -76,8 +86,12 @@ function KanbanBoard () {
                         </div>
                     )}
                     {activeSection === "teamActive" && (
-                        <div className="gap-4 mb-4">
-                            <p className="text-black text-base">Team members go here</p>
+                        <div className="flex flex-row gap-4 mb-4 justify-start">
+                            {team.map(teamMember => (
+                                <div className ="w-40 h-32 bg-white rounded mb-4" key={teamMember.id}>
+                                    <p className="text-black font-semibold mb-4">{teamMember.name}</p>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
