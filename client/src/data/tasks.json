@@ -1,0 +1,47 @@
+[
+    {
+      "id": 1,
+      "name": "Create Wireframe Layout",
+      "assignedTo": "Jordan Lee",
+      "assigneeId": 202,
+      "dateAssigned": "2/10/2025",
+      "priority": "High",
+      "status": "Completed"
+    },
+    {
+      "id": 2,
+      "name": "Develop Login Screen",
+      "assignedTo": "Alex Carter",
+      "assigneeId": 201,
+      "dateAssigned": "2/12/2025",
+      "priority": "Medium",
+      "status": "In Progress"
+    },
+    {
+      "id": 3,
+      "name": "API Authentication Setup",
+      "assignedTo": "Alex Carter",
+      "assigneeId": 201,
+      "dateAssigned": "2/15/2025",
+      "priority": "High",
+      "status": "Incomplete"
+    },
+    {
+      "id": 4,
+      "name": "Design App Icons",
+      "assignedTo": "Jordan Lee",
+      "assigneeId": 202,
+      "dateAssigned": "2/17/2025",
+      "priority": "Low",
+      "status": "Completed"
+    },
+    {
+      "id": 5,
+      "name": "Functional Testing (Phase 1)",
+      "assignedTo": "Taylor Brooks",
+      "assigneeId": 203,
+      "dateAssigned": "2/19/2025",
+      "priority": "High",
+      "status": "Overdue"
+    }
+]

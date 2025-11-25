@@ -16,23 +16,28 @@ function KanbanBoard () {
             <div className="w-1/3 h-full p-8 flex flex-col">
                 <div className="mb-6">
                     <p className="text-2x1 font-semibold text-black bg-gray-200">Project Description</p>
-                    <p clasName="text-2x1 text-black bg-gray-200">This is a mobile development project</p>
+                    <p clasName="text-2x1 text-black bg-gray-200">{projDescription}</p>
                 </div>
                 <div className="flex flex-row gap-4 mb-6">
                     <div className="bg-gray-200 p-4 w-40 h-32 rounded flex flex-col">
                         <p className="text-black font-semibold text-2x1">Total Tasks</p>
+                        <p className="text-black font-semibold text-2x1">{totalTasks}</p>
                     </div>
                     <div className="bg-gray-200 p-4 w-40 h-32 rounded flex flex-col">
                         <p className="text-black font-semibold text-2x1">Assigned Tasks</p>
+                        <p className="text-black font-semibold text-2x1">{assignedTasks}</p>
                     </div>
                     <div className="bg-gray-200 p-4 w-40 h-32 rounded flex flex-col">
                         <p className="text-black font-semibold text-2x1">Incomplete Tasks</p>
+                        <p className="text-black font-semibold text-2x1">{incompleteTasks}</p>
                     </div>
                     <div className="bg-gray-200 p-4 w-40 h-32 rounded flex flex-col">
                         <p className="text-black font-semibold text-2x1">Completed Tasks</p>
+                        <p className="text-black font-semibold text-2x1">{completedTasks}</p>
                     </div>
                     <div className="bg-gray-200 p-4 w-40 h-32 rounded flex flex-col">
                         <p className="text-black font-semibold text-2x1">Overdue Tasks</p>
+                        <p className="text-black font-semibold text-2x1">{overdueTasks}</p>
                     </div>
                 </div>
                 <div className="mb-6">
