@@ -65,22 +65,26 @@ function KanbanBoard () {
                 <div className="gap-4 mb-4">
                     {activeSection === "tasksActive" && (
                         <div className="gap-4 mb-4">
-                            <table class="w-full table-fixed text-left">
-                                <thead class="bg-gray-100">
+                            <table className="w-full table-fixed text-left">
+                                <thead className="bg-gray-100">
                                     <tr className="h-12">
-                                        <th class="px-4 py-2 w-1/5 text-sm text-black">Name</th>
-                                        <th class="px-4 py-2 w-1/5 text-sm text-black">Assigned To</th>
-                                        <th class="px-4 py-2 w-1/5 text-sm text-black">Assignee</th>
-                                        <th class="px-4 py-2 w-1/5 text-sm text-black">Date Assigned</th>
-                                        <th class="px-4 py-2 w-1/5 text-sm text-black">Priority</th>
+                                        <th className="px-4 py-2 w-1/5 text-sm text-black">Name</th>
+                                        <th className="px-4 py-2 w-1/5 text-sm text-black">Assigned To</th>
+                                        <th className="px-4 py-2 w-1/5 text-sm text-black">Assignee</th>
+                                        <th className="px-4 py-2 w-1/5 text-sm text-black">Date Assigned</th>
+                                        <th className="px-4 py-2 w-1/5 text-sm text-black">Priority</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-gray-100">
-                                    <tr class="border-t border-gray-200 h-12"></tr>
-                                    <tr class="border-t border-gray-200 h-12"></tr>
-                                    <tr class="border-t border-gray-200 h-12"></tr>
-                                    <tr class="border-t border-gray-200 h-12"></tr>
-                                    <tr class="border-t border-gray-200 h-12"></tr>
+                                <tbody className="bg-gray-100 text-sm text-black">
+                                    {tasks.map((task) => (
+                                        <tr className="border-t border-gray-200 h-12" key={task.id}>
+                                            <td className="text-black text-sm px-4">{task.name}</td>
+                                            <td className="text-black text-sm px-4">{task.assignedTo}</td>
+                                            <td className="text-black text-sm px-4">{task.assigneeId}</td>
+                                            <td className="text-black text-sm px-4">{task.dateAssigned}</td>
+                                            <td className="text-black text-sm px-4">{task.priority}</td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
