@@ -10,9 +10,9 @@ function Dashboard() {
   const [name, setName] = useState("");
   const [tasks, setTasks] = useState("");
   const [projects, setProjects] = useState([]);
-  const [totalProjects, setTotalProjects] = useState(0);
-  const [totalTasks, setTotalTasks] = useState(0);
-  const [totalTasksCompleted, setTotalTasksCompleted] = useState(0);
+  const totalProjects = projects.length;
+  const totalTasks = projects.totalTasks;
+  const totalTasksCompleted = projects.completedTasks;
 
   useEffect(() => {
     setName(`${user.name}`);
@@ -21,7 +21,7 @@ function Dashboard() {
 
   return (
     <div className="flex w-full min-h-screen p-8 bg-gray-100 text-black">
-      <div className="mb-10">
+      <div className="w-1/3 h-full mb-10">
         <h2 className="text-3xl font-bold text-black font-sans mb-6">
           My Dashboard
         </h2>
@@ -31,7 +31,7 @@ function Dashboard() {
           </p>
         </div>
       </div>
-      <div className="flex gap-10">
+      <div className="w-2/3 h-full flex gap-10">
         <div className="flex-1">
           <h2 className="text-xl text-black font-sans font-bold">
             Your Projects

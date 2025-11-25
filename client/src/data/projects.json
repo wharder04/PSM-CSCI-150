@@ -27,7 +27,8 @@
         "completedTasks": 2,
         "overdueTasks": 1,
         "dueDate": "12/15/2025",
-        "classname": "CSCI 150",
-        "status":"In Progress"
+        "className": "CSCI 150",
+        "status":"In Progress",
+        "progress": 65
     }
 ]

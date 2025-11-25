@@ -31,50 +31,95 @@ function TaskBoard() {
         </button>
       </div>
       <div className="w-2/3 h-full flex flex-row gap-6 p-6">
-        <div className="flex flex-col items-center border-2 border-black w-40 h-[32rem] rounded p-3">
-          <div className="flex items-center justify-between w-full px-2 mb-2 text-black font-sans">
+        <div className="flex flex-col items-center border-2 border-black w-40 h-[32rem] rounded p-3 bg-white">
+          <div className="flex items-center justify-between w-full px-2 mb-2 text-black font-sans bg-white">
             <p>Unassigned</p>
-            <button className="w-7 h-7 flex items-center justify-center text-black">
+            <button className="w-7 h-7 flex items-center justify-center text-black bg-white">
               +
             </button>
           </div>
           <div className="w-full border-t border-black"></div>
+          <div className="flex flex-wrap gap-4">
+            {unAssignedTasks.map(task => (
+              <div className="relative w-full h-full bg-white rounded p-3" key={task.id}>
+                <div className="w-14 h-10 absolute top-2 right-2 text-base text-black font-semibold rounded bg-gray-200">{task.priority}</div>
+                <p className="absolute inset-0 flex items-center justify-center text-black text-lg font-bold">{task.name}</p>
+                <div className="absolute bottom-2 left-2 text-base text-black">Due: {task.dueDate}</div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col items-center border-2 border-black w-40 h-[32rem] rounded p-3">
-          <div className="flex items-center justify-between w-full px-2 mb-2 text-black font-sans">
+        <div className="flex flex-col items-center border-2 border-black w-40 h-[32rem] rounded p-3 bg-white">
+          <div className="flex items-center justify-between w-full px-2 mb-2 text-black font-sans bg-white">
             <p>Assigned</p>
-            <button className="w-7 h-7 flex items-center justify-center text-black">
+            <button className="w-7 h-7 flex items-center justify-center text-black bg-white">
               +
             </button>
           </div>
           <div className="w-full border-t border-black"></div>
+          <div className="flex flex-wrap gap-4">
+            {assignedTasks.map(task => (
+              <div className="relative w-full h-full bg-white rounded p-3" key={task.id}>
+                <div className="w-14 h-10 absolute top-2 right-2 text-base text-black font-semibold rounded bg-gray-200">{task.priority}</div>
+                <p className="absolute inset-0 flex items-center justify-center text-black text-lg font-bold">{task.name}</p>
+                <div className="absolute bottom-2 left-2 text-base text-black">Due: {task.dueDate}</div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col items-center border-2 border-black w-40 h-[32rem] rounded p-3">
-          <div className="flex items-center justify-between w-full px-2 mb-2 text-black font-sans">
+        <div className="flex flex-col items-center border-2 border-black w-40 h-[32rem] rounded p-3 bg-white">
+          <div className="flex items-center justify-between w-full px-2 mb-2 text-black font-sans bg-white">
             <p>In Progress</p>
-            <button className="w-7 h-7 flex items-center justify-center text-black">
+            <button className="w-7 h-7 flex items-center justify-center text-black bg-white">
               +
             </button>
           </div>
           <div className="w-full border-t border-black"></div>
+          <div className="flex flex-wrap gap-4">
+            {inProgressTasks.map(task => (
+              <div className="relative w-full h-full bg-white rounded p-3" key={task.id}>
+                <div className="w-14 h-10 absolute top-2 right-2 text-base text-black font-semibold rounded bg-gray-200">{task.priority}</div>
+                <p className="absolute inset-0 flex items-center justify-center text-black text-lg font-bold">{task.name}</p>
+                <div className="absolute bottom-2 left-2 text-base text-black">Due: {task.dueDate}</div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col items-center border-2 border-black w-40 h-[32rem] rounded p-3">
-          <div className="flex items-center justify-between w-full px-2 mb-2 text-black font-sans">
+        <div className="flex flex-col items-center border-2 border-black w-40 h-[32rem] rounded p-3 bg-white">
+          <div className="flex items-center justify-between w-full px-2 mb-2 text-black font-sans bg-white">
             <p>Completed</p>
-            <button className="w-7 h-7 flex items-center justify-center text-black">
+            <button className="w-7 h-7 flex items-center justify-center text-black bg-white">
               +
             </button>
           </div>
           <div className="w-full border-t border-black"></div>
+          <div className="flex flex-wrap gap-4">
+            {completedTasks.map(task => (
+              <div className="relative w-full h-full bg-white rounded p-3" key={task.id}>
+                <div className="w-14 h-10 absolute top-2 right-2 text-base text-black font-semibold rounded bg-gray-200">{task.priority}</div>
+                <p className="absolute inset-0 flex items-center justify-center text-black text-lg font-bold">{task.name}</p>
+                <div className="absolute bottom-2 left-2 text-base text-black">Due: {task.dueDate}</div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col items-center border-2 border-black w-40 h-32[rem] rounded p-3">
-          <div className="flex items-center justify-between w-full px-2 mb-2 text-black font-sans">
+        <div className="flex flex-col items-center border-2 border-black w-40 h-32[rem] rounded p-3 bg-white">
+          <div className="flex items-center justify-between w-full px-2 mb-2 text-black font-sans bg-white">
             <p>Incomplete</p>
-            <button className="w-7 h-7 flex items-center justify-center text-black">
+            <button className="w-7 h-7 flex items-center justify-center text-black bg-white">
               +
             </button>
           </div>
           <div className="w-full border-t border-black"></div>
+          <div className="flex flex-wrap gap-4">
+            {incompleteTasks.map(task => (
+              <div className="relative w-full h-full bg-white rounded p-3" key={task.id}>
+                <div className="w-14 h-10 absolute top-2 right-2 text-base text-black font-semibold rounded bg-gray-200">{task.priority}</div>
+                <p className="absolute inset-0 flex items-center justify-center text-black text-lg font-bold">{task.name}</p>
+                <div className="absolute bottom-2 left-2 text-base text-black">Due: {task.dueDate}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
