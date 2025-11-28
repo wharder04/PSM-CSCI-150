@@ -29,6 +29,7 @@
         "dueDate": "12/15/2025",
         "className": "CSCI 150",
         "status":"In Progress",
-        "progress": 65
+        "progress": 65,
+        "ownerId": "69085a6e03137c544f393d73"
     }
 ]

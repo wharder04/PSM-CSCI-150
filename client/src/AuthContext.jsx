@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { authService } from "../services/api";
 
 const AuthContext = createContext();
 
@@ -13,34 +14,74 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Load user data from localStorage on mount
+  // Verify authentication on mount by checking cookie
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token");
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
-    }
+    const verifyAuth = async () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          try {
+            const userData = JSON.parse(storedUser);
+            setUser(userData);
+            setIsAuthenticated(true);
+          } catch (error) {
+            console.error("Error parsing stored user:", error);
+            localStorage.removeItem("user");
+          }
+        }
+
+        // Verify token is still valid by calling /me endpoint
+        const response = await authService.getCurrentUser();
+        if (response && response.success) {
+          setUser(response.user);
+          setIsAuthenticated(true);
+          localStorage.setItem("user", JSON.stringify(response.user));
+        } else {
+          // Token invalid, clear state
+          setUser(null);
+          setIsAuthenticated(false);
+          localStorage.removeItem("user");
+        }
+      } catch (error) {
+        // No valid session, clear state
+        setUser(null);
+        setIsAuthenticated(false);
+        localStorage.removeItem("user");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    verifyAuth();
   }, []);
 
-  const login = (userData, token) => {
+  const login = (userData) => {
     setUser(userData);
     setIsAuthenticated(true);
+    // Store user data in localStorage (token is in httpOnly cookie)
     localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("token", token);
   };
 
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+  const logout = async () => {
+    try {
+      // Call logout endpoint to clear cookie on server
+      await authService.logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Clear local state regardless of API call success
+      setUser(null);
+      setIsAuthenticated(false);
+      localStorage.removeItem("user");
+    }
   };
 
   const value = {
     user,
     isAuthenticated,
+    loading,
     login,
     logout,
   };

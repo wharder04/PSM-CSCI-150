@@ -6,6 +6,7 @@ import {
   registerUser,
   loginUser,
   logoutUser,
+  getCurrentUser,
 } from "../controllers/authController.js";
 
 const r = Router();
@@ -23,5 +24,6 @@ const pwRule = body("password")
 r.post("/login", loginUser);
 r.post("/register", registerUser);
 r.post("/logout", auth, logoutUser);
+r.get("/me", auth, getCurrentUser);
 
 export default r;

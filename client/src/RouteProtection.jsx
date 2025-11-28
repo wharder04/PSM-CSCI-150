@@ -8,6 +8,7 @@ import Landing from "./pages/auth/Landing.jsx";
 import AccountCreate from "./pages/auth/AccountCreate.jsx";
 import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 import ProjectsPage from "./pages/projects/ProjectsPage.jsx";
+import ProjectDetailsPage from "./pages/projects/ProjectDetailsPage.jsx";
 import Dashboard from "./pages/dashboard/DashboardPage.jsx";
 import TaskBoard from "./pages/TaskBoard/TaskBoard.jsx";
 import DashboardLayout from "./pages/dashboard/DashboardLayout.jsx";
@@ -17,12 +18,7 @@ const RouteProtection = () => {
 
   return (
     <Routes>
-      <Route
-        path="/"
-        element={
-          isAuthenticated ? <Navigate to="/home" replace /> : <Landing />
-        }
-      />
+      <Route path="/" element={<Landing />} />
       <Route
         path="/auth/login"
         element={isAuthenticated ? <Navigate to="/home" replace /> : <Login />}
@@ -76,6 +72,18 @@ const RouteProtection = () => {
         }
       />
       <Route
+        path="/projects/:projectId"
+        element={
+          isAuthenticated ? (
+            <DashboardLayout>
+              <ProjectDetailsPage />
+            </DashboardLayout>
+          ) : (
+            <Navigate to="/auth/login" replace />
+          )
+        }
+      />
+      <Route
         path="/tasks"
         element={
           isAuthenticated ? (
@@ -87,6 +95,7 @@ const RouteProtection = () => {
           )
         }
       />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

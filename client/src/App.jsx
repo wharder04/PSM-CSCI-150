@@ -1,12 +1,15 @@
 import { AuthProvider } from "./AuthContext.jsx";
 import RouteProtection from "./RouteProtection.jsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <div className="w-full">
-        <RouteProtection />
-      </div>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <div className="w-full">
+          <RouteProtection />
+        </div>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

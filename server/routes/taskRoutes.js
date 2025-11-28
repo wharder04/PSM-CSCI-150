@@ -3,18 +3,16 @@ import { body, param } from 'express-validator';
 import auth from '../middleware/auth.js';
 import { handleValidation } from '../middleware/validate.js';
 import {
-  createTask, listTasks, getTask, updateTask, deleteTask, getProgress
+  createTask, listTasks, getTask, updateTask, deleteTask
 } from '../controllers/taskController.js';
 
 const r = Router({ mergeParams: true });
 
-const titleRule  = body('title').isString().trim().notEmpty().withMessage('Title required');
+const titleRule = body('title').isString().trim().notEmpty().withMessage('Title required');
 const statusRule = body('status').optional()
-  .isIn(['UnAssigned','Assigned','InProgress','Testing','Completed','InComplete'])
+  .isIn(['UnAssigned', 'Assigned', 'InProgress', 'Testing', 'Completed', 'InComplete'])
   .withMessage('Invalid status');
 const idRule = param('taskId').isMongoId().withMessage('Invalid task id');
-
-r.get('/progress', auth, getProgress);
 
 r.route('/')
   .get(auth, listTasks)

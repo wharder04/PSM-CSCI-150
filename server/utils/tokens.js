@@ -6,7 +6,7 @@ function signJwt(payload, expiresIn) {
 
 function setAuthCookie(res, token, remember=false) {
   const isProd = process.env.NODE_ENV === 'production';
-  res.cookie(process.env.COOKIE_NAME, token, {
+  res.cookie("token", token, {
     httpOnly: true,
     secure: isProd && process.env.COOKIE_SECURE === 'true',
     sameSite: 'lax',
@@ -17,7 +17,7 @@ function setAuthCookie(res, token, remember=false) {
 }
 
 function clearAuthCookie(res) {
-  res.clearCookie(process.env.COOKIE_NAME, { path: '/' });
+  res.clearCookie("token", { path: '/' });
 }
 
 module.exports = { signJwt, setAuthCookie, clearAuthCookie };

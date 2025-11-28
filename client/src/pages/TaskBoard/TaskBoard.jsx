@@ -1,126 +1,114 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import tasksData from "../../data/tasks.json";
-import { MdAdd } from "react-icons/md";
+import { MdFilterList, MdAdd, MdCalendarToday } from "react-icons/md";
 
+function TaskCard({ task }) {
+  const getPriorityClass = (priority) => {
+    const priorityLower = priority?.toLowerCase() || "";
+    if (priorityLower.includes("high")) return "bg-panel-muted text-accent-dark";
+    if (priorityLower.includes("medium")) return "bg-panel-muted text-accent-mid";
+    return "bg-panel-muted text-text-secondary";
+  };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return "No date";
+    if (dateString.includes("/")) {
+      const [month, day, year] = dateString.split("/");
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    }
+    return dateString;
+  };
+
+  return (
+    <div className="bg-panel border border-border rounded-xl p-4 cursor-grab hover:shadow-large hover:-translate-y-0.5 hover:border-accent-light transition-all duration-200 active:cursor-grabbing relative">
+      <div className="flex justify-between items-start mb-3">
+        <h3 className="text-sm font-semibold text-text-primary flex-1 leading-snug pr-2">{task.name}</h3>
+        <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wide flex-shrink-0 ${getPriorityClass(task.priority)}`}>
+          {task.priority}
+        </span>
+      </div>
+      {task.assignedTo && (
+        <div className="mb-3">
+          <p className="text-xs text-text-secondary">Assigned to: {task.assignedTo}</p>
+        </div>
+      )}
+      <div className="flex items-center gap-1.5 pt-3 border-t border-panel-muted">
+        <MdCalendarToday size={14} className="text-text-muted" />
+        <span className="text-xs text-text-secondary">{formatDate(task.dateAssigned || task.dueDate)}</span>
+      </div>
+    </div>
+  );
+}
 
 function TaskBoard() {
   const [tasks, setTasks] = useState([]);
-  const unAssignedTasks = tasks.filter(task => task.assignedTo.trim() === "");
-  const assignedTasks = tasks.filter(task => task.assignedTo.trim() !== "");
-  const inProgressTasks = tasks.filter(task => task.status === "In Progress");
-  const completedTasks = tasks.filter(task => task.status === "Completed");
-  const incompleteTasks = tasks.filter(task => task.status === "Incomplete");
 
   useEffect(() => {
     setTasks(tasksData);
-  })
+  }, []);
+
+  const unAssignedTasks = tasks.filter((task) => !task.assignedTo || task.assignedTo.trim() === "");
+  const assignedTasks = tasks.filter((task) => task.assignedTo && task.assignedTo.trim() !== "");
+  const inProgressTasks = tasks.filter((task) => task.status === "In Progress");
+  const completedTasks = tasks.filter((task) => task.status === "Completed");
+  const incompleteTasks = tasks.filter((task) => task.status === "Incomplete" || task.status === "Overdue");
+
+  const columns = [
+    { id: "unassigned", title: "Unassigned", tasks: unAssignedTasks },
+    { id: "assigned", title: "Assigned", tasks: assignedTasks },
+    { id: "in-progress", title: "In Progress", tasks: inProgressTasks },
+    { id: "completed", title: "Completed", tasks: completedTasks },
+    { id: "incomplete", title: "Incomplete", tasks: incompleteTasks },
+  ];
 
   return (
-    <div className="flex w-full min-h-screen p-8 bg-gray-100 text-black">
-      <div className="w-1/3 h-full p-8 flex flex-col">
-        <h2 className="text-4xl font-bold text-black mb-6">Task Board</h2>
-        <p className="text-2xl text-black font-semibold mb-6">
-          Drag tasks to update their status
-        </p>
-        <button className="bg-gray-800 text-white font-sans rounded w-24 h-10 mb-4">
-          Filters
-        </button>
-        <button className="bg-gray-300 text-black font-sans rounded w-24 h-10 mb-8">
-          + Create New Task
-        </button>
+    <div className="min-h-screen w-full p-2 bg-bg-base">
+      <div className="mb-8 max-w-full">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-text-primary mb-2 tracking-tight">Task Board</h1>
+          <p className="text-base text-text-secondary mb-6">Drag and drop tasks to update their status</p>
+        </div>
+        <div className="flex gap-3 flex-wrap">
+          <button className="flex items-center gap-2 px-5 py-2.5 bg-panel border border-border rounded-xl text-sm font-medium text-text-secondary hover:bg-panel-muted hover:border-accent-light hover:text-text-primary transition-all duration-200">
+            <MdFilterList size={18} />
+            <span>Filters</span>
+          </button>
+          <button className="flex items-center gap-2 px-5 py-2.5 bg-accent-dark text-white rounded-xl text-sm font-semibold shadow-medium hover:-translate-y-0.5 hover:shadow-large transition-all duration-200">
+            <MdAdd size={18} />
+            <span>Create New Task</span>
+          </button>
+        </div>
       </div>
-      <div className="w-2/3 h-full flex flex-row gap-6 p-6">
-        <div className="flex flex-col items-center border-2 border-black w-40 h-[32rem] rounded p-3 bg-white">
-          <div className="flex items-center justify-between w-full px-2 mb-2 text-black font-sans bg-white">
-            <p>Unassigned</p>
-            <button className="w-7 h-7 flex items-center justify-center text-black bg-white">
-              +
-            </button>
-          </div>
-          <div className="w-full border-t border-black"></div>
-          <div className="flex flex-wrap gap-4">
-            {unAssignedTasks.map(task => (
-              <div className="relative w-full h-full bg-white rounded p-3" key={task.id}>
-                <div className="w-14 h-10 absolute top-2 right-2 text-base text-black font-semibold rounded bg-gray-200">{task.priority}</div>
-                <p className="absolute inset-0 flex items-center justify-center text-black text-lg font-bold">{task.name}</p>
-                <div className="absolute bottom-2 left-2 text-base text-black">Due: {task.dueDate}</div>
+
+      <div className="flex gap-5 overflow-x-auto pb-5 max-w-full">
+        {columns.map((column) => (
+          <div key={column.id} className="min-w-[300px] max-w-[300px] bg-panel rounded-2xl p-5 shadow-soft border border-border flex flex-col h-fit max-h-[calc(100vh-200px)]">
+            <div className="flex justify-between items-center mb-4 pb-3 border-b-2 border-panel-muted">
+              <div className="flex items-center gap-2.5">
+                <span className="text-base font-bold text-text-primary">{column.title}</span>
+                <span className="bg-panel-muted text-text-secondary px-2.5 py-1 rounded-xl text-xs font-semibold">
+                  {column.tasks.length}
+                </span>
               </div>
-            ))}
+              <button className="w-7 h-7 rounded-lg border border-border bg-panel text-text-secondary hover:bg-panel-muted hover:border-accent-light hover:text-text-primary transition-all duration-200 flex items-center justify-center text-lg font-light">
+                <MdAdd size={18} />
+              </button>
+            </div>
+            <div className="flex flex-col gap-3 overflow-y-auto flex-1 pr-1">
+              {column.tasks.length > 0 ? (
+                column.tasks.map((task) => (
+                  <TaskCard key={task.id} task={task} />
+                ))
+              ) : (
+                <div className="text-center py-10 text-text-muted text-sm">
+                  No tasks in this column
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-        <div className="flex flex-col items-center border-2 border-black w-40 h-[32rem] rounded p-3 bg-white">
-          <div className="flex items-center justify-between w-full px-2 mb-2 text-black font-sans bg-white">
-            <p>Assigned</p>
-            <button className="w-7 h-7 flex items-center justify-center text-black bg-white">
-              +
-            </button>
-          </div>
-          <div className="w-full border-t border-black"></div>
-          <div className="flex flex-wrap gap-4">
-            {assignedTasks.map(task => (
-              <div className="relative w-full h-full bg-white rounded p-3" key={task.id}>
-                <div className="w-14 h-10 absolute top-2 right-2 text-base text-black font-semibold rounded bg-gray-200">{task.priority}</div>
-                <p className="absolute inset-0 flex items-center justify-center text-black text-lg font-bold">{task.name}</p>
-                <div className="absolute bottom-2 left-2 text-base text-black">Due: {task.dueDate}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="flex flex-col items-center border-2 border-black w-40 h-[32rem] rounded p-3 bg-white">
-          <div className="flex items-center justify-between w-full px-2 mb-2 text-black font-sans bg-white">
-            <p>In Progress</p>
-            <button className="w-7 h-7 flex items-center justify-center text-black bg-white">
-              +
-            </button>
-          </div>
-          <div className="w-full border-t border-black"></div>
-          <div className="flex flex-wrap gap-4">
-            {inProgressTasks.map(task => (
-              <div className="relative w-full h-full bg-white rounded p-3" key={task.id}>
-                <div className="w-14 h-10 absolute top-2 right-2 text-base text-black font-semibold rounded bg-gray-200">{task.priority}</div>
-                <p className="absolute inset-0 flex items-center justify-center text-black text-lg font-bold">{task.name}</p>
-                <div className="absolute bottom-2 left-2 text-base text-black">Due: {task.dueDate}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="flex flex-col items-center border-2 border-black w-40 h-[32rem] rounded p-3 bg-white">
-          <div className="flex items-center justify-between w-full px-2 mb-2 text-black font-sans bg-white">
-            <p>Completed</p>
-            <button className="w-7 h-7 flex items-center justify-center text-black bg-white">
-              +
-            </button>
-          </div>
-          <div className="w-full border-t border-black"></div>
-          <div className="flex flex-wrap gap-4">
-            {completedTasks.map(task => (
-              <div className="relative w-full h-full bg-white rounded p-3" key={task.id}>
-                <div className="w-14 h-10 absolute top-2 right-2 text-base text-black font-semibold rounded bg-gray-200">{task.priority}</div>
-                <p className="absolute inset-0 flex items-center justify-center text-black text-lg font-bold">{task.name}</p>
-                <div className="absolute bottom-2 left-2 text-base text-black">Due: {task.dueDate}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="flex flex-col items-center border-2 border-black w-40 h-32[rem] rounded p-3 bg-white">
-          <div className="flex items-center justify-between w-full px-2 mb-2 text-black font-sans bg-white">
-            <p>Incomplete</p>
-            <button className="w-7 h-7 flex items-center justify-center text-black bg-white">
-              +
-            </button>
-          </div>
-          <div className="w-full border-t border-black"></div>
-          <div className="flex flex-wrap gap-4">
-            {incompleteTasks.map(task => (
-              <div className="relative w-full h-full bg-white rounded p-3" key={task.id}>
-                <div className="w-14 h-10 absolute top-2 right-2 text-base text-black font-semibold rounded bg-gray-200">{task.priority}</div>
-                <p className="absolute inset-0 flex items-center justify-center text-black text-lg font-bold">{task.name}</p>
-                <div className="absolute bottom-2 left-2 text-base text-black">Due: {task.dueDate}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );

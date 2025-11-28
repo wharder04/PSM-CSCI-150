@@ -14,27 +14,27 @@ function Login() {
     event.preventDefault();
     try {
       const data = await authService.login(email, password);
-      // console.log(data);
       if (data.success) {
-        login(data.user, data.token); // Store user data and token in context
+        login(data.user); // Store user data (token is in httpOnly cookie)
         alert(data.user.name + " LoggedIn Succesfully");
         navigate("/home"); // Redirect to dashboard
       } else {
-        alert(data.message);
+        alert(data.message || "Login failed");
       }
       return;
     } catch (error) {
       console.log("Login page Error: ", error);
+      alert(error.response?.data?.message || "Login failed. Please try again.");
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="w-full h-screen flex">
       <div className="bg-gray-300 w-1/2 h-full"></div>
-      <div className="w-1/2 h-full flex flex-col justify-center items-center bg-gray-800">
+      <div className="w-1/2 h-full flex flex-col justify-center items-center bg-gray-400 text-black">
         <p className="text-5xl font-medium mb-4">Welcome Back</p>
         <p className="text-lg font-medium mb-8">Login in to your account</p>
-        <div className="w-[40%] flex flex-col mb-8 text-white">
+        <div className="w-[40%] flex flex-col mb-8 ">
           <label className="font-medium">Email:</label>
           <input
             type="text"
@@ -45,7 +45,7 @@ function Login() {
             className="px-4 py-3 rounded-xl bg-gray-700"
           />
         </div>
-        <div className="w-[40%] flex flex-col mb-8 text-white">
+        <div className="w-[40%] flex flex-col mb-8">
           <label className="font-medium">Password:</label>
           <input
             type="password"
@@ -57,12 +57,10 @@ function Login() {
           />
         </div>
         <br />
-        <button type="submit">Sign in</button>
+        <button className="bg-black text-white px-4 py-2 rounded-xl mb-4" type="submit">Sign in</button>
+        <Link to="/auth/forgot" className="text-blue-500 hover:text-blue-600 hover:underline"> Forgot Password </Link>
         <p>
-          <Link to="/auth/forgot"> Forgot Password </Link>
-        </p>
-        <p>
-          Don't have an account? <Link to="/auth/register">Sign up</Link>
+          Don't have an account? <Link to="/auth/register" className="text-blue-500 hover:text-blue-600 hover:underline">Sign up</Link>
         </p>
       </div>
     </form>
