@@ -363,7 +363,7 @@ export default function ProjectsPage() {
                 onClick={() => setActiveFilter(filter)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   activeFilter === filter
-                    ? "bg-accent-dark text-white font-semibold"
+                    ? "bg-black text-white font-semibold"
                     : "text-text-secondary hover:bg-panel-muted hover:text-text-primary"
                 }`}
               >
@@ -375,12 +375,12 @@ export default function ProjectsPage() {
       </div>
 
       <div className="max-w-7xl">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-text-primary">My Projects</h2>
-          <span className="text-sm text-text-secondary font-medium">
-            {loading ? "Loading..." : `${filteredProjects.length} projects`}
+        <h2 className="text-2xl font-bold text-text-primary mb-6 mr-2">
+          My Projects{" "}
+          <span className="text-sm font-medium">
+            {loading ? "Loading..." : `(${filteredProjects.length})`}
           </span>
-        </div>
+        </h2>
 
         {loading ? (
           <div className="text-center py-20 bg-panel rounded-2xl border border-border">
@@ -443,14 +443,14 @@ export default function ProjectsPage() {
       {/* Create Project Modal */}
       {isCreateModalOpen && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-end z-50"
+          className="fixed inset-0 bg-black/50 flex items-center justify-end z-50 cursor-pointer"
           onClick={handleCloseModal}
         >
           <div
-            className="bg-panel rounded-lg shadow-large w-full max-w-xl h-full max-h-[90vh] overflow-y-none"
+            className="bg-panel rounded-xl  shadow-large w-full max-w-xl h-full max-h-[90vh] overflow-y-none"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-panel border-b border-border px-6 py-5 flex justify-between items-center bg-white">
+            <div className="sticky top-0 rounded-tl-xl bg-panel px-6 py-5 flex justify-between items-center bg-white">
               <h2 className="text-xl font-semibold text-text-primary">
                 Create New Project
               </h2>

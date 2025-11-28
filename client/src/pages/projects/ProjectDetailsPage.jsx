@@ -258,13 +258,13 @@ export default function ProjectDetailsPage() {
 
         {/* Task Statistics Cards */}
         <div className="grid grid-cols-5 gap-4 mb-8">
-          <div className="bg-panel rounded-lg p-4 border border-border shadow-soft">
+          <div className="bg-gray-200 rounded-xl p-4 border shadow-soft">
             <div className="text-sm text-text-secondary mb-1">Total Tasks</div>
             <div className="text-2xl font-bold text-text-primary">
               {taskStats.total}
             </div>
           </div>
-          <div className="bg-panel rounded-lg p-4 border border-border shadow-soft">
+          <div className="bg-gray-200 rounded-xl p-4 border shadow-soft">
             <div className="text-sm text-text-secondary mb-1">
               Assigned Tasks
             </div>
@@ -272,7 +272,7 @@ export default function ProjectDetailsPage() {
               {taskStats.assigned}
             </div>
           </div>
-          <div className="bg-panel rounded-lg p-4 border border-border shadow-soft">
+          <div className="bg-gray-200 rounded-xl p-4 border shadow-soft">
             <div className="text-sm text-text-secondary mb-1">
               Incomplete Tasks
             </div>
@@ -280,7 +280,7 @@ export default function ProjectDetailsPage() {
               {taskStats.incomplete}
             </div>
           </div>
-          <div className="bg-panel rounded-lg p-4 border border-border shadow-soft">
+          <div className="bg-gray-200 rounded-xl p-4 border shadow-soft">
             <div className="text-sm text-text-secondary mb-1">
               Completed Tasks
             </div>
@@ -288,7 +288,7 @@ export default function ProjectDetailsPage() {
               {taskStats.completed}
             </div>
           </div>
-          <div className="bg-panel rounded-lg p-4 border border-border shadow-soft">
+          <div className="bg-gray-200 rounded-xl p-4 border shadow-soft">
             <div className="text-sm text-text-secondary mb-1">
               Overdue Tasks
             </div>
@@ -296,17 +296,6 @@ export default function ProjectDetailsPage() {
               {taskStats.overdue}
             </div>
           </div>
-        </div>
-
-        {/* New Task Button */}
-        <div className="flex justify-end items-center mb-6">
-          <button
-            onClick={() => setIsCreateTaskModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg cursor-pointer text-sm font-medium hover:bg-black/80 transition-colors"
-          >
-            <MdAdd size={18} />
-            New Task
-          </button>
         </div>
 
         {/* Tasks Table */}
@@ -388,7 +377,7 @@ export default function ProjectDetailsPage() {
         </div>
 
         {/* Teams Table - Show below tasks table */}
-        <h2 className="text-xl font-bold text-text-primary mb-4">
+        <h2 className="text-xl font-bold text-text-primary mb-4 mt-8">
           Team Members
         </h2>
         <div className="bg-panel rounded-lg border border-border shadow-soft overflow-hidden">
@@ -455,17 +444,24 @@ export default function ProjectDetailsPage() {
           </table>
         </div>
 
+        <button
+          onClick={() => setIsCreateTaskModalOpen(true)}
+          className="fixed bottom-8 right-8 flex items-center gap-2.5 px-6 py-4 bg-black cursor-pointer text-white rounded-2xl text-sm font-semibold shadow-large hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 z-50"
+        >
+          <MdAdd size={24} />
+          <span>New Task</span>
+        </button>
         {/* Create Task Modal */}
         {isCreateTaskModalOpen && (
           <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-end z-50"
+            className="fixed inset-0 bg-black/50 flex items-center justify-end z-50 cursor-pointer"
             onClick={handleCloseTaskModal}
           >
             <div
-              className="bg-panel rounded-lg shadow-large w-full max-w-xl h-full max-h-[90vh] overflow-y-auto"
+              className="bg-panel rounded-xl shadow-large w-full max-w-xl h-full max-h-[90vh] overflow-y-none"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="sticky top-0 bg-panel border-b border-border px-6 py-5 flex justify-between items-center bg-white">
+              <div className="sticky top-0 rounded-tl-xl bg-panel px-6 py-5 flex justify-between items-center bg-white">
                 <h2 className="text-xl font-semibold text-text-primary">
                   Create New Task
                 </h2>
@@ -479,7 +475,7 @@ export default function ProjectDetailsPage() {
 
               <form
                 onSubmit={handleCreateTask}
-                className="p-6 space-y-6 bg-white"
+                className="p-6 space-y-6 bg-white h-full overflow-y-none"
               >
                 {createTaskError && (
                   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
