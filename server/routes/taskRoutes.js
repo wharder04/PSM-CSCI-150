@@ -12,6 +12,7 @@ const titleRule = body('title').isString().trim().notEmpty().withMessage('Title 
 const statusRule = body('status').optional()
   .isIn(['UnAssigned', 'Assigned', 'InProgress', 'Testing', 'Completed', 'InComplete'])
   .withMessage('Invalid status');
+
 const idRule = param('taskId').isMongoId().withMessage('Invalid task id');
 
 r.route('/')
