@@ -1,79 +1,64 @@
 import Task from "../models/Task.js";
 
-// CREATE
 export async function createTask(req, res, next) {
   try {
-    const payload = {
-      ...req.body,
-      createdBy: req.user?._id,
-    };
-    if (req.params.projectId) {
-      payload.projectId = req.params.projectId;
-    }
-    const task = await Task.create(payload);
-    res.status(201).json({ ok: true, data: task });
-  } catch (err) {
-    next(err);
+    const { title, desc, dueDate } = req.body;
+
+    const task = await Task.create({
+      title,
+      desc,
+      dueDate,
+      projectId: req.params.projectId,
+      createdBy: req.user._id,
+    });
+
+    res.status(201).json({ success: true, data: task });
+  } catch (e) {
+    next(e);
   }
 }
 
-// LIST
 export async function listTasks(req, res, next) {
   try {
-    const q = {};
-    if (req.params.projectId) q.projectId = req.params.projectId;
-    if (req.query.status) q.status = req.query.status;
-    if (req.query.priority) q.priority = req.query.priority;
-    if (req.query.assignee) q.assignee = req.query.assignee;
-    const tasks = await Task.find(q)
-      .populate("assignee", "name email")
-      .sort({ createdAt: -1 });
-    res.json({ ok: true, data: tasks });
-  } catch (err) {
-    next(err);
+    const tasks = await Task.find({ projectId: req.params.projectId }).sort({
+      createdAt: -1,
+    });
+
+    res.json({ success: true, data: tasks });
+  } catch (e) {
+    next(e);
   }
 }
-export { listTasks as getTasks }; // alias for any older imports
 
-// READ
 export async function getTask(req, res, next) {
   try {
-    const f = { _id: req.params.taskId };
-    if (req.params.projectId) f.projectId = req.params.projectId;
-    const task = await Task.findOne(f);
-    if (!task)
-      return res.status(404).json({ ok: false, error: "Task not found" });
-    res.json({ ok: true, data: task });
-  } catch (err) {
-    next(err);
+    const task = await Task.findById(req.params.taskId);
+
+    res.json({ success: true, data: task });
+  } catch (e) {
+    next(e);
   }
 }
 
-// UPDATE
 export async function updateTask(req, res, next) {
   try {
-    const taskId = req.params.taskId;
-    const task = await Task.findOneAndUpdate(taskId, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    if (!task)
-      return res.status(404).json({ ok: false, error: "Task not found" });
-    res.json({ ok: true, data: task });
-  } catch (err) {
-    next(err);
+    const task = await Task.findById(req.params.taskId);
+
+    const allowed = ["title", "desc", "status", "dueDate"];
+    for (const k of allowed) if (k in req.body) task[k] = req.body[k];
+
+    await task.save();
+    res.json({ success: true, data: task });
+  } catch (e) {
+    next(e);
   }
 }
 
-// DELETE
 export async function deleteTask(req, res, next) {
   try {
-    const taskId = req.params.taskId;
-    const task = await Task.findOneAndDelete(taskId);
-    if (!task)
-      return res.status(404).json({ ok: false, error: "Task not found" });
-    res.json({ ok: true, data: { _id: task._id } });
-  } catch (err) {
-    next(err);
+    await Task.deleteOne({ _id: req.params.taskId });
+    res.json({ success: true, data: { _id: req.params.taskId } });
+  } catch (e) {
+    next(e);
   }
 }
