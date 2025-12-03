@@ -10,9 +10,11 @@ import {
 } from "../controllers/authController.js";
 
 const r = Router();
+
 const emailRule = body("usernameorEmail")
   .isEmail()
   .withMessage("Valid email required");
+
 const pwRule = body("password")
   .isString()
   .isLength({ min: 8 })
