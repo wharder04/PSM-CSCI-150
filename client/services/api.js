@@ -1,214 +1,57 @@
-import axios from "axios";
-import {
-  createTask,
-  getTask,
-  listTasks,
-} from "../../server/controllers/taskController";
-
-const API_BASE_URL = "http://localhost:5000/api";
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  withCredentials: true, // Enable cookies to be sent with requests
-});
-
-// Add response interceptor to handle auth errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Clear user data from localStorage on 401
-      localStorage.removeItem('user');
-      // Optionally redirect to login - but let components handle it
-    }
-    return Promise.reject(error);
-  }
-);
-
-export const authService = {
-  login: async (email, password, remember = true) => {
-    try {
-      const res = await api.post("/auth/login", {
-        email,
-        password,
-        remember,
-      });
-      return res.data;
-    } catch (error) {
-      console.log("error obj", error);
-      throw error;
-    }
-  },
-  register: async (userData) => {
-    try {
-      const res = await api.post("/auth/register", userData);
-      return res.data;
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  },
-  logout: async () => {
-    try {
-      const res = await api.post("/auth/logout");
-      return res.data;
-    } catch (error) {
-      console.log("error obj", error);
-      throw error;
-    }
-  },
-  getCurrentUser: async () => {
-    try {
-      const res = await api.get("/auth/me");
-      return res.data;
-    } catch (error) {
-      console.log("error obj", error);
-      throw error;
-    }
-  },
-};
+// inside projectService in src/services/api.js
 
 export const projectService = {
-  createProject: async (name, desc, startDate, dueDate) => {
-    try {
-      const res = await api.post("/projects", {
-        name,
-        desc,
-        startDate,
-        dueDate,
-      });
-      return res.data;
-    } catch (error) {
-      console.log("error obj", error);
-    }
-  },
-  myProjects: async () => {
-    try {
-      const res = await api.get("/projects");
-      return res.data;
-    } catch (error) {
-      console.log("error obj", error);
-    }
-  },
-  getProject: async (projectId) => {
-    try {
-      const res = await api.get(`/projects/${projectId}`);
-      return res.data;
-    } catch (error) {
-      console.log("error obj", error);
-    }
-  },
-  updateProject: async (projectId, projectData) => {
-    try {
-      const res = await api.put(`/projects/${projectId}`, { projectData });
-      return res.data;
-    } catch (error) {
-      console.log("error obj", error);
-    }
-  },
-  deleteProject: async (projectId) => {
-    try {
-      const res = await api.delete(`/projects/${projectId}`);
-      return res.data;
-    } catch (error) {
-      console.log("error obj", error);
-    }
-  },
+  // ...existing methods (createProject, myProjects, etc.)...
+
+  // List members in a project
   listMembers: async (projectId) => {
     try {
       const res = await api.get(`/projects/${projectId}/members`);
-      return res.data;
+      // { success, data: [ ...members ] }
+      return res.data.data;
     } catch (error) {
       console.log("error obj", error);
+      throw error;
     }
   },
-  addMember: async (projectId, memberId) => {
+
+  // Add a member by email (or memberId)
+  addMember: async (projectId, emailOrId) => {
     try {
-      const res = await api.post(`/projects/${projectId}/members`, {
-        memberId,
-      });
-      return res.data;
+      const body =
+        emailOrId.includes("@")
+          ? { email: emailOrId }
+          : { memberId: emailOrId };
+
+      const res = await api.post(`/projects/${projectId}/members`, body);
+      return res.data.data; // the created/updated ProjectMember doc
     } catch (error) {
       console.log("error obj", error);
+      throw error;
     }
   },
+
+  // Toggle member active/inactive
   toggleMemberStatus: async (projectId, memberId) => {
     try {
       const res = await api.patch(`/projects/${projectId}/members/${memberId}`);
-      return res.data;
+      return res.data.data;
     } catch (error) {
       console.log("error obj", error);
+      throw error;
     }
   },
+
+  // Remove member from project
   removeMember: async (projectId, memberId) => {
     try {
       const res = await api.delete(
         `/projects/${projectId}/members/${memberId}`
       );
-      return res.data;
-    } catch (error) {
-      console.log("error obj", error);
-    }
-  },
-};
-
-export const taskService = {
-  listTasks: async (projectId) => {
-    try {
-      const url = projectId ? `/projects/${projectId}/tasks` : "/tasks";
-      const res = await api.get(url);
-      return res.data;
-    } catch (error) {
-      console.log("error obj", error);
-    }
-  },
-
-  createTask: async (projectId, taskData) => {
-    try {
-      const url = projectId ? `/projects/${projectId}/tasks` : "/tasks";
-      const res = await api.post(url, taskData);
-      return res.data;
+      return res.data.data;
     } catch (error) {
       console.log("error obj", error);
       throw error;
-    }
-  },
-
-  getTask: async (taskId) => {
-    try {
-      const res = await api.get(`/tasks/${taskId}`);
-      return res.data;
-    } catch (error) {
-      console.log("error obj", error);
-    }
-  },
-
-  updateTask: async (taskId, taskData) => {
-    try {
-      const res = await api.put(`/tasks/${taskId}`, { taskData });
-      return res.data;
-    } catch (error) {
-      console.log("error obj", error);
-    }
-  },
-
-  deleteTask: async (taskId) => {
-    try {
-      const res = await api.delete(`/tasks/${taskId}`);
-      return res.data;
-    } catch (error) {
-      console.log("error obj", error);
-    }
-  },
-  getProgress: async (projectId) => {
-    try {
-      const res = await api.get(`/__summary/progress/${projectId}`);
-      return res.data;
-    } catch (error) {
-      console.log("error obj", error);
     }
   },
 };
