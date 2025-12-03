@@ -12,7 +12,7 @@ function setAuthCookie(res, token, remember=false) {
     sameSite: 'lax',
     domain: process.env.COOKIE_DOMAIN || undefined,
     path: '/',
-    maxAge: remember ? 30*24*60*60*1000 : 2*60*60*1000 // 30d vs 2h
+    maxAge: remember ? 30*24*60*60*1000 : 2*60*60*1000
   });
 }
 
