@@ -1,3 +1,5 @@
+// server/routes/projects.js
+
 import { Router } from "express";
 import auth from "../middleware/auth.js";
 import {
@@ -15,6 +17,7 @@ import {
   toggleMemberStatus,
   removeMember,
   getProgress,
+  getDashboardData,
 } from "../controllers/projectsController.js";
 
 const router = Router();
@@ -22,7 +25,10 @@ const router = Router();
 router.get("/", auth, myProjects);
 router.post("/", auth, createProject);
 
+router.get("/dashboard", auth, getDashboardData);
+
 router.get("/:projectId", auth, requireProjectMember, getProject);
+
 router.put(
   "/:projectId",
   auth,
@@ -30,6 +36,7 @@ router.put(
   requireProjectOwner,
   updateProject
 );
+
 router.delete(
   "/:projectId",
   auth,
@@ -38,7 +45,9 @@ router.delete(
   deleteProject
 );
 
+// 👇 MEMBERS
 router.get("/:projectId/members", auth, requireProjectMember, listMembers);
+
 router.post(
   "/:projectId/members",
   auth,
@@ -46,6 +55,7 @@ router.post(
   requireProjectOwner,
   addMember
 );
+
 router.patch(
   "/:projectId/members/:memberId",
   auth,
@@ -53,6 +63,7 @@ router.patch(
   requireProjectOwner,
   toggleMemberStatus
 );
+
 router.delete(
   "/:projectId/members/:memberId",
   auth,
@@ -61,5 +72,7 @@ router.delete(
   removeMember
 );
 
+// PROGRESS
 router.get("/progress/:projectId", auth, getProgress);
+
 export default router;
