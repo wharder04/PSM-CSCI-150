@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { projectService, taskService } from "../../../services/api";
-import { MdAdd, MdArrowBack, MdClose } from "react-icons/md";
+import { MdAdd, MdArrowBack, MdClose, MdEdit, MdDelete, MdToggleOn, MdToggleOff } from "react-icons/md";
 
 export default function ProjectDetailsPage() {
   const { projectId } = useParams();
@@ -15,13 +15,34 @@ export default function ProjectDetailsPage() {
   const [createTaskLoading, setCreateTaskLoading] = useState(false);
   const [createTaskError, setCreateTaskError] = useState(null);
 
-  // Form state
+  // Edit task state
+  const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [editTaskLoading, setEditTaskLoading] = useState(false);
+  const [editTaskError, setEditTaskError] = useState(null);
+
+  const [taskToDelete, setTaskToDelete] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTaskLoading, setDeleteTaskLoading] = useState(false);
+
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
+  const [addMemberLoading, setAddMemberLoading] = useState(false);
+  const [addMemberError, setAddMemberError] = useState(null);
+  const [memberEmail, setMemberEmail] = useState("");
+
+  const [memberToRemove, setMemberToRemove] = useState(null);
+  const [isRemoveMemberModalOpen, setIsRemoveMemberModalOpen] = useState(false);
+  const [removeMemberLoading, setRemoveMemberLoading] = useState(false);
+  const [memberActionError, setMemberActionError] = useState(null);
+  const [togglingMemberId, setTogglingMemberId] = useState(null);
+
   const [taskFormData, setTaskFormData] = useState({
     title: "",
     desc: "",
     priority: "Low",
     dueDate: "",
-    assignee: "",
+    assignedTo: "",
+    status: "UnAssigned",
   });
 
   useEffect(() => {
@@ -30,7 +51,6 @@ export default function ProjectDetailsPage() {
         setLoading(true);
         setError(null);
 
-        // Fetch project details
         const projectResponse = await projectService.getProject(projectId);
         if (projectResponse && projectResponse.success) {
           setProject(projectResponse.data);
@@ -39,13 +59,11 @@ export default function ProjectDetailsPage() {
           return;
         }
 
-        // Fetch tasks
         const tasksResponse = await taskService.listTasks(projectId);
-        if (tasksResponse && tasksResponse.ok) {
+        if (tasksResponse && tasksResponse.success) {
           setTasks(tasksResponse.data || []);
         }
 
-        // Fetch project members for assignee dropdown
         const membersResponse = await projectService.listMembers(projectId);
         if (membersResponse && membersResponse.success) {
           setMembers(membersResponse.data || []);
@@ -63,10 +81,9 @@ export default function ProjectDetailsPage() {
     }
   }, [projectId]);
 
-  // Calculate task statistics
   const taskStats = {
     total: tasks.length,
-    assigned: tasks.filter((t) => t.assignee).length,
+    assigned: tasks.filter((t) => t.assignedTo && t.assignedTo._id).length,
     incomplete: tasks.filter((t) => t.status !== "Completed").length,
     completed: tasks.filter((t) => t.status === "Completed").length,
     overdue: tasks.filter((t) => {
@@ -92,9 +109,8 @@ export default function ProjectDetailsPage() {
       "Nov",
       "Dec",
     ];
-    return `${
-      months[date.getMonth()]
-    } ${date.getDate()}, ${date.getFullYear()}`;
+    return `${months[date.getMonth()]
+      } ${date.getDate()}, ${date.getFullYear()}`;
   };
 
   const getPriorityColor = (priority) => {
@@ -108,6 +124,15 @@ export default function ProjectDetailsPage() {
       default:
         return "text-text-secondary";
     }
+  };
+
+  const getInitials = (name) => {
+    if (!name) return "";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) {
+      return parts[0].charAt(0).toUpperCase();
+    }
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
   };
 
   const fetchTasks = async () => {
@@ -125,7 +150,6 @@ export default function ProjectDetailsPage() {
     e.preventDefault();
     setCreateTaskError(null);
 
-    // Validation
     if (!taskFormData.title.trim()) {
       setCreateTaskError("Task title is required");
       return;
@@ -140,25 +164,24 @@ export default function ProjectDetailsPage() {
         dueDate: taskFormData.dueDate
           ? new Date(taskFormData.dueDate).toISOString()
           : undefined,
-        assignee: taskFormData.assignee || undefined,
+        assignedTo: taskFormData.assignedTo || undefined,
       };
 
       const response = await taskService.createTask(projectId, payload);
 
-      if (response && response.ok) {
-        // Reset form
+      if (response && response.success) {
+        setTasks([...tasks, response.data]);
+
         setTaskFormData({
           title: "",
           desc: "",
           priority: "Low",
           dueDate: "",
-          assignee: "",
+          assignedTo: "",
+          status: "UnAssigned",
         });
         setIsCreateTaskModalOpen(false);
         setCreateTaskError(null);
-
-        // Refresh tasks list
-        fetchTasks();
       } else {
         setCreateTaskError(response?.error || "Failed to create task");
       }
@@ -166,8 +189,8 @@ export default function ProjectDetailsPage() {
       console.error("Error creating task:", err);
       setCreateTaskError(
         err.response?.data?.error ||
-          err.message ||
-          "Failed to create task. Please try again."
+        err.message ||
+        "Failed to create task. Please try again."
       );
     } finally {
       setCreateTaskLoading(false);
@@ -189,9 +212,264 @@ export default function ProjectDetailsPage() {
       desc: "",
       priority: "Low",
       dueDate: "",
-      assignee: "",
+      assignedTo: "",
+      status: "UnAssigned",
     });
     setCreateTaskError(null);
+  };
+
+  const handleEditTask = (task) => {
+    setEditingTask(task);
+    const dueDate = task.dueDate
+      ? new Date(task.dueDate).toISOString().split("T")[0]
+      : "";
+    setTaskFormData({
+      title: task.title || "",
+      desc: task.desc || "",
+      priority: task.priority || "Low",
+      dueDate: dueDate,
+      assignedTo: task.assignedTo?._id || task.assignedTo || "",
+      status: task.status || "UnAssigned",
+    });
+    setIsEditTaskModalOpen(true);
+    setEditTaskError(null);
+  };
+
+  const handleUpdateTask = async (e) => {
+    e.preventDefault();
+    setEditTaskError(null);
+
+    if (!taskFormData.title.trim()) {
+      setEditTaskError("Task title is required");
+      return;
+    }
+
+    setEditTaskLoading(true);
+    try {
+      const payload = {
+        title: taskFormData.title.trim(),
+        desc: taskFormData.desc.trim() || undefined,
+        priority: taskFormData.priority,
+        dueDate: taskFormData.dueDate
+          ? new Date(taskFormData.dueDate).toISOString()
+          : undefined,
+        assignedTo: taskFormData.assignedTo || undefined,
+        status: taskFormData.status,
+      };
+
+      const response = await taskService.updateTask(editingTask._id, payload);
+
+      if (response && response.success) {
+        setTasks(
+          tasks.map((t) => (t._id === editingTask._id ? response.data : t))
+        );
+
+        setTaskFormData({
+          title: "",
+          desc: "",
+          priority: "Low",
+          dueDate: "",
+          assignedTo: "",
+          status: "UnAssigned",
+        });
+        setEditingTask(null);
+        setIsEditTaskModalOpen(false);
+        setEditTaskError(null);
+      } else {
+        setEditTaskError(response?.error || "Failed to update task");
+      }
+    } catch (err) {
+      console.error("Error updating task:", err);
+      setEditTaskError(
+        err.response?.data?.error ||
+        err.message ||
+        "Failed to update task. Please try again."
+      );
+    } finally {
+      setEditTaskLoading(false);
+    }
+  };
+
+  const handleCloseEditTaskModal = () => {
+    setIsEditTaskModalOpen(false);
+    setEditingTask(null);
+    setTaskFormData({
+      title: "",
+      desc: "",
+      priority: "Low",
+      dueDate: "",
+      assignedTo: "",
+      status: "UnAssigned",
+    });
+    setEditTaskError(null);
+  };
+
+  const handleDeleteClick = (task) => {
+    setTaskToDelete(task);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteTask = async () => {
+    if (!taskToDelete) return;
+
+    setDeleteTaskLoading(true);
+    try {
+      const response = await taskService.deleteTask(taskToDelete._id);
+
+      if (response && response.success) {
+        setTasks(tasks.filter((t) => t._id !== taskToDelete._id));
+        setIsDeleteModalOpen(false);
+        setTaskToDelete(null);
+      } else {
+        setEditTaskError(response?.error || "Failed to delete task");
+        setIsDeleteModalOpen(false);
+      }
+    } catch (err) {
+      console.error("Error deleting task:", err);
+      setEditTaskError(
+        err.response?.data?.error ||
+        err.message ||
+        "Failed to delete task. Please try again."
+      );
+      setIsDeleteModalOpen(false);
+    } finally {
+      setDeleteTaskLoading(false);
+    }
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setTaskToDelete(null);
+  };
+
+  const handleAddMember = async (e) => {
+    e.preventDefault();
+    setAddMemberError(null);
+
+    if (!memberEmail.trim()) {
+      setAddMemberError("Email is required");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(memberEmail.trim())) {
+      setAddMemberError("Please enter a valid email address");
+      return;
+    }
+
+    setAddMemberLoading(true);
+    try {
+      const response = await projectService.addMember(
+        projectId,
+        memberEmail.trim()
+      );
+
+      if (response && response.success) {
+        const membersResponse = await projectService.listMembers(projectId);
+        if (membersResponse && membersResponse.success) {
+          setMembers(membersResponse.data || []);
+        }
+
+        setMemberEmail("");
+        setIsAddMemberModalOpen(false);
+        setAddMemberError(null);
+      } else {
+        setAddMemberError(response?.error || "Failed to add member");
+      }
+    } catch (err) {
+      console.error("Error adding member:", err);
+      setAddMemberError(
+        err.response?.data?.error ||
+        err.message ||
+        "Failed to add member. Please try again."
+      );
+    } finally {
+      setAddMemberLoading(false);
+    }
+  };
+
+  const handleCloseAddMemberModal = () => {
+    setIsAddMemberModalOpen(false);
+    setMemberEmail("");
+    setAddMemberError(null);
+  };
+
+  const handleToggleMemberStatus = async (memberId) => {
+    setTogglingMemberId(memberId);
+    setMemberActionError(null);
+    try {
+      const response = await projectService.toggleMemberStatus(projectId, memberId);
+
+      if (response && response.success) {
+        const updatedMember = response.data;
+        setMembers(
+          members.map((m) =>
+            (m.memberId._id === memberId || m.memberId._id.toString() === memberId.toString()) &&
+              (m._id === updatedMember._id || m._id.toString() === updatedMember._id.toString())
+              ? updatedMember
+              : m
+          )
+        );
+      } else {
+        setMemberActionError(response?.error || "Failed to toggle member status");
+      }
+    } catch (err) {
+      console.error("Error toggling member status:", err);
+      setMemberActionError(
+        err.response?.data?.error ||
+        err.message ||
+        "Failed to toggle member status. Please try again."
+      );
+    } finally {
+      setTogglingMemberId(null);
+    }
+  };
+
+  const handleRemoveMemberClick = (member) => {
+    setMemberToRemove(member);
+    setIsRemoveMemberModalOpen(true);
+    setMemberActionError(null);
+  };
+
+  const handleRemoveMember = async () => {
+    if (!memberToRemove) return;
+
+    setRemoveMemberLoading(true);
+    try {
+      const memberId = memberToRemove.memberId._id || memberToRemove.memberId;
+      const response = await projectService.removeMember(projectId, memberId);
+
+      if (response && response.success) {
+        setMembers(
+          members.filter(
+            (m) =>
+              m.memberId._id !== memberId &&
+              m.memberId._id.toString() !== memberId.toString()
+          )
+        );
+        setIsRemoveMemberModalOpen(false);
+        setMemberToRemove(null);
+      } else {
+        setMemberActionError(response?.error || "Failed to remove member");
+        setIsRemoveMemberModalOpen(false);
+      }
+    } catch (err) {
+      console.error("Error removing member:", err);
+      setMemberActionError(
+        err.response?.data?.error ||
+        err.message ||
+        "Failed to remove member. Please try again."
+      );
+      setIsRemoveMemberModalOpen(false);
+    } finally {
+      setRemoveMemberLoading(false);
+    }
+  };
+
+  const handleCloseRemoveMemberModal = () => {
+    setIsRemoveMemberModalOpen(false);
+    setMemberToRemove(null);
+    setMemberActionError(null);
   };
 
   if (loading) {
@@ -218,12 +496,7 @@ export default function ProjectDetailsPage() {
           <p className="text-sm text-text-secondary mb-4">
             {error || "Project not found"}
           </p>
-          <button
-            onClick={() => navigate("/projects")}
-            className="px-4 py-2 bg-accent-dark text-white rounded-lg text-sm font-medium hover:bg-accent-mid transition-colors"
-          >
-            Back to Projects
-          </button>
+
         </div>
       </div>
     );
@@ -232,32 +505,17 @@ export default function ProjectDetailsPage() {
   return (
     <div className="min-h-screen w-full p-2 bg-bg-base">
       <div className="mx-auto">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate("/projects")}
-          className="mb-6 flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors"
-        >
-          <MdArrowBack size={20} />
-          <span className="text-sm font-medium">Back to Projects</span>
-        </button>
-
-        {/* Project Title */}
         <h1 className="text-4xl font-bold text-text-primary mb-4">
           {project.name}
         </h1>
 
-        {/* Project Description */}
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-text-primary mb-2">
-            Project Description
-          </h2>
           <p className="text-base text-text-secondary">
             {project.desc || "No description provided"}
           </p>
         </div>
 
-        {/* Task Statistics Cards */}
-        <div className="grid grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-5 gap-4 mb-8 w-3/4">
           <div className="bg-gray-200 rounded-xl p-4 border shadow-soft">
             <div className="text-sm text-text-secondary mb-1">Total Tasks</div>
             <div className="text-2xl font-bold text-text-primary">
@@ -298,7 +556,6 @@ export default function ProjectDetailsPage() {
           </div>
         </div>
 
-        {/* Tasks Table */}
         <h2 className="text-xl font-bold text-text-primary mb-4">Tasks</h2>
         <div className="bg-panel rounded-lg border border-border shadow-soft overflow-hidden">
           <table className="w-full">
@@ -314,13 +571,19 @@ export default function ProjectDetailsPage() {
                   Assignee
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">
+                  Due Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">
                   Date Assigned
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">
+                  Priority
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">
-                  Priority
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -331,26 +594,49 @@ export default function ProjectDetailsPage() {
                     key={task._id}
                     className="hover:bg-panel-muted transition-colors"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-text-primary font-medium hover:text-blue-500 hover:underline">
-                      <Link to={`/tasks${task._id}`}>
-                        {task.title || task.name || "Untitled Task"}
-                      </Link>
+                    <td className="px-6 py-4 text-sm text-text-primary font-medium">
+                      <div className="flex flex-col gap-2">
+                        <Link to={`/tasks${task._id}`} className="hover:text-blue-500 hover:underline font-bold text-md">
+                          {task.title || task.name || "Untitled Task"}
+                        </Link>
+                        {task.desc && <span className="text-sm text-text-secondary">{task.desc}</span>}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                      {task.assignedTo || task.assignee?.name || "Unassigned"}
+                      {task.assignedTo?.name || task.assignedTo?.email ? (
+                        <div className="flex items-center gap-2">
+                          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+                            {getInitials(task.assignedTo?.name || task.assignedTo?.email)}
+                          </span>
+                          <span>{task.assignedTo?.name || task.assignedTo?.email}</span>
+                        </div>
+                      ) : (
+                        "Unassigned"
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                      {task.assignee?.name || task.assignee?.email || "—"}
+                      {task.assignee?.name || task.assignee?.email ? (
+                        <div className="flex items-center gap-2">
+                          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold">
+                            {getInitials(task.assignee?.name || task.assignee?.email)}
+                          </span>
+                          <span>{task.assignee?.name || task.assignee?.email}</span>
+                        </div>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
+                      {task.dueDate
+                        ? formatDate(task.dueDate)
+                        : "—"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
                       {task.dateAssigned
                         ? formatDate(task.dateAssigned)
                         : task.createdAt
-                        ? formatDate(task.createdAt)
-                        : "—"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                      {task.status || "—"}
+                          ? formatDate(task.createdAt)
+                          : "—"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span
@@ -361,11 +647,30 @@ export default function ProjectDetailsPage() {
                         {task.priority || "—"}
                       </span>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
+                      {task.status || "—"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary flex items-center gap-2">
+                      <button
+                        onClick={() => handleEditTask(task)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                        title="Edit task"
+                      >
+                        <MdEdit size={20} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(task)}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                        title="Delete task"
+                      >
+                        <MdDelete size={20} />
+                      </button>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
+                  <td colSpan={8} className="px-6 py-12 text-center">
                     <div className="text-text-muted text-sm">
                       No tasks found. Create your first task to get started.
                     </div>
@@ -376,10 +681,18 @@ export default function ProjectDetailsPage() {
           </table>
         </div>
 
-        {/* Teams Table - Show below tasks table */}
-        <h2 className="text-xl font-bold text-text-primary mb-4 mt-8">
-          Team Members
-        </h2>
+        <div className="flex justify-between items-center mb-4 mt-8">
+          <h2 className="text-xl font-bold text-text-primary">
+            Team Members
+          </h2>
+          <button
+            onClick={() => setIsAddMemberModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          >
+            <MdAdd size={20} />
+            <span>Add Member</span>
+          </button>
+        </div>
         <div className="bg-panel rounded-lg border border-border shadow-soft overflow-hidden">
           <table className="w-full">
             <thead className="bg-panel-muted border-b border-border">
@@ -395,6 +708,9 @@ export default function ProjectDetailsPage() {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">
                   Joined Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -413,11 +729,10 @@ export default function ProjectDetailsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          member.isActive
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-700"
-                        }`}
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${member.isActive
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-700"
+                          }`}
                       >
                         {member.isActive ? "Active" : "Inactive"}
                       </span>
@@ -426,14 +741,44 @@ export default function ProjectDetailsPage() {
                       {member.addDate
                         ? formatDate(member.addDate)
                         : member.createdAt
-                        ? formatDate(member.createdAt)
-                        : "—"}
+                          ? formatDate(member.createdAt)
+                          : "—"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary flex items-center gap-2">
+                      <button
+                        onClick={() => handleToggleMemberStatus(member.memberId._id)}
+                        disabled={togglingMemberId === member.memberId._id}
+                        className="px-3 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        title={member.isActive ? "Deactivate member" : "Activate member"}
+                      >
+                        {togglingMemberId === member.memberId._id ? (
+                          <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        ) : member.isActive ? (
+                          <>
+                            <MdToggleOn size={18} />
+                            <span className="text-xs">Deactivate</span>
+                          </>
+                        ) : (
+                          <>
+                            <MdToggleOff size={18} />
+                            <span className="text-xs">Activate</span>
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleRemoveMemberClick(member)}
+                        className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors flex items-center gap-1"
+                        title="Remove member"
+                      >
+                        <MdDelete size={18} />
+                        <span className="text-xs">Remove</span>
+                      </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center">
+                  <td colSpan={5} className="px-6 py-12 text-center">
                     <div className="text-text-muted text-sm">
                       No team members found.
                     </div>
@@ -451,7 +796,6 @@ export default function ProjectDetailsPage() {
           <MdAdd size={24} />
           <span>New Task</span>
         </button>
-        {/* Create Task Modal */}
         {isCreateTaskModalOpen && (
           <div
             className="fixed inset-0 bg-black/50 flex items-center justify-end z-50 cursor-pointer"
@@ -564,15 +908,15 @@ export default function ProjectDetailsPage() {
                 {members.length > 0 && (
                   <div className="grid grid-cols-5 items-center">
                     <label
-                      htmlFor="assignee"
+                      htmlFor="assignedTo"
                       className="block text-sm font-medium text-text-primary mb-1"
                     >
                       Assignee
                     </label>
                     <select
-                      id="assignee"
-                      name="assignee"
-                      value={taskFormData.assignee}
+                      id="assignedTo"
+                      name="assignedTo"
+                      value={taskFormData.assignedTo}
                       onChange={handleTaskInputChange}
                       className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary focus:outline-none focus:border-accent-dark transition-colors"
                       disabled={createTaskLoading}
@@ -615,6 +959,382 @@ export default function ProjectDetailsPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {isEditTaskModalOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-end z-50 cursor-pointer"
+            onClick={handleCloseEditTaskModal}
+          >
+            <div
+              className="bg-panel rounded-xl shadow-large w-full max-w-xl h-full max-h-[90vh] overflow-y-none"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sticky top-0 rounded-tl-xl bg-panel px-6 py-5 flex justify-between items-center bg-white">
+                <h2 className="text-xl font-semibold text-text-primary">
+                  Edit Task
+                </h2>
+                <button
+                  onClick={handleCloseEditTaskModal}
+                  className="text-text-muted hover:text-text-primary transition-colors p-1"
+                >
+                  <MdClose size={20} />
+                </button>
+              </div>
+
+              <form
+                onSubmit={handleUpdateTask}
+                className="p-6 space-y-6 bg-white h-full overflow-y-none"
+              >
+                {editTaskError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                    {editTaskError}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-5 items-center">
+                  <label
+                    htmlFor="edit-title"
+                    className="block text-sm font-medium text-text-primary mb-1"
+                  >
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    id="edit-title"
+                    name="title"
+                    value={taskFormData.title}
+                    onChange={handleTaskInputChange}
+                    required
+                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors"
+                    placeholder="Enter task title"
+                    disabled={editTaskLoading}
+                  />
+                </div>
+
+                <div className="grid grid-cols-5 items-center">
+                  <label
+                    htmlFor="edit-desc"
+                    className="block text-sm font-medium text-text-primary mb-1"
+                  >
+                    Description
+                  </label>
+                  <textarea
+                    id="edit-desc"
+                    name="desc"
+                    value={taskFormData.desc}
+                    onChange={handleTaskInputChange}
+                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors resize-none"
+                    placeholder="Enter task description"
+                    disabled={editTaskLoading}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="grid grid-cols-5 items-center">
+                  <label
+                    htmlFor="edit-priority"
+                    className="block text-sm font-medium text-text-primary mb-1"
+                  >
+                    Priority
+                  </label>
+                  <select
+                    id="edit-priority"
+                    name="priority"
+                    value={taskFormData.priority}
+                    onChange={handleTaskInputChange}
+                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary focus:outline-none focus:border-accent-dark transition-colors"
+                    disabled={editTaskLoading}
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-5 items-center">
+                  <label
+                    htmlFor="edit-dueDate"
+                    className="block text-sm font-medium text-text-primary mb-1"
+                  >
+                    Due Date
+                  </label>
+                  <input
+                    type="date"
+                    id="edit-dueDate"
+                    name="dueDate"
+                    value={taskFormData.dueDate}
+                    onChange={handleTaskInputChange}
+                    className="col-span-4 px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors [color-scheme:light]"
+                    disabled={editTaskLoading}
+                  />
+                </div>
+
+                {members.length > 0 && (
+                  <div className="grid grid-cols-5 items-center">
+                    <label
+                      htmlFor="edit-assignedTo"
+                      className="block text-sm font-medium text-text-primary mb-1"
+                    >
+                      Assignee
+                    </label>
+                    <select
+                      id="edit-assignedTo"
+                      name="assignedTo"
+                      value={taskFormData.assignedTo}
+                      onChange={handleTaskInputChange}
+                      className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary focus:outline-none focus:border-accent-dark transition-colors"
+                      disabled={editTaskLoading}
+                    >
+                      <option value="">Unassigned</option>
+                      {members.map((member) => (
+                        <option
+                          key={member.memberId._id}
+                          value={member.memberId._id}
+                        >
+                          {member.memberId.name || member.memberId.email}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-5 items-center">
+                  <label
+                    htmlFor="edit-status"
+                    className="block text-sm font-medium text-text-primary mb-1"
+                  >
+                    Status
+                  </label>
+                  <select
+                    id="edit-status"
+                    name="status"
+                    value={taskFormData.status}
+                    onChange={handleTaskInputChange}
+                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary focus:outline-none focus:border-accent-dark transition-colors"
+                    disabled={editTaskLoading}
+                  >
+                    <option value="UnAssigned">UnAssigned</option>
+                    <option value="Assigned">Assigned</option>
+                    <option value="InProgress">InProgress</option>
+                    <option value="Testing">Testing</option>
+                    <option value="Completed">Completed</option>
+                    <option value="InComplete">InComplete</option>
+                  </select>
+                </div>
+
+                <div className="flex gap-3 pt-6">
+                  <button
+                    type="button"
+                    onClick={handleCloseEditTaskModal}
+                    disabled={editTaskLoading}
+                    className="flex-1 px-4 py-2.5 bg-panel-muted text-text-primary rounded-lg text-sm font-medium hover:bg-accent-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={editTaskLoading || !taskFormData.title.trim()}
+                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {editTaskLoading ? (
+                      <>
+                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Updating...</span>
+                      </>
+                    ) : (
+                      "Update"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {isDeleteModalOpen && taskToDelete && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={handleCloseDeleteModal}
+          >
+            <div
+              className="bg-white rounded-xl shadow-large w-full max-w-md p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-xl font-semibold text-text-primary mb-4">
+                Delete Task
+              </h2>
+              <p className="text-sm text-text-secondary mb-6">
+                Are you sure you want to delete the task "{taskToDelete.title ||
+                  taskToDelete.name ||
+                  "Untitled Task"}"? This action cannot be undone.
+              </p>
+              {editTaskError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+                  {editTaskError}
+                </div>
+              )}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleCloseDeleteModal}
+                  disabled={deleteTaskLoading}
+                  className="flex-1 px-4 py-2.5 bg-panel-muted text-text-primary rounded-lg text-sm font-medium hover:bg-accent-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteTask}
+                  disabled={deleteTaskLoading}
+                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {deleteTaskLoading ? (
+                    <>
+                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Deleting...</span>
+                    </>
+                  ) : (
+                    "Delete"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isAddMemberModalOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={handleCloseAddMemberModal}
+          >
+            <div
+              className="bg-white rounded-xl shadow-large w-full max-w-md p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-text-primary">
+                  Add Team Member
+                </h2>
+                <button
+                  onClick={handleCloseAddMemberModal}
+                  className="text-text-muted hover:text-text-primary transition-colors p-1"
+                >
+                  <MdClose size={20} />
+                </button>
+              </div>
+
+              <form onSubmit={handleAddMember} className="space-y-6">
+                {addMemberError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                    {addMemberError}
+                  </div>
+                )}
+
+                <div>
+                  <label
+                    htmlFor="memberEmail"
+                    className="block text-sm font-medium text-text-primary mb-2"
+                  >
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="memberEmail"
+                    value={memberEmail}
+                    onChange={(e) => setMemberEmail(e.target.value)}
+                    required
+                    className="w-full px-4 py-2 bg-transparent border-2 border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-600 transition-colors"
+                    placeholder="Enter member's email address"
+                    disabled={addMemberLoading}
+                  />
+                  <p className="mt-2 text-xs text-text-secondary">
+                    Enter the email address of the user you want to add to this project.
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={handleCloseAddMemberModal}
+                    disabled={addMemberLoading}
+                    className="flex-1 px-4 py-2.5 bg-panel-muted text-text-primary rounded-lg text-sm font-medium hover:bg-accent-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={addMemberLoading || !memberEmail.trim()}
+                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {addMemberLoading ? (
+                      <>
+                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Adding...</span>
+                      </>
+                    ) : (
+                      "Add Member"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {isRemoveMemberModalOpen && memberToRemove && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={handleCloseRemoveMemberModal}
+          >
+            <div
+              className="bg-white rounded-xl shadow-large w-full max-w-md p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-xl font-semibold text-text-primary mb-4">
+                Remove Team Member
+              </h2>
+              <p className="text-sm text-text-secondary mb-6">
+                Are you sure you want to remove{" "}
+                <span className="font-semibold">
+                  {memberToRemove.memberId?.name ||
+                    memberToRemove.memberId?.email ||
+                    "this member"}
+                </span>{" "}
+                from this project? This action cannot be undone.
+              </p>
+              {memberActionError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+                  {memberActionError}
+                </div>
+              )}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleCloseRemoveMemberModal}
+                  disabled={removeMemberLoading}
+                  className="flex-1 px-4 py-2.5 bg-panel-muted text-text-primary rounded-lg text-sm font-medium hover:bg-accent-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRemoveMember}
+                  disabled={removeMemberLoading}
+                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {removeMemberLoading ? (
+                    <>
+                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Removing...</span>
+                    </>
+                  ) : (
+                    "Remove"
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}

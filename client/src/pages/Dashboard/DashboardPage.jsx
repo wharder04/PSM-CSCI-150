@@ -1,20 +1,43 @@
 import { useState, useEffect } from "react";
-import projectData from "../../data/projects.json";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
+import { projectService } from "../../../services/api";
 import { MdTrendingUp, MdFolder, MdCheckCircle, MdCalendarToday, MdAdd } from "react-icons/md";
 
 function Dashboard() {
+  const [dashboardData, setDashboardData] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    setProjects(Array.isArray(projectData) ? projectData : []);
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await projectService.getDashboardData();
+        if (response && response.success) {
+          setDashboardData(response.data);
+        } else {
+          setError("Failed to load dashboard data");
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+        setError("Failed to load dashboard data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
   }, []);
 
-  const totalProjects = projects.length;
-  const totalTasks = projects.reduce((sum, project) => sum + (project.totalTasks || 0), 0);
-  const totalTasksCompleted = projects.reduce((sum, project) => sum + (project.completedTasks || 0), 0);
-  const activeProjects = projects.filter(p => p.status === "In Progress").length;
+  const totalProjects = dashboardData?.projects?.total || 0;
+  const totalTasks = dashboardData?.taskStats?.totalTasks || 0;
+  const totalTasksCompleted = dashboardData?.taskStats?.completedTasks || 0;
+  const activeProjects = projects.length;
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -25,16 +48,72 @@ function Dashboard() {
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
-    let date;
-    if (dateString.includes("/")) {
-      const [month, day, year] = dateString.split("/");
-      date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    } else {
-      date = new Date(dateString);
-    }
+    const date = new Date(dateString);
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
   };
+
+  useEffect(() => {
+    const fetchProjectProgress = async () => {
+      if (!dashboardData) return;
+
+      const allProjects = [
+        ...(dashboardData.projects.owner || []),
+        ...(dashboardData.projects.memberOf || []),
+      ];
+
+      if (allProjects.length === 0) {
+        setProjects([]);
+        return;
+      }
+
+      const progressPromises = allProjects.map(async (project) => {
+        try {
+          const progressResponse = await projectService.getProgress(project._id);
+          if (progressResponse && progressResponse.success) {
+            return {
+              ...project,
+              progress: progressResponse.data.percent || 0,
+              totalTasks: progressResponse.data.total || 0,
+              completedTasks: progressResponse.data.completed || 0,
+            };
+          }
+          return { ...project, progress: 0, totalTasks: 0, completedTasks: 0 };
+        } catch (err) {
+          console.error(`Error fetching progress for project ${project._id}:`, err);
+          return { ...project, progress: 0, totalTasks: 0, completedTasks: 0 };
+        }
+      });
+
+      const projectsWithProgress = await Promise.all(progressPromises);
+      setProjects(projectsWithProgress);
+    };
+
+    fetchProjectProgress();
+  }, [dashboardData]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen w-full p-2 bg-bg-base flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-dark mb-4"></div>
+          <p className="text-sm text-text-secondary">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen w-full p-2 bg-bg-base flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h3 className="text-xl font-semibold text-text-primary mb-2">Error loading dashboard</h3>
+          <p className="text-sm text-text-secondary mb-4">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full p-2 bg-bg-base">
@@ -86,54 +165,69 @@ function Dashboard() {
             <h2 className="text-2xl font-bold text-text-primary mb-1">Recent Projects</h2>
             <p className="text-sm text-text-secondary">Overview of your active projects</p>
           </div>
-          <button className="flex items-center gap-2 px-6 py-3 bg-accent-dark text-white rounded-xl text-sm font-semibold shadow-medium hover:-translate-y-0.5 hover:shadow-large transition-all duration-200">
+          <button
+            onClick={() => navigate("/projects")}
+            className="flex items-center gap-2 px-6 py-3 bg-accent-dark text-white rounded-xl text-sm font-semibold shadow-medium hover:-translate-y-0.5 hover:shadow-large transition-all duration-200"
+          >
             <MdAdd size={20} />
             <span>New Project</span>
           </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project) => (
-            <div key={project.id} className="bg-panel rounded-2xl p-6 shadow-soft border border-border hover:-translate-y-1 hover:shadow-large hover:border-accent-light transition-all duration-300 flex flex-col gap-5">
-              <div className="flex justify-between items-start gap-4">
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-text-primary mb-1">{project.name}</h3>
-                  <p className="text-sm text-text-secondary">{project.className}</p>
-                </div>
-                <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide flex-shrink-0 ${project.status === "In Progress"
-                  ? "bg-panel-muted text-accent-mid"
-                  : "bg-panel-muted text-accent-dark"
-                  }`}>
-                  {project.status}
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-text-secondary font-medium">Progress</span>
-                  <span className="text-sm text-text-primary font-bold">{project.progress}%</span>
-                </div>
-                <div className="w-full h-2 rounded-full bg-panel-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-accent-dark transition-all duration-300"
-                    style={{ width: `${project.progress}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center pt-4 border-t border-panel-muted">
-                <div className="flex items-center gap-2 text-text-secondary text-xs">
-                  <MdCalendarToday size={16} className="text-text-muted" />
-                  <span>Due: {formatDate(project.dueDate)}</span>
-                </div>
-                {project.remainingTasks !== undefined && (
-                  <div className="text-xs text-text-secondary font-medium">
-                    {project.remainingTasks} tasks remaining
+          {projects.length > 0 ? (
+            projects.map((project) => {
+              const remainingTasks = (project.totalTasks || 0) - (project.completedTasks || 0);
+              return (
+                <div
+                  key={project._id}
+                  onClick={() => navigate(`/projects/${project._id}`)}
+                  className="bg-panel rounded-2xl p-6 shadow-soft border border-border hover:-translate-y-1 hover:shadow-large hover:border-accent-light transition-all duration-300 flex flex-col gap-5 cursor-pointer"
+                >
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-text-primary mb-1">{project.name}</h3>
+                      <p className="text-sm text-text-secondary">{project.desc || "No description"}</p>
+                    </div>
+                    <span className="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide flex-shrink-0 bg-panel-muted text-accent-mid">
+                      Active
+                    </span>
                   </div>
-                )}
-              </div>
+
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-text-secondary font-medium">Progress</span>
+                      <span className="text-sm text-text-primary font-bold">{project.progress || 0}%</span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-panel-muted overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-accent-dark transition-all duration-300"
+                        style={{ width: `${project.progress || 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-4 border-t border-panel-muted">
+                    {project.dueDate && (
+                      <div className="flex items-center gap-2 text-text-secondary text-xs">
+                        <MdCalendarToday size={16} className="text-text-muted" />
+                        <span>Due: {formatDate(project.dueDate)}</span>
+                      </div>
+                    )}
+                    {remainingTasks > 0 && (
+                      <div className="text-xs text-text-secondary font-medium">
+                        {remainingTasks} tasks remaining
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-text-secondary">No projects found. Create your first project to get started.</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>
