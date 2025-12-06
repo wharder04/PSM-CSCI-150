@@ -13,128 +13,75 @@ import {
 
 function ProjectCard({
   id,
+  _id,
   name,
   className,
+  desc,
   dueDate,
   status,
   progress,
   remainingTasks,
-  incompleteTasks,
+  totalTasks,
+  completedTasks,
 }) {
   const navigate = useNavigate();
 
-  const tasks =
-    remainingTasks !== undefined
-      ? Number(remainingTasks)
-      : incompleteTasks !== undefined
-      ? Number(incompleteTasks)
-      : status === "Completed"
-      ? 0
-      : null;
-  const allTasksDone = tasks === 0 || status === "Completed";
-
-  const percent = Number(progress);
-  const effectiveProgress = Number.isNaN(percent)
-    ? allTasksDone
-      ? 100
-      : 0
-    : percent;
-
   const formatDate = (dateString) => {
     if (!dateString) return "";
-    let date;
-    if (dateString.includes("/")) {
-      const [month, day, year] = dateString.split("/");
-      date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    } else {
-      date = new Date(dateString);
-    }
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    const day = date.getDate();
-    const month = months[date.getMonth()];
-    const year = date.getFullYear();
-    return `${month} ${day}, ${year}`;
+    const date = new Date(dateString);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
   };
 
   const handleCardClick = () => {
-    navigate(`/projects/${id}`);
+    navigate(`/projects/${_id || id}`);
   };
+
+  const projectProgress = progress || 0;
+  const tasksRemaining = remainingTasks !== undefined
+    ? remainingTasks
+    : (totalTasks || 0) - (completedTasks || 0);
 
   return (
     <div
       onClick={handleCardClick}
-      className="bg-panel rounded-2xl p-6 shadow-soft border border-border hover:-translate-y-1 hover:shadow-large hover:border-accent-light transition-all duration-300 flex flex-col gap-5 cursor-pointer"
+      className="bg-white rounded-2xl p-6 shadow-soft border border-gray-200 hover:-translate-y-1 hover:shadow-large transition-all duration-300 flex flex-col justify-between gap-2 cursor-pointer"
     >
-      <div className="flex justify-between items-start gap-4">
+      <div className="flex justify-between items-start gap-4 mb-8">
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-text-primary mb-1.5 leading-tight hover:text-blue-500 hover:underline">
-            {name}
-          </h3>
-          <p className="text-sm text-text-secondary">{className}</p>
+          <h3 className="text-xl font-bold text-text-primary mb-1 hover:text-blue-500">{name}</h3>
+          <p className="text-sm text-text-secondary">{desc || className || "No description"}</p>
         </div>
-        <span
-          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide flex-shrink-0 ${
-            status === "In Progress"
-              ? "bg-panel-muted text-accent-mid"
-              : status === "Completed"
-              ? "bg-panel-muted text-accent-dark"
-              : status === "Overdue"
-              ? "bg-panel-muted text-accent-dark"
-              : "bg-panel-muted text-accent-mid"
-          }`}
-        >
-          {status}
+        <span className="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide flex-shrink-0 bg-gray-200 text-gray">
+          Active
         </span>
       </div>
 
-      <div className="flex-1">
-        <div className="flex flex-col gap-3">
-          <div>
-            <span className="text-sm text-text-secondary font-medium">
-              {allTasksDone
-                ? "All Tasks Completed"
-                : tasks !== null
-                ? `${tasks} Incomplete Tasks`
-                : "In Progress"}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MdCalendarToday size={16} className="text-text-muted" />
-            <span className="text-xs text-text-secondary">
-              {formatDate(dueDate)}
-            </span>
-          </div>
+      <div className="flex flex-col gap-2">
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-text-secondary font-medium">Progress</span>
+          <span className="text-sm text-text-primary font-bold">{projectProgress}%</span>
+        </div>
+        <div className="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-blue-500 transition-all duration-300"
+            style={{ width: `${projectProgress}%` }}
+          ></div>
         </div>
       </div>
 
-      <div className="flex flex-col gap-2.5 pt-4 border-t border-panel-muted">
-        <div className="flex justify-between items-center">
-          <span className="text-xs text-text-secondary font-medium">
-            Progress
-          </span>
-          <span className="text-sm text-text-primary font-bold">
-            {effectiveProgress}%
-          </span>
-        </div>
-        <div className="w-full h-2 rounded-full bg-panel-muted overflow-hidden">
-          <div
-            className="h-full rounded-full bg-accent-dark transition-all duration-300"
-            style={{ width: `${effectiveProgress}%` }}
-          ></div>
-        </div>
+      <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+        {dueDate && (
+          <div className="flex items-center gap-2 text-text-secondary text-xs">
+            <MdCalendarToday size={16} className="text-text-muted" />
+            <span>Due: {formatDate(dueDate)}</span>
+          </div>
+        )}
+        {tasksRemaining > 0 && (
+          <div className="text-xs text-text-secondary font-medium">
+            {tasksRemaining} tasks remaining
+          </div>
+        )}
       </div>
     </div>
   );
@@ -143,7 +90,7 @@ function ProjectCard({
 export default function ProjectsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState("Active");
+  const [activeFilter, setActiveFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -173,55 +120,50 @@ export default function ProjectsPage() {
           ...(response.data.memberOf || []),
         ];
 
-        // Map API response to component format
-        const mappedProjects = allProjects.map((project) => {
-          const dueDate = project.dueDate ? new Date(project.dueDate) : null;
-          const now = new Date();
-          now.setHours(0, 0, 0, 0);
+        if (allProjects.length === 0) {
+          setProjects([]);
+          setLoading(false);
+          return;
+        }
 
-          let status = "In Progress";
-          if (dueDate) {
-            dueDate.setHours(0, 0, 0, 0);
-            if (dueDate < now) {
-              status = "Overdue";
+        // Fetch progress for each project (matching DashboardPage logic)
+        const progressPromises = allProjects.map(async (project) => {
+          try {
+            const progressResponse = await projectService.getProgress(project._id);
+            if (progressResponse && progressResponse.success) {
+              return {
+                ...project,
+                progress: progressResponse.data.percent || 0,
+                totalTasks: progressResponse.data.total || 0,
+                completedTasks: progressResponse.data.completed || 0,
+              };
             }
+            return { ...project, progress: 0, totalTasks: 0, completedTasks: 0 };
+          } catch (err) {
+            console.error(`Error fetching progress for project ${project._id}:`, err);
+            return { ...project, progress: 0, totalTasks: 0, completedTasks: 0 };
           }
-
-          // Format date for display
-          const formatDate = (date) => {
-            if (!date) return "";
-            const months = [
-              "Jan",
-              "Feb",
-              "Mar",
-              "Apr",
-              "May",
-              "Jun",
-              "Jul",
-              "Aug",
-              "Sep",
-              "Oct",
-              "Nov",
-              "Dec",
-            ];
-            return `${
-              months[date.getMonth()]
-            } ${date.getDate()}, ${date.getFullYear()}`;
-          };
-
-          return {
-            id: project._id,
-            name: project.name,
-            className: project.desc || "No description",
-            dueDate: dueDate ? formatDate(dueDate) : "",
-            status: status,
-            progress: 0, // Default, can be calculated from tasks later
-            remainingTasks: null,
-            incompleteTasks: null,
-            startDate: project.startDate,
-            description: project.desc,
-          };
         });
+
+        const projectsWithProgress = await Promise.all(progressPromises);
+
+        // Map to component format
+        const mappedProjects = projectsWithProgress.map((project) => ({
+          id: project._id,
+          _id: project._id,
+          name: project.name,
+          className: project.desc || "No description",
+          desc: project.desc,
+          dueDate: project.dueDate,
+          status: "Active",
+          progress: project.progress || 0,
+          totalTasks: project.totalTasks || 0,
+          completedTasks: project.completedTasks || 0,
+          remainingTasks: (project.totalTasks || 0) - (project.completedTasks || 0),
+          incompleteTasks: (project.totalTasks || 0) - (project.completedTasks || 0),
+          startDate: project.startDate,
+          description: project.desc,
+        }));
 
         setProjects(mappedProjects);
       } else {
@@ -286,8 +228,8 @@ export default function ProjectsPage() {
       console.error("Error creating project:", err);
       setCreateError(
         err.response?.data?.error ||
-          err.message ||
-          "Failed to create project. Please try again."
+        err.message ||
+        "Failed to create project. Please try again."
       );
     } finally {
       setCreateLoading(false);
@@ -313,15 +255,16 @@ export default function ProjectsPage() {
   };
 
   const filteredProjects = projects.filter((project) => {
+    // Filter logic - all projects are "Active" now, so filter by completion status
     const matchesFilter =
       activeFilter === "All" ||
-      (activeFilter === "Active" &&
-        (project.status === "In Progress" || project.status === "Overdue")) ||
-      (activeFilter === "Completed" && project.status === "Completed");
+      (activeFilter === "Active" && (project.progress || 0) < 100) ||
+      (activeFilter === "Completed" && (project.progress || 0) === 100);
 
     const matchesSearch =
       !searchQuery ||
       project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (project.desc && project.desc.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (project.className &&
         project.className.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -350,22 +293,21 @@ export default function ProjectsPage() {
             placeholder="Search projects..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 bg-panel border border-border rounded-xl text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-mid focus:border-transparent transition-all"
+            className="w-full pl-12 pr-4 py-3.5 bg-panel border border-gray-200 rounded-xl text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-mid focus:border-transparent transition-all"
           />
         </div>
 
-        <div className="flex items-center gap-3 bg-panel px-2 py-2 rounded-xl border border-border">
+        <div className="flex items-center gap-3 bg-panel px-2 py-2 rounded-xl border border-gray-200">
           <MdFilterList size={20} className="text-text-secondary ml-2" />
           <div className="flex gap-1">
             {["All", "Active", "Completed"].map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  activeFilter === filter
-                    ? "bg-black text-white font-semibold"
-                    : "text-text-secondary hover:bg-panel-muted hover:text-text-primary"
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${activeFilter === filter
+                  ? "bg-black text-white font-semibold"
+                  : "text-text-secondary hover:bg-panel-muted hover:text-text-primary"
+                  }`}
               >
                 {filter}
               </button>
@@ -383,12 +325,12 @@ export default function ProjectsPage() {
         </h2>
 
         {loading ? (
-          <div className="text-center py-20 bg-panel rounded-2xl border border-border">
+          <div className="text-center py-20 bg-panel rounded-2xl border border-gray-200">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-dark mb-4"></div>
             <p className="text-sm text-text-secondary">Loading projects...</p>
           </div>
         ) : error ? (
-          <div className="text-center py-20 bg-panel rounded-2xl border border-border">
+          <div className="text-center py-20 bg-panel rounded-2xl border border-gray-200">
             <div className="text-6xl mb-4">⚠️</div>
             <h3 className="text-xl font-semibold text-text-primary mb-2">
               Error loading projects
@@ -396,7 +338,7 @@ export default function ProjectsPage() {
             <p className="text-sm text-text-secondary mb-4">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-accent-dark text-white rounded-lg text-sm font-medium hover:bg-accent-mid transition-colors"
+              className="px-4 py-2 bg-accent-dark text-white rounded-lg text-sm font-medium hover:bg-accent-mid transition-colors cursor-pointer"
             >
               Retry
             </button>
@@ -405,20 +347,23 @@ export default function ProjectsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
             {filteredProjects.map((project) => (
               <ProjectCard
-                key={project.id}
+                key={project._id || project.id}
                 id={project.id}
+                _id={project._id}
                 name={project.name}
                 className={project.className}
+                desc={project.desc}
                 dueDate={project.dueDate}
                 status={project.status}
                 progress={project.progress}
                 remainingTasks={project.remainingTasks}
-                incompleteTasks={project.incompleteTasks}
+                totalTasks={project.totalTasks}
+                completedTasks={project.completedTasks}
               />
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-panel rounded-2xl border border-border">
+          <div className="text-center py-20 bg-panel rounded-2xl border border-gray-200">
             <div className="text-6xl mb-4">📁</div>
             <h3 className="text-xl font-semibold text-text-primary mb-2">
               No projects found
@@ -456,7 +401,7 @@ export default function ProjectsPage() {
               </h2>
               <button
                 onClick={handleCloseModal}
-                className="text-text-muted hover:text-text-primary transition-colors p-1"
+                className="text-text-muted hover:text-text-primary transition-colors p-1 cursor-pointer"
               >
                 <MdClose size={20} />
               </button>
@@ -486,7 +431,7 @@ export default function ProjectsPage() {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors"
+                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors"
                   placeholder="Enter project name"
                   disabled={createLoading}
                 />
@@ -504,7 +449,7 @@ export default function ProjectsPage() {
                   name="desc"
                   value={formData.desc}
                   onChange={handleInputChange}
-                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors"
+                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors"
                   placeholder="Enter project description"
                   disabled={createLoading}
                   required
@@ -527,7 +472,7 @@ export default function ProjectsPage() {
                     name="dueDate"
                     value={formData.dueDate}
                     onChange={handleInputChange}
-                    className=" col-span-4 px-0 py-2 pr-8 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors [color-scheme:light]"
+                    className=" col-span-4 px-0 py-2 pr-8 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors [color-scheme:light]"
                     placeholder="dd-mm-yyyy"
                     disabled={createLoading}
                     required
@@ -540,14 +485,14 @@ export default function ProjectsPage() {
                   type="button"
                   onClick={handleCloseModal}
                   disabled={createLoading}
-                  className="flex-1 px-4 py-2.5 bg-panel-muted text-text-primary rounded-lg text-sm font-medium hover:bg-accent-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2.5 bg-red-500 text-text-primary rounded-lg text-sm font-medium hover:bg-accent-light transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createLoading || !formData.name.trim()}
-                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {createLoading ? (
                     <>

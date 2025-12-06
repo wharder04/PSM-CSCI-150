@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
 
 async function sendPasswordReset(email, resetUrl) {
   const info = await transporter.sendMail({
-    from: '"PSM 150" <no-reply@psm150.dev>',
+    from: '"PMS 150" <no-reply@psm150.dev>',
     to: email,
     subject: 'Reset your password',
     text: `Click this link to reset your password: ${resetUrl}`,

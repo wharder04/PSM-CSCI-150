@@ -503,7 +503,7 @@ export default function ProjectDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen w-full p-2 bg-bg-base">
+    <div className="min-h-screen w-9/10 p-2 bg-bg-base">
       <div className="mx-auto">
         <h1 className="text-4xl font-bold text-text-primary mb-4">
           {project.name}
@@ -516,13 +516,13 @@ export default function ProjectDetailsPage() {
         </div>
 
         <div className="grid grid-cols-5 gap-4 mb-8 w-3/4">
-          <div className="bg-gray-200 rounded-xl p-4 border shadow-soft">
+          <div className="bg-gray-200 rounded-xl p-4 border border-gray-300 shadow-soft">
             <div className="text-sm text-text-secondary mb-1">Total Tasks</div>
             <div className="text-2xl font-bold text-text-primary">
               {taskStats.total}
             </div>
           </div>
-          <div className="bg-gray-200 rounded-xl p-4 border shadow-soft">
+          <div className="bg-gray-200 rounded-xl p-4 border border-gray-300 shadow-soft">
             <div className="text-sm text-text-secondary mb-1">
               Assigned Tasks
             </div>
@@ -530,7 +530,7 @@ export default function ProjectDetailsPage() {
               {taskStats.assigned}
             </div>
           </div>
-          <div className="bg-gray-200 rounded-xl p-4 border shadow-soft">
+          <div className="bg-gray-200 rounded-xl p-4 border border-gray-300 shadow-soft">
             <div className="text-sm text-text-secondary mb-1">
               Incomplete Tasks
             </div>
@@ -538,7 +538,7 @@ export default function ProjectDetailsPage() {
               {taskStats.incomplete}
             </div>
           </div>
-          <div className="bg-gray-200 rounded-xl p-4 border shadow-soft">
+          <div className="bg-gray-200 rounded-xl p-4 border border-gray-300 shadow-soft">
             <div className="text-sm text-text-secondary mb-1">
               Completed Tasks
             </div>
@@ -546,7 +546,7 @@ export default function ProjectDetailsPage() {
               {taskStats.completed}
             </div>
           </div>
-          <div className="bg-gray-200 rounded-xl p-4 border shadow-soft">
+          <div className="bg-gray-200 rounded-xl p-4 border border-gray-300 shadow-soft">
             <div className="text-sm text-text-secondary mb-1">
               Overdue Tasks
             </div>
@@ -557,9 +557,9 @@ export default function ProjectDetailsPage() {
         </div>
 
         <h2 className="text-xl font-bold text-text-primary mb-4">Tasks</h2>
-        <div className="bg-panel rounded-lg border border-border shadow-soft overflow-hidden">
+        <div className="bg-panel rounded-lg border border-gray-200 shadow-soft overflow-hidden">
           <table className="w-full">
-            <thead className="bg-panel-muted border-b border-border">
+            <thead className="bg-panel-muted border-b border-gray-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">
                   Name
@@ -653,14 +653,14 @@ export default function ProjectDetailsPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary flex items-center gap-2">
                       <button
                         onClick={() => handleEditTask(task)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors cursor-pointer"
                         title="Edit task"
                       >
                         <MdEdit size={20} />
                       </button>
                       <button
                         onClick={() => handleDeleteClick(task)}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer"
                         title="Delete task"
                       >
                         <MdDelete size={20} />
@@ -687,15 +687,16 @@ export default function ProjectDetailsPage() {
           </h2>
           <button
             onClick={() => setIsAddMemberModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors cursor-pointer"
           >
             <MdAdd size={20} />
             <span>Add Member</span>
           </button>
         </div>
-        <div className="bg-panel rounded-lg border border-border shadow-soft overflow-hidden">
+
+        <div className="bg-panel rounded-lg border border-gray-200 shadow-soft overflow-hidden">
           <table className="w-full">
-            <thead className="bg-panel-muted border-b border-border">
+            <thead className="bg-panel-muted border-b border-gray-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">
                   Name
@@ -748,7 +749,7 @@ export default function ProjectDetailsPage() {
                       <button
                         onClick={() => handleToggleMemberStatus(member.memberId._id)}
                         disabled={togglingMemberId === member.memberId._id}
-                        className="px-3 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        className="px-3 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
                         title={member.isActive ? "Deactivate member" : "Activate member"}
                       >
                         {togglingMemberId === member.memberId._id ? (
@@ -767,7 +768,7 @@ export default function ProjectDetailsPage() {
                       </button>
                       <button
                         onClick={() => handleRemoveMemberClick(member)}
-                        className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors flex items-center gap-1"
+                        className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors flex items-center gap-1 cursor-pointer"
                         title="Remove member"
                       >
                         <MdDelete size={18} />
@@ -811,7 +812,7 @@ export default function ProjectDetailsPage() {
                 </h2>
                 <button
                   onClick={handleCloseTaskModal}
-                  className="text-text-muted hover:text-text-primary transition-colors p-1"
+                  className="text-text-muted hover:text-text-primary transition-colors p-1 cursor-pointer"
                 >
                   <MdClose size={20} />
                 </button>
@@ -841,7 +842,7 @@ export default function ProjectDetailsPage() {
                     value={taskFormData.title}
                     onChange={handleTaskInputChange}
                     required
-                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors"
+                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors"
                     placeholder="Enter task title"
                     disabled={createTaskLoading}
                   />
@@ -859,7 +860,7 @@ export default function ProjectDetailsPage() {
                     name="desc"
                     value={taskFormData.desc}
                     onChange={handleTaskInputChange}
-                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors resize-none"
+                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors resize-none"
                     placeholder="Enter task description"
                     disabled={createTaskLoading}
                     rows={3}
@@ -878,7 +879,7 @@ export default function ProjectDetailsPage() {
                     name="priority"
                     value={taskFormData.priority}
                     onChange={handleTaskInputChange}
-                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary focus:outline-none focus:border-accent-dark transition-colors"
+                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary focus:outline-none focus:border-accent-dark transition-colors"
                     disabled={createTaskLoading}
                   >
                     <option value="Low">Low</option>
@@ -900,7 +901,7 @@ export default function ProjectDetailsPage() {
                     name="dueDate"
                     value={taskFormData.dueDate}
                     onChange={handleTaskInputChange}
-                    className="col-span-4 px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors [color-scheme:light]"
+                    className="col-span-4 px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors [color-scheme:light]"
                     disabled={createTaskLoading}
                   />
                 </div>
@@ -918,7 +919,7 @@ export default function ProjectDetailsPage() {
                       name="assignedTo"
                       value={taskFormData.assignedTo}
                       onChange={handleTaskInputChange}
-                      className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary focus:outline-none focus:border-accent-dark transition-colors"
+                      className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary focus:outline-none focus:border-accent-dark transition-colors"
                       disabled={createTaskLoading}
                     >
                       <option value="">Unassigned</option>
@@ -939,14 +940,14 @@ export default function ProjectDetailsPage() {
                     type="button"
                     onClick={handleCloseTaskModal}
                     disabled={createTaskLoading}
-                    className="flex-1 px-4 py-2.5 bg-panel-muted text-text-primary rounded-lg text-sm font-medium hover:bg-accent-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={createTaskLoading || !taskFormData.title.trim()}
-                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {createTaskLoading ? (
                       <>
@@ -978,7 +979,7 @@ export default function ProjectDetailsPage() {
                 </h2>
                 <button
                   onClick={handleCloseEditTaskModal}
-                  className="text-text-muted hover:text-text-primary transition-colors p-1"
+                  className="text-text-muted hover:text-text-primary transition-colors p-1 cursor-pointer"
                 >
                   <MdClose size={20} />
                 </button>
@@ -1008,7 +1009,7 @@ export default function ProjectDetailsPage() {
                     value={taskFormData.title}
                     onChange={handleTaskInputChange}
                     required
-                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors"
+                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors"
                     placeholder="Enter task title"
                     disabled={editTaskLoading}
                   />
@@ -1026,7 +1027,7 @@ export default function ProjectDetailsPage() {
                     name="desc"
                     value={taskFormData.desc}
                     onChange={handleTaskInputChange}
-                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors resize-none"
+                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors resize-none"
                     placeholder="Enter task description"
                     disabled={editTaskLoading}
                     rows={3}
@@ -1045,7 +1046,7 @@ export default function ProjectDetailsPage() {
                     name="priority"
                     value={taskFormData.priority}
                     onChange={handleTaskInputChange}
-                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary focus:outline-none focus:border-accent-dark transition-colors"
+                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary focus:outline-none focus:border-accent-dark transition-colors"
                     disabled={editTaskLoading}
                   >
                     <option value="Low">Low</option>
@@ -1067,7 +1068,7 @@ export default function ProjectDetailsPage() {
                     name="dueDate"
                     value={taskFormData.dueDate}
                     onChange={handleTaskInputChange}
-                    className="col-span-4 px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors [color-scheme:light]"
+                    className="col-span-4 px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors [color-scheme:light]"
                     disabled={editTaskLoading}
                   />
                 </div>
@@ -1085,7 +1086,7 @@ export default function ProjectDetailsPage() {
                       name="assignedTo"
                       value={taskFormData.assignedTo}
                       onChange={handleTaskInputChange}
-                      className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary focus:outline-none focus:border-accent-dark transition-colors"
+                      className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary focus:outline-none focus:border-accent-dark transition-colors"
                       disabled={editTaskLoading}
                     >
                       <option value="">Unassigned</option>
@@ -1113,7 +1114,7 @@ export default function ProjectDetailsPage() {
                     name="status"
                     value={taskFormData.status}
                     onChange={handleTaskInputChange}
-                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border text-sm text-text-primary focus:outline-none focus:border-accent-dark transition-colors"
+                    className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary focus:outline-none focus:border-accent-dark transition-colors"
                     disabled={editTaskLoading}
                   >
                     <option value="UnAssigned">UnAssigned</option>
@@ -1130,14 +1131,14 @@ export default function ProjectDetailsPage() {
                     type="button"
                     onClick={handleCloseEditTaskModal}
                     disabled={editTaskLoading}
-                    className="flex-1 px-4 py-2.5 bg-panel-muted text-text-primary rounded-lg text-sm font-medium hover:bg-accent-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={editTaskLoading || !taskFormData.title.trim()}
-                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {editTaskLoading ? (
                       <>
@@ -1181,7 +1182,7 @@ export default function ProjectDetailsPage() {
                   type="button"
                   onClick={handleCloseDeleteModal}
                   disabled={deleteTaskLoading}
-                  className="flex-1 px-4 py-2.5 bg-panel-muted text-text-primary rounded-lg text-sm font-medium hover:bg-accent-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1189,7 +1190,7 @@ export default function ProjectDetailsPage() {
                   type="button"
                   onClick={handleDeleteTask}
                   disabled={deleteTaskLoading}
-                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {deleteTaskLoading ? (
                     <>
@@ -1220,7 +1221,7 @@ export default function ProjectDetailsPage() {
                 </h2>
                 <button
                   onClick={handleCloseAddMemberModal}
-                  className="text-text-muted hover:text-text-primary transition-colors p-1"
+                  className="text-text-muted hover:text-text-primary transition-colors p-1 cursor-pointer"
                 >
                   <MdClose size={20} />
                 </button>
@@ -1246,7 +1247,7 @@ export default function ProjectDetailsPage() {
                     value={memberEmail}
                     onChange={(e) => setMemberEmail(e.target.value)}
                     required
-                    className="w-full px-4 py-2 bg-transparent border-2 border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-600 transition-colors"
+                    className="w-full px-4 py-2 bg-transparent border-2 border-gray-200 rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-blue-600 transition-colors"
                     placeholder="Enter member's email address"
                     disabled={addMemberLoading}
                   />
@@ -1260,14 +1261,14 @@ export default function ProjectDetailsPage() {
                     type="button"
                     onClick={handleCloseAddMemberModal}
                     disabled={addMemberLoading}
-                    className="flex-1 px-4 py-2.5 bg-panel-muted text-text-primary rounded-lg text-sm font-medium hover:bg-accent-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={addMemberLoading || !memberEmail.trim()}
-                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {addMemberLoading ? (
                       <>
@@ -1315,7 +1316,7 @@ export default function ProjectDetailsPage() {
                   type="button"
                   onClick={handleCloseRemoveMemberModal}
                   disabled={removeMemberLoading}
-                  className="flex-1 px-4 py-2.5 bg-panel-muted text-text-primary rounded-lg text-sm font-medium hover:bg-accent-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1323,7 +1324,7 @@ export default function ProjectDetailsPage() {
                   type="button"
                   onClick={handleRemoveMember}
                   disabled={removeMemberLoading}
-                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {removeMemberLoading ? (
                     <>

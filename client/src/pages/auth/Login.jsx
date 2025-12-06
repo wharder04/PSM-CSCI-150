@@ -57,7 +57,7 @@ function Login() {
           />
         </div>
         <br />
-        <button className="bg-black text-white px-4 py-2 rounded-xl mb-4" type="submit">Sign in</button>
+        <button className="bg-black text-white px-4 py-2 rounded-xl mb-4 cursor-pointer" type="submit">Sign in</button>
         <Link to="/auth/forgot" className="text-blue-500 hover:text-blue-600 hover:underline"> Forgot Password </Link>
         <p>
           Don't have an account? <Link to="/auth/register" className="text-blue-500 hover:text-blue-600 hover:underline">Sign up</Link>

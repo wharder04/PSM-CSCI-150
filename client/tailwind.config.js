@@ -13,7 +13,7 @@ export default {
         'panel-muted': '#f0f0f0',
         'border': '#d9d9d9',
         'text-primary': '#1f1f1f',
-        'text-secondary': '#5f5f5f',
+        'text-secondary': '[#5f5f5f]',
         'text-muted': '#8a8a8a',
         'accent-dark': '#2c2c2c',
         'accent-mid': '#3f3f3f',

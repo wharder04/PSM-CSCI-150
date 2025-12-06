@@ -39,7 +39,7 @@ export default function ForgotPassword() {
             />
           </div>
           <div className="flex flex-col gap-4 items-center mt-7">
-            <button type="submit">Reset Password</button>
+            <button type="submit" className="cursor-pointer">Reset Password</button>
             <p>
               <Link to="/auth/login"> Back to Sign In </Link>
             </p>

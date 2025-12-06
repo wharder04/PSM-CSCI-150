@@ -96,7 +96,7 @@ function Dashboard() {
     return (
       <div className="min-h-screen w-full p-2 bg-bg-base flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-dark mb-4"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-black mb-4"></div>
           <p className="text-sm text-text-secondary">Loading dashboard...</p>
         </div>
       </div>
@@ -125,9 +125,9 @@ function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 max-w-7xl">
-        <div className="bg-panel rounded-2xl p-6 flex items-center gap-5 shadow-soft border border-border hover:-translate-y-1 transition-all duration-300">
-          <div className="w-16 h-16 rounded-2xl bg-accent-dark flex items-center justify-center text-white flex-shrink-0">
-            <MdFolder size={28} />
+        <div className="bg-white rounded-2xl p-6 flex items-center gap-5 shadow-soft border border-gray-200 hover:-translate-y-1 transition-all duration-300">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <MdFolder size={28} className="text-black" />
           </div>
           <div className="flex-1">
             <p className="text-sm text-text-secondary font-medium mb-2 uppercase tracking-wide">Total Projects</p>
@@ -136,9 +136,9 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-panel rounded-2xl p-6 flex items-center gap-5 shadow-soft border border-border hover:-translate-y-1 transition-all duration-300">
-          <div className="w-16 h-16 rounded-2xl bg-accent-mid flex items-center justify-center text-white flex-shrink-0">
-            <MdCheckCircle size={28} />
+        <div className="bg-white rounded-2xl p-6 flex items-center gap-5 shadow-soft border border-gray-200 hover:-translate-y-1 transition-all duration-300">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <MdCheckCircle size={28} className="text-black" />
           </div>
           <div className="flex-1">
             <p className="text-sm text-text-secondary font-medium mb-2 uppercase tracking-wide">Tasks Completed</p>
@@ -147,9 +147,9 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-panel rounded-2xl p-6 flex items-center gap-5 shadow-soft border border-border hover:-translate-y-1 transition-all duration-300">
-          <div className="w-16 h-16 rounded-2xl bg-accent-mid flex items-center justify-center text-white flex-shrink-0">
-            <MdTrendingUp size={28} />
+        <div className="bg-white rounded-2xl p-6 flex items-center gap-5 shadow-soft border border-gray-200 hover:-translate-y-1 transition-all duration-300">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <MdTrendingUp size={28} className="text-black" />
           </div>
           <div className="flex-1">
             <p className="text-sm text-text-secondary font-medium mb-2 uppercase tracking-wide">Active Projects</p>
@@ -167,7 +167,7 @@ function Dashboard() {
           </div>
           <button
             onClick={() => navigate("/projects")}
-            className="flex items-center gap-2 px-6 py-3 bg-accent-dark text-white rounded-xl text-sm font-semibold shadow-medium hover:-translate-y-0.5 hover:shadow-large transition-all duration-200"
+            className="flex items-center gap-2 px-6 py-3 bg-black text-white rounded-xl text-sm font-semibold shadow-medium hover:-translate-y-0.5 hover:shadow-large transition-all duration-200 cursor-pointer"
           >
             <MdAdd size={20} />
             <span>New Project</span>
@@ -182,14 +182,14 @@ function Dashboard() {
                 <div
                   key={project._id}
                   onClick={() => navigate(`/projects/${project._id}`)}
-                  className="bg-panel rounded-2xl p-6 shadow-soft border border-border hover:-translate-y-1 hover:shadow-large hover:border-accent-light transition-all duration-300 flex flex-col gap-5 cursor-pointer"
+                  className="bg-white rounded-2xl p-6 shadow-soft border border-gray-200 hover:-translate-y-1 hover:shadow-large transition-all duration-300 flex flex-col justify-between gap-2 cursor-pointer"
                 >
-                  <div className="flex justify-between items-start gap-4">
+                  <div className="flex justify-between items-start gap-4 mb-8">
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold text-text-primary mb-1">{project.name}</h3>
+                      <h3 className="text-xl font-bold text-text-primary mb-1 hover:text-blue-500">{project.name}</h3>
                       <p className="text-sm text-text-secondary">{project.desc || "No description"}</p>
                     </div>
-                    <span className="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide flex-shrink-0 bg-panel-muted text-accent-mid">
+                    <span className="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide flex-shrink-0 bg-gray-200 text-gray">
                       Active
                     </span>
                   </div>
@@ -199,15 +199,15 @@ function Dashboard() {
                       <span className="text-xs text-text-secondary font-medium">Progress</span>
                       <span className="text-sm text-text-primary font-bold">{project.progress || 0}%</span>
                     </div>
-                    <div className="w-full h-2 rounded-full bg-panel-muted overflow-hidden">
+                    <div className="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-accent-dark transition-all duration-300"
+                        className="h-full rounded-full bg-blue-500 transition-all duration-300"
                         style={{ width: `${project.progress || 0}%` }}
                       ></div>
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center pt-4 border-t border-panel-muted">
+                  <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                     {project.dueDate && (
                       <div className="flex items-center gap-2 text-text-secondary text-xs">
                         <MdCalendarToday size={16} className="text-text-muted" />

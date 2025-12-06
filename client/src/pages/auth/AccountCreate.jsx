@@ -86,9 +86,9 @@ function AccountCreate() {
         </div>
 
         <div className="flex gap-4 items-center mb-4">
-          <button type="signup">Sign up</button>
+          <button type="signup" className="cursor-pointer">Sign up</button>
           <p>or</p>
-          <button>Google</button>
+          <button className="cursor-pointer">Google</button>
         </div>
 
         <p>Already have an account?</p>

@@ -89,7 +89,7 @@ export default function ProjectMembers({ projectId }) {
                 <button
                     type="submit"
                     disabled={saving}
-                    className="px-3 py-1 rounded bg-blue-600 text-white text-sm disabled:opacity-50"
+                    className="px-3 py-1 rounded bg-blue-600 text-white text-sm disabled:opacity-50 cursor-pointer"
                 >
                     {saving ? "Adding..." : "Add"}
                 </button>
@@ -120,8 +120,8 @@ export default function ProjectMembers({ projectId }) {
                             <div className="flex items-center gap-2">
                                 <span
                                     className={`text-xs px-2 py-1 rounded-full ${m.isActive
-                                            ? "bg-green-100 text-green-700"
-                                            : "bg-gray-200 text-gray-600"
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-gray-200 text-gray-600"
                                         }`}
                                 >
                                     {m.isActive ? "Active" : "Inactive"}
@@ -130,7 +130,7 @@ export default function ProjectMembers({ projectId }) {
                                 <button
                                     type="button"
                                     onClick={() => handleToggle(m)}
-                                    className="text-xs px-2 py-1 border rounded"
+                                    className="text-xs px-2 py-1 border rounded cursor-pointer"
                                 >
                                     {m.isActive ? "Deactivate" : "Activate"}
                                 </button>
@@ -138,7 +138,7 @@ export default function ProjectMembers({ projectId }) {
                                 <button
                                     type="button"
                                     onClick={() => handleRemove(m)}
-                                    className="text-xs px-2 py-1 border rounded text-red-600 border-red-400"
+                                    className="text-xs px-2 py-1 border rounded text-red-600 border-red-400 cursor-pointer"
                                 >
                                     Remove
                                 </button>

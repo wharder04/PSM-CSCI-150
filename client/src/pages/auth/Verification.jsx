@@ -44,8 +44,8 @@ export default function Verfication() {
             value={code}
             onChange={handleChange}
           />
-          <button onClick={HandleResendButton}>Resend Code</button>
-          <button className="back-button" onClick={handleBackArrow}>
+          <button onClick={HandleResendButton} className="cursor-pointer">Resend Code</button>
+          <button className="back-button cursor-pointer" onClick={handleBackArrow}>
             ←
           </button>
         </div>

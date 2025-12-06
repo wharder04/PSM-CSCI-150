@@ -14,7 +14,7 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     // Log error to console
     console.error("ErrorBoundary caught an error:", error, errorInfo);
-    
+
     // Update state with error details
     this.setState({
       error: error,
@@ -52,7 +52,7 @@ class ErrorBoundary extends React.Component {
                 this.setState({ hasError: false, error: null, errorInfo: null });
                 window.location.reload();
               }}
-              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded cursor-pointer"
             >
               Reload Page
             </button>

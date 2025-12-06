@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "8e7e3e3b-psm-collection-1",
-    "name": "PSM CSCI150 \u2014 Backend (Cookie JWT)",
+    "name": "PMS CSCI150 \u2014 Backend (Cookie JWT)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "End-to-end Postman collection for cookie-based JWT backend: auth, projects, members, tasks."
   },

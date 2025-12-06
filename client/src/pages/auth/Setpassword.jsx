@@ -24,8 +24,8 @@ export default function SetPassword() {
             letter, number and symbol
           </p>
           <input type="password" placeholder="Enter your password" />
-          <button onClick={continueClicked}>Continue</button>
-          <button className="back-button" onClick={handleBackArrow}>
+          <button onClick={continueClicked} className="cursor-pointer">Continue</button>
+          <button className="back-button cursor-pointer" onClick={handleBackArrow}>
             ←
           </button>
         </div>

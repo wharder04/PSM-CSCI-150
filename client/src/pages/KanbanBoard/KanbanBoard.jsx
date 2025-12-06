@@ -68,7 +68,7 @@ function KanbanBoard() {
         </div>
         <div className="mb-6">
           <button
-            className="bg-gray-800 text-white font-sans rounded w-24 h-10 mb-4"
+            className="bg-gray-800 text-white font-sans rounded w-24 h-10 mb-4 cursor-pointer"
             onClick={() => setShowPopup(true)}
           >
             + New Task
@@ -110,20 +110,20 @@ function KanbanBoard() {
                   <p className="text-black text-base">Priority</p>
                   <div className="relative inline-block">
                     <button
-                      className="px-4 py-2 bg-gray-200 rounded"
+                      className="px-4 py-2 bg-gray-200 rounded cursor-pointer"
                       onClick={() =>
                         setPriorityDropdownOpen(!priorityDropdownOpen)
                       }
                     ></button>
                     {priorityDropdownOpen && (
                       <div className="absolute right-0 mt-2 w-1/4 bg-gray-200 rounded">
-                        <button className="block w-full text-left text-black text-base px-4 py-2 bg-gray-200 rounded">
+                        <button className="block w-full text-left text-black text-base px-4 py-2 bg-gray-200 rounded cursor-pointer">
                           Low
                         </button>
-                        <button className="block w-full text-left text-black text-base px-4 py-2 bg-gray-200 rounded">
+                        <button className="block w-full text-left text-black text-base px-4 py-2 bg-gray-200 rounded cursor-pointer">
                           Medium
                         </button>
-                        <button className="block w-full text-left text-black text-base px-4 py-2 bg-gray-200 rounded">
+                        <button className="block w-full text-left text-black text-base px-4 py-2 bg-gray-200 rounded cursor-pointer">
                           High
                         </button>
                       </div>
@@ -134,14 +134,14 @@ function KanbanBoard() {
                   <p className="text-black text-base">Assigned To</p>
                   <div className="relative inline-block">
                     <button
-                      className="px-4 py-2 bg-gray-200 rounded"
+                      className="px-4 py-2 bg-gray-200 rounded cursor-pointer"
                       onClick={() => setAssigneeDropdown(!assigneeDropdown)}
                     ></button>
                     {assigneeDropdown && (
                       <div className="absolute right-0 mt-2 w-1/4 bg-gray-200 rounded">
                         {team.map((teamMember) => (
                           <button
-                            className="block w-full text-left text-black text-base px-4 py-2 bg-gray-200 rounded"
+                            className="block w-full text-left text-black text-base px-4 py-2 bg-gray-200 rounded cursor-pointer"
                             key={teamMember.id}
                           >
                             {teamMember.name}
@@ -162,13 +162,13 @@ function KanbanBoard() {
       <div className="w-2/3 h-full flex flex-col gap-6 p-6">
         <div className="flex flex-row gap-4 mb-4">
           <button
-            className="bg-gray-200 text-black rounded px-2 py-2 text-base w-24 h-10"
+            className="bg-gray-200 text-black rounded px-2 py-2 text-base w-24 h-10 cursor-pointer"
             onClick={() => setActiveSection("tasksActive")}
           >
             Tasks
           </button>
           <button
-            className="bg-gray-200 text-black rounded px-2 py-2 text-base w-24 h-10"
+            className="bg-gray-200 text-black rounded px-2 py-2 text-base w-24 h-10 cursor-pointer"
             onClick={() => setActiveSection("teamActive")}
           >
             Team
@@ -241,15 +241,15 @@ function KanbanBoard() {
                   <p className="text-black text-base px-4 py-2">Role</p>
                   <div className="relative inline-block">
                     <button
-                      className="px-4 py-2 bg-gray-200 rounded"
+                      className="px-4 py-2 bg-gray-200 rounded cursor-pointer"
                       onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
                     ></button>
                     {roleDropdownOpen && (
                       <div className="absolute mt-2 w-1/4 bg-gray-200 rounded">
-                        <button className="block w-full text-left text-black text-base px-4 py-2">
+                        <button className="block w-full text-left text-black text-base px-4 py-2 cursor-pointer">
                           Admin
                         </button>
-                        <button className="block w-full text-left text-black text-base px-4 py-2">
+                        <button className="block w-full text-left text-black text-base px-4 py-2 cursor-pointer">
                           Member
                         </button>
                       </div>
@@ -257,7 +257,7 @@ function KanbanBoard() {
                   </div>
                 </div>
               </div>
-              <button className="w-1/3 h-1/5 bg-gray-200 text-black text-base">
+              <button className="w-1/3 h-1/5 bg-gray-200 text-black text-base cursor-pointer">
                 + Add Member
               </button>
             </form>
@@ -276,7 +276,7 @@ function KanbanBoard() {
                     </p>
                     <div className="relative inline-block">
                       <button
-                        className="px-4 py-2 bg-gray-200 rounded text-base text-black"
+                        className="px-4 py-2 bg-gray-200 rounded text-base text-black cursor-pointer"
                         onClick={() =>
                           setMemberDropdownOpen(!memberDropdownOpen)
                         }
@@ -285,10 +285,10 @@ function KanbanBoard() {
                       </button>
                       {memberDropdownOpen && (
                         <div className="absolute right-0 mt-2 w-1/4 bg-gray-200 rounded">
-                          <button className="block w-full text-left text-black text-base px-4 py-2">
+                          <button className="block w-full text-left text-black text-base px-4 py-2 cursor-pointer">
                             Admin
                           </button>
-                          <button className="block w-full text-left text-black text-base px-4 py-2">
+                          <button className="block w-full text-left text-black text-base px-4 py-2 cursor-pointer">
                             Member
                           </button>
                         </div>
