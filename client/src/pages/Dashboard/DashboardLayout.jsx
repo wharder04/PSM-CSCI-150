@@ -89,9 +89,11 @@ export default function DashboardLayout({ children }) {
 
         <div className="p-4 border-t border-gray-200">
           <div className="mb-4">
-            <p className="text-text-primary text-sm">
+            <Link
+              to="/profile"
+             className="text-text-primary text-sm">
               {user?.email || "user@example.com"}
-            </p>
+            </Link>
           </div>
 
           <div className="flex flex-col gap-1">
