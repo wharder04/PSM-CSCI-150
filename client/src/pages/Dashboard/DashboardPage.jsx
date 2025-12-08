@@ -2,7 +2,13 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
 import { projectService, profileService } from "../../../services/api";
-import { MdTrendingUp, MdFolder, MdCheckCircle, MdCalendarToday, MdAdd } from "react-icons/md";
+import {
+  MdTrendingUp,
+  MdFolder,
+  MdCheckCircle,
+  MdCalendarToday,
+  MdAdd,
+} from "react-icons/md";
 
 function Dashboard() {
   const [dashboardData, setDashboardData] = useState(null);
@@ -68,7 +74,9 @@ function Dashboard() {
 
     setStatusLoading(true);
     try {
-      const response = await profileService.updateProfile({ status: newStatus });
+      const response = await profileService.updateProfile({
+        status: newStatus,
+      });
       if (response && response.ok) {
         // Update AuthContext with new user data
         const updatedUser = {
@@ -89,8 +97,23 @@ function Dashboard() {
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return `${
+      months[date.getMonth()]
+    } ${date.getDate()}, ${date.getFullYear()}`;
   };
 
   useEffect(() => {
@@ -109,7 +132,9 @@ function Dashboard() {
 
       const progressPromises = allProjects.map(async (project) => {
         try {
-          const progressResponse = await projectService.getProgress(project._id);
+          const progressResponse = await projectService.getProgress(
+            project._id
+          );
           if (progressResponse && progressResponse.success) {
             return {
               ...project,
@@ -120,7 +145,10 @@ function Dashboard() {
           }
           return { ...project, progress: 0, totalTasks: 0, completedTasks: 0 };
         } catch (err) {
-          console.error(`Error fetching progress for project ${project._id}:`, err);
+          console.error(
+            `Error fetching progress for project ${project._id}:`,
+            err
+          );
           return { ...project, progress: 0, totalTasks: 0, completedTasks: 0 };
         }
       });
@@ -148,7 +176,9 @@ function Dashboard() {
       <div className="min-h-screen w-full p-2 bg-bg-base flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">⚠️</div>
-          <h3 className="text-xl font-semibold text-text-primary mb-2">Error loading dashboard</h3>
+          <h3 className="text-xl font-semibold text-text-primary mb-2">
+            Error loading dashboard
+          </h3>
           <p className="text-sm text-text-secondary mb-4">{error}</p>
         </div>
       </div>
@@ -161,12 +191,17 @@ function Dashboard() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-bold text-text-primary mb-2 tracking-tight">
-              {getGreeting()}, {user?.name || 'User'}!
+              {getGreeting()}, {user?.name || "User"}!
             </h1>
-            <p className="text-base text-text-secondary">Here's what's happening with your projects today</p>
+            <p className="text-base text-text-secondary">
+              Here's what's happening with your projects today
+            </p>
           </div>
           <div className="flex items-center gap-3">
-            <label htmlFor="status-select" className="text-sm font-medium text-text-secondary">
+            <label
+              htmlFor="status-select"
+              className="text-sm font-medium text-text-secondary"
+            >
               Status:
             </label>
             <select
@@ -174,7 +209,9 @@ function Dashboard() {
               value={user?.status || "Active"}
               onChange={handleStatusChange}
               disabled={statusLoading}
-              className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${getStatusColor(user?.status || "Active")}`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${getStatusColor(
+                user?.status || "Active"
+              )}`}
             >
               <option value="Active">Active</option>
               <option value="Busy">Busy</option>
@@ -191,9 +228,15 @@ function Dashboard() {
             <MdFolder size={28} className="text-black" />
           </div>
           <div className="flex-1">
-            <p className="text-sm text-text-secondary font-medium mb-2 uppercase tracking-wide">Total Projects</p>
-            <p className="text-3xl font-bold text-text-primary mb-1 leading-tight">{totalProjects}</p>
-            <p className="text-xs text-text-secondary font-medium">{activeProjects} Active</p>
+            <p className="text-sm text-text-secondary font-medium mb-2 uppercase tracking-wide">
+              Total Projects
+            </p>
+            <p className="text-3xl font-bold text-text-primary mb-1 leading-tight">
+              {totalProjects}
+            </p>
+            <p className="text-xs text-text-secondary font-medium">
+              {activeProjects} Active
+            </p>
           </div>
         </div>
 
@@ -202,9 +245,15 @@ function Dashboard() {
             <MdCheckCircle size={28} className="text-black" />
           </div>
           <div className="flex-1">
-            <p className="text-sm text-text-secondary font-medium mb-2 uppercase tracking-wide">Tasks Completed</p>
-            <p className="text-3xl font-bold text-text-primary mb-1 leading-tight">{totalTasksCompleted}</p>
-            <p className="text-xs text-text-secondary font-medium">of {totalTasks} total</p>
+            <p className="text-sm text-text-secondary font-medium mb-2 uppercase tracking-wide">
+              Tasks Completed
+            </p>
+            <p className="text-3xl font-bold text-text-primary mb-1 leading-tight">
+              {totalTasksCompleted}
+            </p>
+            <p className="text-xs text-text-secondary font-medium">
+              of {totalTasks} total
+            </p>
           </div>
         </div>
 
@@ -213,9 +262,15 @@ function Dashboard() {
             <MdTrendingUp size={28} className="text-black" />
           </div>
           <div className="flex-1">
-            <p className="text-sm text-text-secondary font-medium mb-2 uppercase tracking-wide">Active Projects</p>
-            <p className="text-3xl font-bold text-text-primary mb-1 leading-tight">{activeProjects}</p>
-            <p className="text-xs text-text-secondary font-medium">In Progress</p>
+            <p className="text-sm text-text-secondary font-medium mb-2 uppercase tracking-wide">
+              Active Projects
+            </p>
+            <p className="text-3xl font-bold text-text-primary mb-1 leading-tight">
+              {activeProjects}
+            </p>
+            <p className="text-xs text-text-secondary font-medium">
+              In Progress
+            </p>
           </div>
         </div>
       </div>
@@ -223,8 +278,12 @@ function Dashboard() {
       <div className="max-w-7xl">
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-text-primary mb-1">Recent Projects</h2>
-            <p className="text-sm text-text-secondary">Overview of your active projects</p>
+            <h2 className="text-2xl font-bold text-text-primary mb-1">
+              Recent Projects
+            </h2>
+            <p className="text-sm text-text-secondary">
+              Overview of your active projects
+            </p>
           </div>
           <button
             onClick={() => navigate("/projects")}
@@ -238,17 +297,22 @@ function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.length > 0 ? (
             projects.map((project) => {
-              const remainingTasks = (project.totalTasks || 0) - (project.completedTasks || 0);
+              const remainingTasks =
+                (project.totalTasks || 0) - (project.completedTasks || 0);
               return (
                 <div
                   key={project._id}
                   onClick={() => navigate(`/projects/${project._id}`)}
-                  className="bg-white rounded-2xl p-6 shadow-soft border border-gray-200 hover:-translate-y-1 hover:shadow-large transition-all duration-300 flex flex-col justify-between gap-2 cursor-pointer"
+                  className="bg-white rounded-2xl p-6 shadow-soft border border-gray-200 hover:-translate-y-1 hover:shadow-large transition-all duration-300 flex flex-col justify-between gap-2 cursor-pointer hover:bg-gray-100 hover:border-gray-300"
                 >
                   <div className="flex justify-between items-start gap-4 mb-8">
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold text-text-primary mb-1 hover:text-blue-500">{project.name}</h3>
-                      <p className="text-sm text-text-secondary">{project.desc || "No description"}</p>
+                      <h3 className="text-xl font-bold text-text-primary mb-1 hover:text-blue-500">
+                        {project.name}
+                      </h3>
+                      <p className="text-sm text-text-secondary">
+                        {project.desc || "No description"}
+                      </p>
                     </div>
                     <span className="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide flex-shrink-0 bg-gray-200 text-gray">
                       Active
@@ -257,8 +321,12 @@ function Dashboard() {
 
                   <div className="flex flex-col gap-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-text-secondary font-medium">Progress</span>
-                      <span className="text-sm text-text-primary font-bold">{project.progress || 0}%</span>
+                      <span className="text-xs text-text-secondary font-medium">
+                        Progress
+                      </span>
+                      <span className="text-sm text-text-primary font-bold">
+                        {project.progress || 0}%
+                      </span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
                       <div
@@ -271,7 +339,10 @@ function Dashboard() {
                   <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                     {project.dueDate && (
                       <div className="flex items-center gap-2 text-text-secondary text-xs">
-                        <MdCalendarToday size={16} className="text-text-muted" />
+                        <MdCalendarToday
+                          size={16}
+                          className="text-text-muted"
+                        />
                         <span>Due: {formatDate(project.dueDate)}</span>
                       </div>
                     )}
@@ -286,7 +357,9 @@ function Dashboard() {
             })
           ) : (
             <div className="col-span-full text-center py-12">
-              <p className="text-text-secondary">No projects found. Create your first project to get started.</p>
+              <p className="text-text-secondary">
+                No projects found. Create your first project to get started.
+              </p>
             </div>
           )}
         </div>

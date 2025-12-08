@@ -29,8 +29,23 @@ function ProjectCard({
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return `${
+      months[date.getMonth()]
+    } ${date.getDate()}, ${date.getFullYear()}`;
   };
 
   const handleCardClick = () => {
@@ -38,19 +53,24 @@ function ProjectCard({
   };
 
   const projectProgress = progress || 0;
-  const tasksRemaining = remainingTasks !== undefined
-    ? remainingTasks
-    : (totalTasks || 0) - (completedTasks || 0);
+  const tasksRemaining =
+    remainingTasks !== undefined
+      ? remainingTasks
+      : (totalTasks || 0) - (completedTasks || 0);
 
   return (
     <div
       onClick={handleCardClick}
-      className="bg-white rounded-2xl p-6 shadow-soft border border-gray-200 hover:-translate-y-1 hover:shadow-large transition-all duration-300 flex flex-col justify-between gap-2 cursor-pointer"
+      className="bg-white rounded-2xl p-6 shadow-soft border border-gray-200 hover:-translate-y-1 hover:shadow-large transition-all duration-300 flex flex-col justify-between gap-2 cursor-pointer  hover:bg-gray-100 hover:border-gray-300"
     >
       <div className="flex justify-between items-start gap-4 mb-8">
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-text-primary mb-1 hover:text-blue-500">{name}</h3>
-          <p className="text-sm text-text-secondary">{desc || className || "No description"}</p>
+          <h3 className="text-xl font-bold text-text-primary mb-1 hover:text-blue-500">
+            {name}
+          </h3>
+          <p className="text-sm text-text-secondary">
+            {desc || className || "No description"}
+          </p>
         </div>
         <span className="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide flex-shrink-0 bg-gray-200 text-gray">
           Active
@@ -59,8 +79,12 @@ function ProjectCard({
 
       <div className="flex flex-col gap-2">
         <div className="flex justify-between items-center">
-          <span className="text-xs text-text-secondary font-medium">Progress</span>
-          <span className="text-sm text-text-primary font-bold">{projectProgress}%</span>
+          <span className="text-xs text-text-secondary font-medium">
+            Progress
+          </span>
+          <span className="text-sm text-text-primary font-bold">
+            {projectProgress}%
+          </span>
         </div>
         <div className="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
           <div
@@ -129,7 +153,9 @@ export default function ProjectsPage() {
         // Fetch progress for each project (matching DashboardPage logic)
         const progressPromises = allProjects.map(async (project) => {
           try {
-            const progressResponse = await projectService.getProgress(project._id);
+            const progressResponse = await projectService.getProgress(
+              project._id
+            );
             if (progressResponse && progressResponse.success) {
               return {
                 ...project,
@@ -138,10 +164,23 @@ export default function ProjectsPage() {
                 completedTasks: progressResponse.data.completed || 0,
               };
             }
-            return { ...project, progress: 0, totalTasks: 0, completedTasks: 0 };
+            return {
+              ...project,
+              progress: 0,
+              totalTasks: 0,
+              completedTasks: 0,
+            };
           } catch (err) {
-            console.error(`Error fetching progress for project ${project._id}:`, err);
-            return { ...project, progress: 0, totalTasks: 0, completedTasks: 0 };
+            console.error(
+              `Error fetching progress for project ${project._id}:`,
+              err
+            );
+            return {
+              ...project,
+              progress: 0,
+              totalTasks: 0,
+              completedTasks: 0,
+            };
           }
         });
 
@@ -159,8 +198,10 @@ export default function ProjectsPage() {
           progress: project.progress || 0,
           totalTasks: project.totalTasks || 0,
           completedTasks: project.completedTasks || 0,
-          remainingTasks: (project.totalTasks || 0) - (project.completedTasks || 0),
-          incompleteTasks: (project.totalTasks || 0) - (project.completedTasks || 0),
+          remainingTasks:
+            (project.totalTasks || 0) - (project.completedTasks || 0),
+          incompleteTasks:
+            (project.totalTasks || 0) - (project.completedTasks || 0),
           startDate: project.startDate,
           description: project.desc,
         }));
@@ -228,8 +269,8 @@ export default function ProjectsPage() {
       console.error("Error creating project:", err);
       setCreateError(
         err.response?.data?.error ||
-        err.message ||
-        "Failed to create project. Please try again."
+          err.message ||
+          "Failed to create project. Please try again."
       );
     } finally {
       setCreateLoading(false);
@@ -264,7 +305,8 @@ export default function ProjectsPage() {
     const matchesSearch =
       !searchQuery ||
       project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (project.desc && project.desc.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (project.desc &&
+        project.desc.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (project.className &&
         project.className.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -304,10 +346,11 @@ export default function ProjectsPage() {
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${activeFilter === filter
-                  ? "bg-black text-white font-semibold"
-                  : "text-text-secondary hover:bg-panel-muted hover:text-text-primary"
-                  }`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
+                  activeFilter === filter
+                    ? "bg-black text-white font-semibold"
+                    : "text-text-secondary hover:bg-panel-muted hover:text-text-primary"
+                }`}
               >
                 {filter}
               </button>
