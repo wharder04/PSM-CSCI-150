@@ -6,7 +6,8 @@ function TaskCard({ task }) {
   const getPriorityClass = (priority) => {
     const priorityLower = priority?.toLowerCase() || "";
     if (priorityLower.includes("high")) return "bg-white-muted text-black";
-    if (priorityLower.includes("medium")) return "bg-white-muted text-accent-mid";
+    if (priorityLower.includes("medium"))
+      return "bg-white-muted text-accent-mid";
     return "bg-white-muted text-text-secondary";
   };
 
@@ -15,28 +16,53 @@ function TaskCard({ task }) {
     if (dateString.includes("/")) {
       const [month, day, year] = dateString.split("/");
       const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+      const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      return `${
+        months[date.getMonth()]
+      } ${date.getDate()}, ${date.getFullYear()}`;
     }
     return dateString;
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 cursor-grab hover:shadow-large hover:-translate-y-0.5 hover:border-white transition-all duration-200 active:cursor-grabbing relative">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 cursor-grab hover:shadow-large hover:-translate-y-0.5 transition-all duration-200 active:cursor-grabbing relative">
       <div className="flex justify-between items-start mb-3">
-        <h3 className="text-sm font-semibold text-text-primary flex-1 leading-snug pr-2">{task.name}</h3>
-        <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wide flex-shrink-0 ${getPriorityClass(task.priority)}`}>
+        <h3 className="text-sm font-semibold text-text-primary flex-1 leading-snug pr-2">
+          {task.name}
+        </h3>
+        <span
+          className={`px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wide flex-shrink-0 ${getPriorityClass(
+            task.priority
+          )}`}
+        >
           {task.priority}
         </span>
       </div>
       {task.assignedTo && (
         <div className="mb-3">
-          <p className="text-xs text-text-secondary">Assigned to: {task.assignedTo}</p>
+          <p className="text-xs text-text-secondary">
+            Assigned to: {task.assignedTo}
+          </p>
         </div>
       )}
       <div className="flex items-center gap-1.5 pt-3 border-t border-white-muted">
         <MdCalendarToday size={14} className="text-text-muted" />
-        <span className="text-xs text-text-secondary">{formatDate(task.dateAssigned || task.dueDate)}</span>
+        <span className="text-xs text-text-secondary">
+          {formatDate(task.dateAssigned || task.dueDate)}
+        </span>
       </div>
     </div>
   );
@@ -49,11 +75,17 @@ function TaskBoard() {
     setTasks(tasksData);
   }, []);
 
-  const unAssignedTasks = tasks.filter((task) => !task.assignedTo || task.assignedTo.trim() === "");
-  const assignedTasks = tasks.filter((task) => task.assignedTo && task.assignedTo.trim() !== "");
+  const unAssignedTasks = tasks.filter(
+    (task) => !task.assignedTo || task.assignedTo.trim() === ""
+  );
+  const assignedTasks = tasks.filter(
+    (task) => task.assignedTo && task.assignedTo.trim() !== ""
+  );
   const inProgressTasks = tasks.filter((task) => task.status === "In Progress");
   const completedTasks = tasks.filter((task) => task.status === "Completed");
-  const incompleteTasks = tasks.filter((task) => task.status === "Incomplete" || task.status === "Overdue");
+  const incompleteTasks = tasks.filter(
+    (task) => task.status === "Incomplete" || task.status === "Overdue"
+  );
 
   const columns = [
     { id: "unassigned", title: "Unassigned", tasks: unAssignedTasks },
@@ -67,8 +99,12 @@ function TaskBoard() {
     <div className="min-h-screen w-full p-2 bg-bg-base">
       <div className="mb-8 max-w-full">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-text-primary mb-2 tracking-tight">Task Board</h1>
-          <p className="text-base text-text-secondary mb-6">Drag and drop tasks to update their status</p>
+          <h1 className="text-3xl font-bold text-text-primary mb-2 tracking-tight">
+            Task Board
+          </h1>
+          <p className="text-base text-text-secondary mb-6">
+            Drag and drop tasks to update their status
+          </p>
         </div>
         <div className="flex gap-3 flex-wrap">
           <button className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-text-secondary hover:bg-white-muted hover:border-white hover:text-text-primary transition-all duration-200 cursor-pointer">
@@ -84,15 +120,20 @@ function TaskBoard() {
 
       <div className="flex gap-5 overflow-x-auto pb-5 max-w-full">
         {columns.map((column) => (
-          <div key={column.id} className="min-w-[300px] max-w-[300px] bg-white rounded-2xl p-5 shadow-soft border border-gray-200 flex flex-col h-fit max-h-[calc(100vh-200px)]">
+          <div
+            key={column.id}
+            className="min-w-[300px] max-w-[300px] bg-white rounded-2xl p-5 shadow-soft border border-gray-200 flex flex-col h-fit max-h-[calc(100vh-200px)]"
+          >
             <div className="flex justify-between items-center mb-4 pb-3 border-b-2 border-white-muted">
               <div className="flex items-center gap-2.5">
-                <span className="text-base font-bold text-text-primary">{column.title}</span>
+                <span className="text-base font-bold text-text-primary">
+                  {column.title}
+                </span>
                 <span className="bg-white-muted text-text-secondary px-2.5 py-1 rounded-xl text-xs font-semibold">
                   {column.tasks.length}
                 </span>
               </div>
-              <button className="w-7 h-7 rounded-lg border border-gray-200 bg-white text-text-secondary hover:bg-white-muted hover:border-white hover:text-text-primary transition-all duration-200 flex items-center justify-center text-lg font-light cursor-pointer">
+              <button className="w-7 h-7 rounded-lg border border-gray-200 bg-white text-text-secondary text-primary transition-all duration-200 flex items-center justify-center text-lg font-light cursor-pointer">
                 <MdAdd size={18} />
               </button>
             </div>

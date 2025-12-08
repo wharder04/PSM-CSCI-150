@@ -12,7 +12,7 @@ import ProjectDetailsPage from "./pages/projects/ProjectDetailsPage.jsx";
 import Dashboard from "./pages/dashboard/DashboardPage.jsx";
 import TaskBoard from "./pages/TaskBoard/TaskBoard.jsx";
 import DashboardLayout from "./pages/dashboard/DashboardLayout.jsx";
-import ProfilePage from "./pages/dashboard/Profile.jsx";
+import ProfilePage from "./pages/profile/ProfilePage.jsx";
 
 const RouteProtection = () => {
   const { isAuthenticated } = useAuth();

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
-import { projectService } from "../../../services/api";
+import { projectService, profileService } from "../../../services/api";
 import { MdTrendingUp, MdFolder, MdCheckCircle, MdCalendarToday, MdAdd } from "react-icons/md";
 
 function Dashboard() {
@@ -9,7 +9,8 @@ function Dashboard() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { user } = useAuth();
+  const [statusLoading, setStatusLoading] = useState(false);
+  const { user, login } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,6 +45,45 @@ function Dashboard() {
     if (hour < 12) return "Good Morning";
     if (hour < 18) return "Good Afternoon";
     return "Good Evening";
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Active":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "Busy":
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "In a Meeting":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "Offline":
+        return "bg-gray-100 text-gray-700 border-gray-200";
+      default:
+        return "bg-gray-100 text-gray-700 border-gray-200";
+    }
+  };
+
+  const handleStatusChange = async (e) => {
+    const newStatus = e.target.value;
+    if (newStatus === user?.status) return;
+
+    setStatusLoading(true);
+    try {
+      const response = await profileService.updateProfile({ status: newStatus });
+      if (response && response.ok) {
+        // Update AuthContext with new user data
+        const updatedUser = {
+          ...user,
+          status: newStatus,
+        };
+        login(updatedUser);
+      } else {
+        console.error("Failed to update status");
+      }
+    } catch (err) {
+      console.error("Error updating status:", err);
+    } finally {
+      setStatusLoading(false);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -118,10 +158,31 @@ function Dashboard() {
   return (
     <div className="min-h-screen w-full p-2 bg-bg-base">
       <div className="mb-8 max-w-7xl">
-        <h1 className="text-3xl font-bold text-text-primary mb-2 tracking-tight">
-          {getGreeting()}, {user?.name || 'User'}!
-        </h1>
-        <p className="text-base text-text-secondary">Here's what's happening with your projects today</p>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-text-primary mb-2 tracking-tight">
+              {getGreeting()}, {user?.name || 'User'}!
+            </h1>
+            <p className="text-base text-text-secondary">Here's what's happening with your projects today</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <label htmlFor="status-select" className="text-sm font-medium text-text-secondary">
+              Status:
+            </label>
+            <select
+              id="status-select"
+              value={user?.status || "Active"}
+              onChange={handleStatusChange}
+              disabled={statusLoading}
+              className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${getStatusColor(user?.status || "Active")}`}
+            >
+              <option value="Active">Active</option>
+              <option value="Busy">Busy</option>
+              <option value="In a Meeting">In a Meeting</option>
+              <option value="Offline">Offline</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 max-w-7xl">

@@ -72,14 +72,3 @@
   flex: 1;
   background-color: white;
 }
-
-label {
-  color: black;
-}
-
-input {
-  padding: 12px;
-  background-color: rgb(194, 189, 189);
-  border: none;
-  border-radius: 8px;
-}

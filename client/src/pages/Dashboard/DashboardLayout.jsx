@@ -6,8 +6,7 @@ import {
   MdHome,
   MdCheckCircle,
   MdFolder,
-  MdSettings,
-  MdAdd,
+  MdVerifiedUser,
   MdLogout,
 } from "react-icons/md";
 
@@ -40,45 +39,51 @@ export default function DashboardLayout({ children }) {
         <nav className="flex-1 p-4 flex flex-col gap-1 mt-32">
           <Link
             to="/home"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${isActive("/home")
-              ? "bg-panel-muted text-text-primary font-semibold shadow-soft"
-              : "text-text-secondary hover:bg-panel-muted hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-panel-muted/80"
-              } focus:outline-none focus:ring-2 focus:ring-accent-mid focus:ring-offset-2 focus:ring-offset-gray-200`}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${
+              isActive("/home")
+                ? "bg-panel-muted text-text-primary font-semibold shadow-soft"
+                : "text-text-secondary hover:bg-panel-muted hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-panel-muted/80"
+            } focus:outline-none focus:ring-2 focus:ring-accent-mid focus:ring-offset-2 focus:ring-offset-gray-200`}
           >
             <MdHome
               size={22}
-              className={`text-text-primary transition-transform duration-200 ${isActive("/home") ? "" : "group-hover:scale-110"
-                }`}
+              className={`text-text-primary transition-transform duration-200 ${
+                isActive("/home") ? "" : "group-hover:scale-110"
+              }`}
             />
             <span>Dashboard</span>
           </Link>
 
           <Link
             to="/projects"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${isActive("/projects")
-              ? "bg-panel-muted text-text-primary font-semibold shadow-soft"
-              : "text-text-secondary hover:bg-panel-muted hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-panel-muted/80"
-              } focus:outline-none focus:ring-2 focus:ring-accent-mid focus:ring-offset-2 focus:ring-offset-gray-200`}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${
+              isActive("/projects")
+                ? "bg-panel-muted text-text-primary font-semibold shadow-soft"
+                : "text-text-secondary hover:bg-panel-muted hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-panel-muted/80"
+            } focus:outline-none focus:ring-2 focus:ring-accent-mid focus:ring-offset-2 focus:ring-offset-gray-200`}
           >
             <MdFolder
               size={22}
-              className={`text-text-primary transition-transform duration-200 ${isActive("/projects") ? "" : "group-hover:scale-110"
-                }`}
+              className={`text-text-primary transition-transform duration-200 ${
+                isActive("/projects") ? "" : "group-hover:scale-110"
+              }`}
             />
             <span>Projects</span>
           </Link>
 
           <Link
             to="/tasks"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${isActive("/tasks")
-              ? "bg-panel-muted text-text-primary font-semibold shadow-soft"
-              : "text-text-secondary hover:bg-panel-muted hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-panel-muted/80"
-              } focus:outline-none focus:ring-2 focus:ring-accent-mid focus:ring-offset-2 focus:ring-offset-gray-200`}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${
+              isActive("/tasks")
+                ? "bg-panel-muted text-text-primary font-semibold shadow-soft"
+                : "text-text-secondary hover:bg-panel-muted hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-panel-muted/80"
+            } focus:outline-none focus:ring-2 focus:ring-accent-mid focus:ring-offset-2 focus:ring-offset-gray-200`}
           >
             <MdCheckCircle
               size={22}
-              className={`text-text-primary transition-transform duration-200 ${isActive("/tasks") ? "" : "group-hover:scale-110"
-                }`}
+              className={`text-text-primary transition-transform duration-200 ${
+                isActive("/tasks") ? "" : "group-hover:scale-110"
+              }`}
             />
             <span>Tasks</span>
           </Link>
@@ -89,27 +94,27 @@ export default function DashboardLayout({ children }) {
 
         <div className="p-4 border-t border-gray-200">
           <div className="mb-4">
-            <Link
-              to="/profile"
-             className="text-text-primary text-sm">
+            <p className="text-text-primary text-sm">
               {user?.email || "user@example.com"}
-            </Link>
+            </p>
           </div>
 
           <div className="flex flex-col gap-1">
             <Link
-              to="/settings"
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${isActive("/settings")
-                ? "bg-panel-muted text-text-primary font-semibold shadow-soft"
-                : "text-text-secondary hover:bg-panel-muted hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-panel-muted/80"
-                } focus:outline-none focus:ring-2 focus:ring-accent-mid focus:ring-offset-2 focus:ring-offset-gray-200`}
+              to="/profile"
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${
+                isActive("/profile")
+                  ? "bg-panel-muted text-text-primary font-semibold shadow-soft"
+                  : "text-text-secondary hover:bg-panel-muted hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-panel-muted/80"
+              } focus:outline-none focus:ring-2 focus:ring-accent-mid focus:ring-offset-2 focus:ring-offset-gray-200`}
             >
-              <MdSettings
+              <MdVerifiedUser
                 size={20}
-                className={`text-text-primary transition-transform duration-200 ${isActive("/settings") ? "" : "group-hover:scale-110"
-                  }`}
+                className={`text-text-primary transition-transform duration-200 ${
+                  isActive("/profile") ? "" : "group-hover:scale-110"
+                }`}
               />
-              <span>Settings</span>
+              <span>Profile</span>
             </Link>
 
             <button

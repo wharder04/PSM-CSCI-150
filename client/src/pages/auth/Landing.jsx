@@ -9,7 +9,7 @@ import {
   MdDashboard,
   MdTask,
   MdArrowForward,
-  MdCalendarToday
+  MdCalendarToday,
 } from "react-icons/md";
 
 function Landing() {
@@ -28,39 +28,45 @@ function Landing() {
     {
       icon: <MdFolder size={32} />,
       title: "Project Management",
-      description: "Create, organize, and track all your projects in one place. Set deadlines, assign tasks, and monitor progress effortlessly."
+      description:
+        "Create, organize, and track all your projects in one place. Set deadlines, assign tasks, and monitor progress effortlessly.",
     },
     {
       icon: <MdTask size={32} />,
       title: "Task Organization",
-      description: "Break down projects into manageable tasks. Use Kanban boards and task lists to stay organized and productive."
+      description:
+        "Break down projects into manageable tasks. Use Kanban boards and task lists to stay organized and productive.",
     },
     {
       icon: <MdPeople size={32} />,
       title: "Team Collaboration",
-      description: "Invite team members, assign roles, and collaborate seamlessly. Keep everyone in sync with real-time updates."
+      description:
+        "Invite team members, assign roles, and collaborate seamlessly. Keep everyone in sync with real-time updates.",
     },
     {
       icon: <MdTrendingUp size={32} />,
       title: "Progress Tracking",
-      description: "Monitor project progress with visual dashboards. Get insights into completion rates and task statistics."
+      description:
+        "Monitor project progress with visual dashboards. Get insights into completion rates and task statistics.",
     },
     {
       icon: <MdDashboard size={32} />,
       title: "Smart Dashboard",
-      description: "Get a comprehensive overview of all your projects, tasks, and team activity at a glance."
+      description:
+        "Get a comprehensive overview of all your projects, tasks, and team activity at a glance.",
     },
     {
       icon: <MdCalendarToday size={32} />,
       title: "Deadline Management",
-      description: "Never miss a deadline. Set due dates, get reminders, and track upcoming milestones."
-    }
+      description:
+        "Never miss a deadline. Set due dates, get reminders, and track upcoming milestones.",
+    },
   ];
 
   return (
     <div className="min-h-screen w-full bg-bg-base">
       {/* Navigation Bar */}
-      <nav className="bg-white border-b border-border shadow-soft">
+      <nav className="bg-white border-b border-gray-200 shadow-soft">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-xl bg-black flex items-center justify-center">
@@ -105,8 +111,9 @@ function Landing() {
             <span className="text-black">With Ease</span>
           </h1>
           <p className="text-xl text-text-secondary max-w-2xl mx-auto mb-8 leading-relaxed">
-            A powerful project management system designed to help teams collaborate,
-            organize tasks, and deliver projects on time. Everything you need in one place.
+            A powerful project management system designed to help teams
+            collaborate, organize tasks, and deliver projects on time.
+            Everything you need in one place.
           </p>
           <div className="flex gap-4 justify-center">
             {!isAuthenticated && (
@@ -120,7 +127,7 @@ function Landing() {
                 </button>
                 <Link
                   to="/auth/login"
-                  className="px-8 py-4 bg-white text-text-primary rounded-xl font-semibold text-lg border-2 border-border hover:border-accent-light transition-all duration-200 cursor-pointer"
+                  className="px-8 py-4 bg-white text-text-primary rounded-xl font-semibold text-lg border-2 border-gray-200 hover:border-accent-light transition-all duration-200 cursor-pointer"
                 >
                   Sign In
                 </Link>
@@ -143,7 +150,7 @@ function Landing() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-white rounded-2xl p-6 shadow-soft border border-border hover:-translate-y-1 hover:shadow-large transition-all duration-300"
+              className="bg-white rounded-2xl p-6 shadow-soft border border-gray-200 hover:-translate-y-1 hover:shadow-large transition-all duration-300"
             >
               <div className="w-14 h-14 rounded-xl bg-black flex items-center justify-center text-white mb-4">
                 {feature.icon}
@@ -160,7 +167,7 @@ function Landing() {
       </section>
 
       {/* Stats Section */}
-      <section className="bg-white border-t border-border py-16">
+      <section className="bg-white border-t border-gray-200 py-16">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div>
@@ -185,7 +192,8 @@ function Landing() {
           <div className="bg-black rounded-3xl p-12 text-center text-white">
             <h2 className="text-4xl font-bold mb-4">Ready to Get Started?</h2>
             <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-              Join thousands of teams already using PMS to manage their projects more effectively.
+              Join thousands of teams already using PMS to manage their projects
+              more effectively.
             </p>
             <button
               onClick={handleGetStarted}
@@ -199,7 +207,7 @@ function Landing() {
       )}
 
       {/* Footer */}
-      <footer className="bg-white border-t border-border py-8 mt-20">
+      <footer className="bg-white border-t border-gray-200 py-8 mt-20">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <p className="text-text-secondary">
             © 2025 PMS - Project Management System. All rights reserved.

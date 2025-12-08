@@ -112,10 +112,11 @@ export const projectService = {
   },
   updateProject: async (projectId, projectData) => {
     try {
-      const res = await api.put(`/projects/${projectId}`, { projectData });
+      const res = await api.put(`/projects/${projectId}`, projectData);
       return res.data;
     } catch (error) {
       console.log("error obj", error);
+      throw error;
     }
   },
   deleteProject: async (projectId) => {
@@ -222,6 +223,28 @@ export const taskService = {
   deleteTask: async (taskId) => {
     try {
       const res = await api.delete(`/tasks/${taskId}`);
+      return res.data;
+    } catch (error) {
+      console.log("error obj", error);
+      throw error;
+    }
+  },
+};
+
+export const profileService = {
+  getProfile: async () => {
+    try {
+      const res = await api.get("/profile/me");
+      return res.data;
+    } catch (error) {
+      console.log("error obj", error);
+      throw error;
+    }
+  },
+
+  updateProfile: async (profileData) => {
+    try {
+      const res = await api.put("/profile/me", profileData);
       return res.data;
     } catch (error) {
       console.log("error obj", error);
