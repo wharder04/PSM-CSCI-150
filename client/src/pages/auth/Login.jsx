@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { authService } from "../../../services/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext.jsx";
+import { toast } from "react-toastify";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -16,15 +17,15 @@ function Login() {
       const data = await authService.login(email, password);
       if (data.success) {
         login(data.user); // Store user data (token is in httpOnly cookie)
-        alert(data.user.name + " LoggedIn Succesfully");
+        toast.success("LoggedIn as " + data.user.name);
         navigate("/home"); // Redirect to dashboard
       } else {
-        alert(data.message || "Login failed");
+        toast.error(data.message || "Login failed");
       }
       return;
     } catch (error) {
       console.log("Login page Error: ", error);
-      alert(error.response?.data?.message || "Login failed. Please try again.");
+      toast.error(error.response?.data?.message || "Login failed. Please try again.");
     }
   };
 
@@ -55,6 +56,14 @@ function Login() {
             onChange={(e) => setPassword(e.target.value)}
             className="px-4 py-3 rounded-xl bg-gray-700"
           />
+          <div className="flex justify-end mt-2">
+            <Link
+              to="/auth/forgot"
+              className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Forgot Password?
+            </Link>
+          </div>
         </div>
         <br />
         <button

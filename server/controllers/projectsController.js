@@ -4,6 +4,7 @@ import Project from "../models/Project.js";
 import ProjectMember from "../models/ProjectMember.js";
 import Task from "../models/Task.js";
 import User from "../models/User.js";  // 👈 NEW for lookup by email
+import { sendEmail } from "../utils/mailer.js";
 
 // -----------------------------------------------------------------------------
 // CREATE PROJECT
@@ -135,6 +136,30 @@ export async function addMember(req, res, next) {
       { new: true, upsert: true }
     ).populate("memberId", "name email");
 
+    // Send invitation email
+    try {
+      const projectName = req.project.name;
+      const inviterName = req.user.name;
+      const dashboardUrl = `${process.env.CLIENT_URL}/projects/${req.project._id}`;
+
+      const message = `
+        <h1>You have been added to a project</h1>
+        <p>Hello ${doc.memberId.name},</p>
+        <p><strong>${inviterName}</strong> has added you to the project <strong>${projectName}</strong>.</p>
+        <p>Click below to view the project:</p>
+        <a href="${dashboardUrl}">${dashboardUrl}</a>
+      `;
+
+      await sendEmail({
+        to: doc.memberId.email,
+        subject: `New Project: ${projectName}`,
+        html: message,
+      });
+    } catch (emailError) {
+      console.error("Failed to send invitation email:", emailError);
+      // We don't fail the request if email fails, just log it
+    }
+
     res.status(201).json({ success: true, data: doc });
   } catch (e) {
     next(e);
@@ -169,6 +194,34 @@ export async function toggleMemberStatus(req, res, next) {
 export async function removeMember(req, res, next) {
   try {
     const { memberId } = req.params;
+
+    // Fetch member details before deletion
+    const memberData = await ProjectMember.findOne({
+      projectId: req.project._id,
+      memberId,
+    }).populate("memberId", "name email");
+
+    if (memberData && memberData.memberId && memberData.memberId.email) {
+      try {
+        const projectName = req.project.name;
+        const removerName = req.user.name;
+
+        const message = `
+          <h1>You have been removed from a project</h1>
+          <p>Hello ${memberData.memberId.name},</p>
+          <p><strong>${removerName}</strong> has removed you from the project <strong>${projectName}</strong>.</p>
+        `;
+
+        await sendEmail({
+          to: memberData.memberId.email,
+          subject: `Removed from Project: ${projectName}`,
+          html: message,
+        });
+      } catch (emailError) {
+        console.error("Failed to send removal email:", emailError);
+      }
+    }
+
     await ProjectMember.deleteOne({ projectId: req.project._id, memberId });
     res.json({ success: true, data: { memberId } });
   } catch (e) {

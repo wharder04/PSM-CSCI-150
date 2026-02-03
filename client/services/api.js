@@ -69,6 +69,35 @@ export const authService = {
       throw error;
     }
   },
+  forgotPassword: async (email) => {
+    try {
+      const res = await api.post("/auth/forgot-password", { email });
+      return res.data;
+    } catch (error) {
+      console.log("error obj", error);
+      throw error;
+    }
+  },
+  resetPassword: async (resetToken, password) => {
+    try {
+      const res = await api.put(`/auth/reset-password/${resetToken}`, {
+        password,
+      });
+      return res.data;
+    } catch (error) {
+      console.log("error obj", error);
+      throw error;
+    }
+  },
+  verifyToken: async (resetToken) => {
+    try {
+      const res = await api.get(`/auth/verify-password/${resetToken}`);
+      return res.data;
+    } catch (error) {
+      console.log("error obj", error);
+      throw error;
+    }
+  },
 };
 
 export const projectService = {

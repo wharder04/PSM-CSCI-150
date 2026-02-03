@@ -9,6 +9,7 @@ import {
   MdVerifiedUser,
   MdLogout,
 } from "react-icons/md";
+import { toast } from "react-toastify";
 
 export default function DashboardLayout({ children }) {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export default function DashboardLayout({ children }) {
   const handleLogout = async (event) => {
     event.preventDefault();
     logout();
-    alert("User Logged Out Successfully!");
+    toast.success("User Logged Out Successfully!");
     navigate("/");
   };
 
@@ -95,6 +96,7 @@ export default function DashboardLayout({ children }) {
         <div className="p-4 border-t border-gray-200">
           <div className="mb-4">
             <p className="text-text-primary text-sm">
+              {/* <Link to="/profile_bkp">{user?.email || "user@example.com"}</Link> */}
               {user?.email || "user@example.com"}
             </p>
           </div>

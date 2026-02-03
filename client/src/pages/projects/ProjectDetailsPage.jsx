@@ -779,7 +779,7 @@ export default function ProjectDetailsPage() {
                     <td className="px-6 py-4 text-sm text-text-primary font-medium">
                       <div className="flex flex-col gap-2">
                         <Link
-                          to={`/tasks${task._id}`}
+                          to={`/tasks/${task._id}`}
                           className="hover:text-blue-500 hover:underline font-bold text-md"
                         >
                           {task.title || task.name || "Untitled Task"}

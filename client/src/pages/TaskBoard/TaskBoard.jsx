@@ -38,7 +38,7 @@ function TaskCard({ task }) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 cursor-grab hover:shadow-large hover:-translate-y-0.5 transition-all duration-200 active:cursor-grabbing relative">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 cursor-grab hover:bg-gray-100 hover:border-gray-300 hover:shadow-large hover:-translate-y-0.5 transition-all duration-200 active:cursor-grabbing relative">
       <div className="flex justify-between items-start mb-3">
         <h3 className="text-sm font-semibold text-text-primary flex-1 leading-snug pr-2">
           {task.name}

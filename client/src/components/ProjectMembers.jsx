@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { projectService } from "../services/api";
+import { toast } from "react-toastify";
 
 export default function ProjectMembers({ projectId }) {
     const [members, setMembers] = useState([]);
@@ -27,6 +28,7 @@ export default function ProjectMembers({ projectId }) {
     useEffect(() => {
         if (!projectId) return;
         loadMembers();
+        // toast.info("Toast system check"); // Temporary debug
     }, [projectId]);
 
     const handleAddMember = async (e) => {
@@ -36,12 +38,22 @@ export default function ProjectMembers({ projectId }) {
         try {
             setSaving(true);
             setError(null);
-            await projectService.addMember(projectId, emailInput.trim());
+            const res = await projectService.addMember(projectId, emailInput.trim());
             setEmailInput("");
-            await loadMembers();
+            
+            // Update state directly
+            console.log("Add member response:", res);
+            if (res && res.success && res.data) {
+                setMembers((prev) => [res.data, ...prev]);
+                const memberName = res.data.memberId?.name || "Member";
+                toast.success(`${memberName} added successfully!`);
+            } else {
+                 console.warn("Unexpected response format:", res);
+                 await loadMembers(); 
+            }
         } catch (err) {
             console.error(err);
-            setError("Could not add member (check email)");
+            toast.error(err.response?.data?.error || "Could not add member (check email)");
         } finally {
             setSaving(false);
         }
@@ -60,11 +72,14 @@ export default function ProjectMembers({ projectId }) {
     const handleRemove = async (member) => {
         if (!window.confirm("Remove this member from the project?")) return;
         try {
+            console.log("Removing member:", member);
             await projectService.removeMember(projectId, member.memberId._id);
             await loadMembers();
+            const memberName = member.memberId?.name || "Member";
+            toast.success(`${memberName} removed successfully!`);
         } catch (err) {
             console.error(err);
-            setError("Could not remove member");
+            toast.error("Could not remove member");
         }
     };
 

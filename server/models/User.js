@@ -35,6 +35,8 @@ const userSchema = new Schema({
   },
   // Token invalidation support
   passwordChangedAt: { type: Date },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
 }, { timestamps: true });
 
 // Hash when creating/updating password

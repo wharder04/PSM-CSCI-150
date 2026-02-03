@@ -13,6 +13,7 @@ import Dashboard from "./pages/dashboard/DashboardPage.jsx";
 import TaskBoard from "./pages/TaskBoard/TaskBoard.jsx";
 import DashboardLayout from "./pages/dashboard/DashboardLayout.jsx";
 import ProfilePage from "./pages/profile/ProfilePage.jsx";
+import Profile from "./pages/dashboard/Profile.jsx";
 
 const RouteProtection = () => {
   const { isAuthenticated } = useAuth();
@@ -43,7 +44,7 @@ const RouteProtection = () => {
         }
       />
       <Route
-        path="/auth/reset"
+        path="/auth/reset/:resetToken"
         element={
           isAuthenticated ? <Navigate to="/home" replace /> : <SetPassword />
         }
@@ -102,6 +103,18 @@ const RouteProtection = () => {
           isAuthenticated ? (
             <DashboardLayout>
               <ProfilePage />
+            </DashboardLayout>
+          ) : (
+            <Navigate to="/auth/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/profile_bkp"
+        element={
+          isAuthenticated ? (
+            <DashboardLayout>
+              <Profile />
             </DashboardLayout>
           ) : (
             <Navigate to="/auth/login" replace />

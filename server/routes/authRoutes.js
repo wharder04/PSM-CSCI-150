@@ -7,6 +7,9 @@ import {
   loginUser,
   logoutUser,
   getCurrentUser,
+  forgotPassword,
+  resetPassword,
+  verifyToken,
 } from "../controllers/authController.js";
 
 const r = Router();
@@ -27,5 +30,8 @@ r.post("/login", loginUser);
 r.post("/register", registerUser);
 r.post("/logout", auth, logoutUser);
 r.get("/me", auth, getCurrentUser);
+r.post("/forgot-password", forgotPassword);
+r.get("/verify-password/:resetToken", verifyToken);
+r.put("/reset-password/:resetToken", resetPassword);
 
 export default r;
