@@ -2,28 +2,29 @@
 
 @theme {
   /*Foundation */
-  --color-bg-base: #f6f6f6;
-  --color-bg-surface: #ffffff;
-  --color-bg-surface-hover: #f3f4f6;
+  --color-bg-main: #f6f6f6; /* Main app background */
+  --color-bg-sidebar: #eaeaea; /* Sidebar background */
+  --color-bg-surface: #ffffff; /* Card/Container backgrounds */
+  --color-bg-surface-hover: #f3f4f6; /* Hover state for interactive cards */
 
   /*Text*/
-  --color-text-primary: #1f1f1f;
-  --color-text-secondary: #5f5f5f;
-  --color-text-muted: #8a8a8a;
-  --color-text-on-accent: #ffffff;
+  --color-text-primary: #1f1f1f; /* Main headings */
+  --color-text-secondary: #5f5f5f; /* Subtitles, labels, secondary info */
+  --color-text-muted: #8a8a8a; /* Placeholder text, timestamps, less important details */
+  --color-text-on-accent: #ffffff; /* Text on top of primary accent colors (white text on black button) */
 
   /*Structure*/
-  --color-border-default: #e5e7eb;
-  --color-border-focus: #d1d5db;
+  --color-border-default: #e5e7eb; /* Standard card borders */
+  --color-border-hover: #d1d5db; /* Border color on hover */
+  --color-border-track: #e5e7eb; /* Background track progress bar */
 
   /*Accents*/
-  --color-accent-primary: #000000;
-  --color-accent-hover: #374151;
-  --color-accent-highlight: #3b82f6;
+  --color-accent-primary: #000000; /* Primary color for main buttons and active elements */
+  --color-accent-highlight: #3b82f6; /*  color for progress bar fills and text hovers */
 
-  /*Statuses*/
-  --color-status-success: #dcfce3;
-  --color-status-warning: #fef9c3;
+  /* --- Icons --- */
+  --color-icon-default: #1f1f1f; /* unselected icon color */
+  --color-icon-muted: #8a8a8a; /* Less prominent icons */
 }
 
 * {
