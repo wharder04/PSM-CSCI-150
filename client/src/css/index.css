@@ -66,14 +66,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f0f0f0;
+  background: var(--color-bg-main);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d4;
+  background: var(--color-border-default);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #d9d9d9;
+  background: var(--color-text-muted);
 }
