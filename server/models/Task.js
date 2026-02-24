@@ -1,4 +1,3 @@
-
 import mongoose, { Schema } from 'mongoose';
 
 export const TaskStatus = [
@@ -24,9 +23,12 @@ const taskSchema = new Schema({
   },
 
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  status: { type: String, enum: TaskStatus, default: 'UnAssigned', index: true }
+  status: { type: String, enum: TaskStatus, default: 'UnAssigned', index: true },
+
+  // Used for ordering tasks within a status column (drag/drop)
+  order: { type: Number, default: 0, index: true }
 }, { timestamps: true });
 
-taskSchema.index({ projectId: 1, createdAt: -1 });
+taskSchema.index({ projectId: 1, status: 1, order: 1, createdAt: -1 });
 
 export default mongoose.model('Task', taskSchema);
