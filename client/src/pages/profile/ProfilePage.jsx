@@ -188,9 +188,9 @@ function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full p-8 bg-bg-base flex items-center justify-center">
+      <div className="min-h-screen w-full p-8 bg-bg-main flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-dark mb-4"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-primary mb-4"></div>
           <p className="text-sm text-text-secondary">Loading profile...</p>
         </div>
       </div>
@@ -199,7 +199,7 @@ function ProfilePage() {
 
   if (error && !profile) {
     return (
-      <div className="min-h-screen w-full p-8 bg-bg-base flex items-center justify-center">
+      <div className="min-h-screen w-full p-8 bg-bg-main flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">⚠️</div>
           <h3 className="text-xl font-semibold text-text-primary mb-2">
@@ -212,7 +212,7 @@ function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen w-full p-2 bg-bg-base">
+    <div className="min-h-screen w-full p-2 bg-bg-main">
       <div className="max-w-5xl">
         {/* Header */}
         <div className="mb-8">
@@ -225,10 +225,10 @@ function ProfilePage() {
         </div>
 
         {/* Profile Card */}
-        <div className="bg-panel rounded-2xl p-8 shadow-soft border border-gray-200 mb-6">
+        <div className="bg-panel rounded-2xl p-8 shadow-soft border border-border-default mb-6">
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center gap-6">
-              <div className="w-24 h-24 rounded-full bg-black flex items-center justify-center text-white text-3xl font-bold">
+              <div className="w-24 h-24 rounded-full bg-accent-primary flex items-center justify-center text-text-on-accent text-3xl font-bold">
                 {getInitials(profile?.name || authUser?.name)}
               </div>
               <div>
@@ -249,7 +249,7 @@ function ProfilePage() {
             </div>
             <button
               onClick={handleOpenEditModal}
-              className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-accent-mid transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 bg-accent-primary text-text-on-accent rounded-lg text-sm font-medium transition-colors cursor-pointer"
             >
               <MdEdit size={18} />
               <span>Edit Profile</span>
@@ -257,9 +257,9 @@ function ProfilePage() {
           </div>
 
           {/* Profile Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-border-default">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-lg bg-panel-muted flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-bg-surface-hover flex items-center justify-center flex-shrink-0">
                 <MdEmail size={20} className="text-text-primary" />
               </div>
               <div>
@@ -273,7 +273,7 @@ function ProfilePage() {
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-lg bg-panel-muted flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-bg-surface-hover flex items-center justify-center flex-shrink-0">
                 <MdSchool size={20} className="text-text-primary" />
               </div>
               <div>
@@ -287,7 +287,7 @@ function ProfilePage() {
             </div>
 
             <div className="flex items-start gap-4 md:col-span-2">
-              <div className="w-10 h-10 rounded-lg bg-panel-muted flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-bg-surface-hover flex items-center justify-center flex-shrink-0">
                 <MdInfo size={20} className="text-text-primary" />
               </div>
               <div className="flex-1">
@@ -303,12 +303,12 @@ function ProfilePage() {
         </div>
 
         {/* Account Info Card */}
-        <div className="bg-panel rounded-2xl p-6 shadow-soft border border-gray-200">
+        <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default">
           <h3 className="text-lg font-semibold text-text-primary mb-4">
             Account Information
           </h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <div className="flex items-center justify-between py-2 border-b border-border-default">
               <span className="text-sm text-text-secondary">Member since</span>
               <span className="text-sm text-text-primary">
                 {profile?.createdAt
@@ -320,7 +320,7 @@ function ProfilePage() {
                   : "N/A"}
               </span>
             </div>
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <div className="flex items-center justify-between py-2 border-b border-border-default">
               <span className="text-sm text-text-secondary">Last updated</span>
               <span className="text-sm text-text-primary">
                 {profile?.updatedAt
@@ -343,10 +343,10 @@ function ProfilePage() {
           onClick={handleCloseEditModal}
         >
           <div
-            className="bg-panel rounded-xl shadow-large w-full max-w-xl h-full max-h-[90vh] overflow-y-none"
+            className="bg-bg-surface rounded-xl shadow-large w-full max-w-xl h-full max-h-[90vh] overflow-y-none"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 rounded-tl-xl bg-panel px-6 py-5 flex justify-between items-center bg-white">
+            <div className="sticky top-0 rounded-tl-xl bg-bg-surface px-6 py-5 flex justify-between items-center border-b border-border-default">
               <h2 className="text-xl font-semibold text-text-primary">
                 Edit Profile
               </h2>
@@ -360,16 +360,16 @@ function ProfilePage() {
 
             <form
               onSubmit={handleUpdateProfile}
-              className="p-6 space-y-6 bg-white h-full overflow-y-none"
+              className="p-6 space-y-6 bg-bg-surface h-full overflow-y-none"
             >
               {updateError && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                <div className="bg-status-error-bg border border-status-error-border text-status-error-text px-4 py-3 rounded-lg text-sm">
                   {updateError}
                 </div>
               )}
 
               {updateSuccess && (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+                <div className="bg-status-success-bg border border-status-success-border text-status-success-text px-4 py-3 rounded-lg text-sm">
                   Profile updated successfully!
                 </div>
               )}
@@ -388,7 +388,7 @@ function ProfilePage() {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors"
+                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border-default text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
                   placeholder="Enter your name"
                   disabled={updateLoading}
                 />
@@ -407,7 +407,7 @@ function ProfilePage() {
                     name="bio"
                     value={formData.bio}
                     onChange={handleInputChange}
-                    className="w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors resize-none"
+                    className="w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border-default text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors resize-none"
                     placeholder="Tell us about yourself"
                     disabled={updateLoading}
                     rows={4}
@@ -432,7 +432,7 @@ function ProfilePage() {
                   name="course"
                   value={formData.course}
                   onChange={handleInputChange}
-                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors"
+                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border-default text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
                   placeholder="Enter your course"
                   disabled={updateLoading}
                 />
@@ -450,7 +450,7 @@ function ProfilePage() {
                   name="status"
                   value={formData.status}
                   onChange={handleInputChange}
-                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary focus:outline-none focus:border-accent-dark transition-colors"
+                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border-default text-sm text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
                   disabled={updateLoading}
                 >
                   <option value="Active">Active</option>
@@ -474,7 +474,7 @@ function ProfilePage() {
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors"
+                    className="w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border-default text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
                     placeholder="Leave blank to keep current password"
                     disabled={updateLoading}
                     minLength={8}
@@ -491,11 +491,11 @@ function ProfilePage() {
                 <button
                   type="submit"
                   disabled={updateLoading}
-                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex-1 px-4 py-2.5 bg-accent-primary text-text-on-accent rounded-lg text-sm font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {updateLoading ? (
                     <>
-                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-text-on-accent"></div>
                       <span>Saving...</span>
                     </>
                   ) : (
@@ -509,7 +509,7 @@ function ProfilePage() {
                   type="button"
                   onClick={handleCloseEditModal}
                   disabled={updateLoading}
-                  className="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex-1 px-4 py-2.5 bg-bg-surface-hover text-text-primary rounded-lg text-sm font-medium hover:bg-border-default transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   Cancel
                 </button>

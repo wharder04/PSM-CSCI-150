@@ -26,8 +26,8 @@ export default function DashboardLayout({ children }) {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="flex min-h-screen w-full bg-bg-base">
-      <aside className="fixed top-0 left-0 w-[220px] h-screen bg-gray-200 z-50 flex flex-col border-r border-gray-300 rounded-xl overflow-y-auto">
+    <div className="flex min-h-screen w-full bg-bg-main">
+      <aside className="fixed top-0 left-0 w-[220px] h-screen bg-bg-sidebar z-50 flex flex-col border-r border-border-default rounded-xl overflow-y-auto">
         {/* <div className="p-6 border-b border-gray-200">
           <div className="mb-4">
             <div className="w-12 h-12 bg-accent-dark rounded-xl flex items-center justify-center text-white font-bold text-lg tracking-wide">
@@ -42,13 +42,13 @@ export default function DashboardLayout({ children }) {
             to="/home"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${
               isActive("/home")
-                ? "bg-panel-muted text-text-primary font-semibold shadow-soft"
-                : "text-text-secondary hover:bg-panel-muted hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-panel-muted/80"
-            } focus:outline-none focus:ring-2 focus:ring-accent-mid focus:ring-offset-2 focus:ring-offset-gray-200`}
+                ? "bg-bg-surface text-text-primary font-semibold shadow-soft"
+                : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80"
+            } focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)]`}
           >
             <MdHome
               size={22}
-              className={`text-text-primary transition-transform duration-200 ${
+              className={`text-icon-default transition-transform duration-200 ${
                 isActive("/home") ? "" : "group-hover:scale-110"
               }`}
             />
@@ -59,13 +59,13 @@ export default function DashboardLayout({ children }) {
             to="/projects"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${
               isActive("/projects")
-                ? "bg-panel-muted text-text-primary font-semibold shadow-soft"
-                : "text-text-secondary hover:bg-panel-muted hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-panel-muted/80"
-            } focus:outline-none focus:ring-2 focus:ring-accent-mid focus:ring-offset-2 focus:ring-offset-gray-200`}
+                ? "bg-bg-surface text-text-primary font-semibold shadow-soft"
+                : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80"
+            } focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)]`}
           >
             <MdFolder
               size={22}
-              className={`text-text-primary transition-transform duration-200 ${
+              className={`text-icon-default transition-transform duration-200 ${
                 isActive("/projects") ? "" : "group-hover:scale-110"
               }`}
             />
@@ -76,13 +76,13 @@ export default function DashboardLayout({ children }) {
             to="/tasks"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${
               isActive("/tasks")
-                ? "bg-panel-muted text-text-primary font-semibold shadow-soft"
-                : "text-text-secondary hover:bg-panel-muted hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-panel-muted/80"
-            } focus:outline-none focus:ring-2 focus:ring-accent-mid focus:ring-offset-2 focus:ring-offset-gray-200`}
+                ? "bg-bg-surface text-text-primary font-semibold shadow-soft"
+                : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80"
+            } focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)]`}
           >
             <MdCheckCircle
               size={22}
-              className={`text-text-primary transition-transform duration-200 ${
+              className={`text-icon-default transition-transform duration-200 ${
                 isActive("/tasks") ? "" : "group-hover:scale-110"
               }`}
             />
@@ -93,7 +93,7 @@ export default function DashboardLayout({ children }) {
           <div className="mt-4 mb-4 h-32"></div>
         </nav>
 
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-border-default">
           <div className="mb-4">
             <p className="text-text-primary text-sm">
               {/* <Link to="/profile_bkp">{user?.email || "user@example.com"}</Link> */}
@@ -106,13 +106,13 @@ export default function DashboardLayout({ children }) {
               to="/profile"
               className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${
                 isActive("/profile")
-                  ? "bg-panel-muted text-text-primary font-semibold shadow-soft"
-                  : "text-text-secondary hover:bg-panel-muted hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-panel-muted/80"
-              } focus:outline-none focus:ring-2 focus:ring-accent-mid focus:ring-offset-2 focus:ring-offset-gray-200`}
+                  ? "bg-bg-surface text-text-primary font-semibold shadow-soft"
+                  : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80"
+              } focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)]`}
             >
               <MdVerifiedUser
                 size={20}
-                className={`text-text-primary transition-transform duration-200 ${
+                className={`text-icon-default transition-transform duration-200 ${
                   isActive("/profile") ? "" : "group-hover:scale-110"
                 }`}
               />
@@ -121,11 +121,11 @@ export default function DashboardLayout({ children }) {
 
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-text-secondary hover:bg-panel-muted hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-panel-muted/80 transition-all duration-200 w-full text-left group focus:outline-none focus:ring-2 focus:ring-accent-mid focus:ring-offset-2 focus:ring-offset-gray-200 cursor-pointer"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80 transition-all duration-200 w-full text-left group focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)] cursor-pointer"
             >
               <MdLogout
                 size={20}
-                className="text-text-primary transition-transform duration-200 group-hover:scale-110"
+                className="text-icon-default transition-transform duration-200 group-hover:scale-110"
               />
               <span>Logout</span>
             </button>
@@ -133,7 +133,7 @@ export default function DashboardLayout({ children }) {
         </div>
       </aside>
 
-      <main className="ml-[220px] w-[calc(100%-220px)] min-h-screen bg-bg-base overflow-x-hidden">
+      <main className="ml-[220px] w-[calc(100%-220px)] min-h-screen bg-bg-main overflow-x-hidden">
         {children}
       </main>
     </div>

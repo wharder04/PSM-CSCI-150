@@ -25,6 +25,15 @@
   /* --- Icons --- */
   --color-icon-default: #1f1f1f; /* unselected icon color */
   --color-icon-muted: #8a8a8a; /* Less prominent icons */
+
+  /*Status Colors*/
+  --color-status-error-bg: #fef2f2; /*currently light pink */
+  --color-status-error-border: #fecaca; 
+  --color-status-error-text: #b91c1c; /*currently dark red */
+
+  --color-status-success-bg: #f0fdf4; 
+  --color-status-success-border: #bbf7d0;
+  --color-status-success-text: #15803d;
 }
 
 * {

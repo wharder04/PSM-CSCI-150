@@ -61,18 +61,18 @@ function ProjectCard({
   return (
     <div
       onClick={handleCardClick}
-      className="bg-white rounded-2xl p-6 shadow-soft border border-gray-200 hover:-translate-y-1 hover:shadow-large transition-all duration-300 flex flex-col justify-between gap-2 cursor-pointer  hover:bg-gray-100 hover:border-gray-300"
+      className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 hover:shadow-large transition-all duration-300 flex flex-col justify-between gap-2 cursor-pointer  hover:bg-bg-surface-hover hover:border-border-hover"
     >
       <div className="flex justify-between items-start gap-4 mb-8">
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-text-primary mb-1 hover:text-blue-500">
+          <h3 className="text-xl font-bold text-text-primary mb-1 hover:text-accent-highlight">
             {name}
           </h3>
           <p className="text-sm text-text-secondary">
             {desc || className || "No description"}
           </p>
         </div>
-        <span className="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide flex-shrink-0 bg-gray-200 text-gray">
+        <span className="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide flex-shrink-0 bg-bg-surface-hover text-text-secondary">
           Active
         </span>
       </div>
@@ -86,15 +86,15 @@ function ProjectCard({
             {projectProgress}%
           </span>
         </div>
-        <div className="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
+        <div className="w-full h-2 rounded-full bg-border-track overflow-hidden">
           <div
-            className="h-full rounded-full bg-blue-500 transition-all duration-300"
+            className="h-full rounded-full bg-accent-highlight transition-all duration-300"
             style={{ width: `${projectProgress}%` }}
           ></div>
         </div>
       </div>
 
-      <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+      <div className="flex justify-between items-center pt-4 border-t border-border-default">
         {dueDate && (
           <div className="flex items-center gap-2 text-text-secondary text-xs">
             <MdCalendarToday size={16} className="text-text-muted" />
@@ -314,7 +314,7 @@ export default function ProjectsPage() {
   });
 
   return (
-    <div className="min-h-screen w-full p-2 bg-bg-base">
+    <div className="min-h-screen w-full p-2 bg-bg-main">
       <div className="mb-8 max-w-7xl">
         <h1 className="text-3xl font-bold text-text-primary mb-2 tracking-tight">
           Hello {userName}!
@@ -335,11 +335,11 @@ export default function ProjectsPage() {
             placeholder="Search projects..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 bg-panel border border-gray-200 rounded-xl text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-mid focus:border-transparent transition-all"
+            className="w-full pl-12 pr-4 py-3.5 bg-bg-surface border border-border-default rounded-xl text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:border-transparent transition-all"
           />
         </div>
 
-        <div className="flex items-center gap-3 bg-panel px-2 py-2 rounded-xl border border-gray-200">
+        <div className="flex items-center gap-3 bg-bg-surface px-2 py-2 rounded-xl border border-border-default">
           <MdFilterList size={20} className="text-text-secondary ml-2" />
           <div className="flex gap-1">
             {["All", "Active", "Completed"].map((filter) => (
@@ -348,8 +348,8 @@ export default function ProjectsPage() {
                 onClick={() => setActiveFilter(filter)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
                   activeFilter === filter
-                    ? "bg-black text-white font-semibold"
-                    : "text-text-secondary hover:bg-panel-muted hover:text-text-primary"
+                    ? "bg-accent-primary text-text-on-accent font-semibold"
+                    : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary"
                 }`}
               >
                 {filter}
@@ -368,12 +368,12 @@ export default function ProjectsPage() {
         </h2>
 
         {loading ? (
-          <div className="text-center py-20 bg-panel rounded-2xl border border-gray-200">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-dark mb-4"></div>
+          <div className="text-center py-20 bg-bg-surface rounded-2xl border border-border-default">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-primary mb-4"></div>
             <p className="text-sm text-text-secondary">Loading projects...</p>
           </div>
         ) : error ? (
-          <div className="text-center py-20 bg-panel rounded-2xl border border-gray-200">
+          <div className="text-center py-20 bg-bg-surface rounded-2xl border border-border-default">
             <div className="text-6xl mb-4">⚠️</div>
             <h3 className="text-xl font-semibold text-text-primary mb-2">
               Error loading projects
@@ -381,7 +381,7 @@ export default function ProjectsPage() {
             <p className="text-sm text-text-secondary mb-4">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-accent-dark text-white rounded-lg text-sm font-medium hover:bg-accent-mid transition-colors cursor-pointer"
+              className="px-4 py-2 bg-accent-primary text-text-on-accent rounded-lg text-sm font-medium hover:bg-accent-highlight transition-colors cursor-pointer"
             >
               Retry
             </button>
@@ -406,7 +406,7 @@ export default function ProjectsPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-panel rounded-2xl border border-gray-200">
+          <div className="text-center py-20 bg-bg-surface rounded-2xl border border-border-default">
             <div className="text-6xl mb-4">📁</div>
             <h3 className="text-xl font-semibold text-text-primary mb-2">
               No projects found
@@ -422,7 +422,7 @@ export default function ProjectsPage() {
 
       <button
         onClick={() => setIsCreateModalOpen(true)}
-        className="fixed bottom-8 right-8 flex items-center gap-2.5 px-6 py-4 bg-black cursor-pointer text-white rounded-2xl text-sm font-semibold shadow-large hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 z-50"
+        className="fixed bottom-8 right-8 flex items-center gap-2.5 px-6 py-4 bg-accent-primary cursor-pointer text-text-on-accent rounded-2xl text-sm font-semibold shadow-large hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 z-50"
       >
         <MdAdd size={24} />
         <span>Create New Project</span>
@@ -435,10 +435,10 @@ export default function ProjectsPage() {
           onClick={handleCloseModal}
         >
           <div
-            className="bg-panel rounded-xl  shadow-large w-full max-w-xl h-full max-h-[90vh] overflow-y-none"
+            className="bg-bg-surface rounded-xl  shadow-large w-full max-w-xl h-full max-h-[90vh] overflow-y-none"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 rounded-tl-xl bg-panel px-6 py-5 flex justify-between items-center bg-white">
+            <div className="sticky top-0 rounded-tl-xl px-6 py-5 flex justify-between items-center bg-bg-surface border-b border-border-default">
               <h2 className="text-xl font-semibold text-text-primary">
                 Create New Project
               </h2>
@@ -452,10 +452,10 @@ export default function ProjectsPage() {
 
             <form
               onSubmit={handleCreateProject}
-              className="p-6 space-y-6 bg-white h-full overflow-y-none"
+              className="p-6 space-y-6 bg-bg-surface h-full overflow-y-none"
             >
               {createError && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                <div className="bg-status-error-bg border border-status-error-border text-status-error-text px-4 py-3 rounded-lg text-sm">
                   {createError}
                 </div>
               )}
@@ -474,7 +474,7 @@ export default function ProjectsPage() {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors"
+                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border-default text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
                   placeholder="Enter project name"
                   disabled={createLoading}
                 />
@@ -492,7 +492,7 @@ export default function ProjectsPage() {
                   name="desc"
                   value={formData.desc}
                   onChange={handleInputChange}
-                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors"
+                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border-default text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
                   placeholder="Enter project description"
                   disabled={createLoading}
                   required
@@ -515,7 +515,7 @@ export default function ProjectsPage() {
                     name="dueDate"
                     value={formData.dueDate}
                     onChange={handleInputChange}
-                    className=" col-span-4 px-0 py-2 pr-8 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-dark transition-colors [color-scheme:light]"
+                    className=" col-span-4 px-0 py-2 pr-8 bg-transparent border-0 border-b-2 border-border-default text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
                     placeholder="dd-mm-yyyy"
                     disabled={createLoading}
                     required
@@ -528,18 +528,18 @@ export default function ProjectsPage() {
                   type="button"
                   onClick={handleCloseModal}
                   disabled={createLoading}
-                  className="flex-1 px-4 py-2.5 bg-red-500 text-text-primary rounded-lg text-sm font-medium hover:bg-accent-light transition-colors cursor-pointer"
+                  className="flex-1 px-4 py-2.5 bg-bg-surface-hover text-text-primary rounded-lg text-sm font-medium hover:bg-border-default transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createLoading || !formData.name.trim()}
-                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex-1 px-4 py-2.5 bg-accent-primary text-text-on-accent rounded-lg text-sm font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {createLoading ? (
                     <>
-                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-text-on-accent"></div>
                       <span>Creating...</span>
                     </>
                   ) : (
