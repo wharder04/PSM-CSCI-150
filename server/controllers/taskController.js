@@ -4,7 +4,7 @@ import User from "../models/User.js";
 export async function createTask(req, res, next) {
   try {
     console.log("body: ", req.body);
-    const { title, desc, dueDate, priority, assignedTo } = req.body;
+    const { title, desc, dueDate, priority, assignedTo, status: requestedStatus } = req.body;
 
     // Fetch assignee (current user) data
     const assigneeUser = await User.findById(req.user._id).select("name email");
@@ -27,17 +27,34 @@ export async function createTask(req, res, next) {
       }
     }
 
+    // If the client provides a status (ex: from the modal dropdown), honor it if valid.
+    // Otherwise, infer it from whether there's an assignee.
+    const status =
+      typeof requestedStatus === "string" && Task.schema.path("status")?.enumValues?.includes(requestedStatus)
+        ? requestedStatus
+        : assignedTo
+        ? "Assigned"
+        : "UnAssigned";
+
+    // Place new task at the end of its column
+    const max = await Task.find({ projectId: req.params.projectId, status })
+      .sort({ order: -1 })
+      .limit(1)
+      .select("order");
+    const nextOrder = (max?.[0]?.order ?? 0) + 1000;
+
     const task = await Task.create({
       title,
       desc,
       dueDate,
-      status: assignedTo ? "Assigned" : "UnAssigned",
+      status,
       projectId: req.params.projectId,
       createdBy: req.user._id,
       priority: priority,
       assignee: assigneeData,
       assignedTo: assignedToData,
       dateAssigned: new Date(),
+      order: nextOrder,
     });
 
     res.status(201).json({ success: true, data: task });
@@ -49,6 +66,8 @@ export async function createTask(req, res, next) {
 export async function listTasks(req, res, next) {
   try {
     const tasks = await Task.find({ projectId: req.params.projectId }).sort({
+      status: 1,
+      order: 1,
       createdAt: -1,
     });
 
@@ -61,7 +80,6 @@ export async function listTasks(req, res, next) {
 export async function getTask(req, res, next) {
   try {
     const task = await Task.findById(req.params.taskId);
-
     res.json({ success: true, data: task });
   } catch (e) {
     next(e);
@@ -75,13 +93,15 @@ export async function updateTask(req, res, next) {
       return res.status(404).json({ success: false, error: "Task not found" });
     }
 
-    const allowed = ["title", "desc", "status", "dueDate", "priority"];
+    const allowed = ["title", "desc", "status", "dueDate", "priority", "order"];
+
+    // Track if status changed so we can set a reasonable default order
+    const prevStatus = task.status;
     for (const k of allowed) if (k in req.body) task[k] = req.body[k];
 
     // Handle assignedTo update with user data
     if ("assignedTo" in req.body) {
       if (req.body.assignedTo) {
-        // Fetch user data for assignedTo
         const assignedToUser = await User.findById(req.body.assignedTo).select("name email");
         if (assignedToUser) {
           task.assignedTo = {
@@ -92,18 +112,28 @@ export async function updateTask(req, res, next) {
           if (task.status === "UnAssigned") {
             task.status = "Assigned";
           }
-          // Update dateAssigned if assigning for the first time
           if (!task.dateAssigned) {
             task.dateAssigned = new Date();
           }
         }
       } else {
-        // Clear assignedTo
         task.assignedTo = null;
         if (task.status === "Assigned") {
           task.status = "UnAssigned";
         }
       }
+    }
+
+    // If the column/status changed but an explicit order wasn't provided,
+    // push the task to the end of the destination column.
+    const statusChanged = task.status !== prevStatus;
+    const orderProvided = Object.prototype.hasOwnProperty.call(req.body, "order");
+    if (statusChanged && !orderProvided) {
+      const max = await Task.find({ projectId: task.projectId, status: task.status })
+        .sort({ order: -1 })
+        .limit(1)
+        .select("order");
+      task.order = (max?.[0]?.order ?? 0) + 1000;
     }
 
     await task.save();
