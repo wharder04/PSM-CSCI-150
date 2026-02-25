@@ -5,39 +5,33 @@
 }
 
 @theme {
-  /*Foundation */
-  --color-bg-main: #313338 /*#f6f6f6 */; /* Main app background */
-  --color-bg-sidebar: #2b2d31 /*#eaeaea*/; /* Sidebar background */
-  --color-bg-surface: #2b2d31 /*#ffffff*/; /* Card/Container backgrounds */
-  --color-bg-surface-hover: #3f4147 /*#f3f4f6*/; /* Hover state for interactive cards */
-
-  /*Text*/
-  --color-text-primary: #f2f3f5 /*#1f1f1f*/; /* Main headings */
-  --color-text-secondary: #b5bac1 /*#5f5f5f*/; /* Subtitles, labels, secondary info */
-  --color-text-muted: #949ba4 /*#8a8a8a*/; /* Placeholder text, timestamps, less important details */
-  --color-text-on-accent: #ffffff /*#ffffff*/; /* Text on top of primary accent colors (white text on black button) */
-
-  /*Structure*/
-  --color-border-default: #1e1f22 /*#e5e7eb*/; /* Standard card borders */
-  --color-border-hover: #5865F2 /*#d1d5db*/; /* Border color on hover */
-  --color-border-track: #1e1f22 /*#e5e7eb*/; /* Background track progress bar */
-
-  /*Accents*/
-  --color-accent-primary: #5865F2 /*#000000*/; /* Primary color for main buttons and active elements */
-  --color-accent-highlight: #00b0f4 /*#3b82f6*/; /*  color for progress bar fills and text hovers */
-
-  /* --- Icons --- */
-  --color-icon-default: #dbdee1 /*#1f1f1f*/; /* unselected icon color */
-  --color-icon-muted: #80848e /*#8a8a8a*/; /* Less prominent icons */
-
-  /*Status Colors*/
-  --color-status-error-bg: #471a1d /*#fef2f2*/; /*currently light pink */
-  --color-status-error-border: #da373c /*#fecaca*/; /*currently light red */
-  --color-status-error-text: #f2aaaa /*#b91c1c*/; /*currently dark red */
-
-  --color-status-success-bg: #1c3329 /*#f0fdf4*/; 
-  --color-status-success-border: #23a559 /*#bbf7d0*/;
-  --color-status-success-text: #a1e0b5 /*#15803d*/;
+    /* Foundation */
+   --color-bg-main: #f6f6f6; /* Main app background */
+   --color-bg-sidebar: #eaeaea; /* Sidebar background */
+   --color-bg-surface: #ffffff; /* Card/Container backgrounds */
+   --color-bg-surface-hover: #f3f4f6; /* Hover state */
+   /* Text */
+   --color-text-primary: #1f1f1f; /* Main headings */
+   --color-text-secondary: #5f5f5f; /* Subtitles, labels, secondary info */
+   --color-text-muted: #8a8a8a; /* Placeholder text, timestamps */
+   --color-text-on-accent: #ffffff; /* Text on buttons */
+   /* Structure */
+   --color-border-default: #e5e7eb; /* Standard borders */
+   --color-border-hover: #d1d5db; /* Hover border */
+   --color-border-track: #e5e7eb; /* Progress track */
+   /* Accents */
+   --color-accent-primary: #5865F2; /* Buttons / primary action */
+   --color-accent-highlight: #3b82f6; /* Highlight */
+   /* Icons */
+   --color-icon-default: #1f1f1f;
+   --color-icon-muted: #8a8a8a;
+   /* Status Colors */
+   --color-status-error-bg: #fef2f2;
+   --color-status-error-border: #fecaca;
+   --color-status-error-text: #b91c1c;
+   --color-status-success-bg: #f0fdf4;
+   --color-status-success-border: #bbf7d0;
+   --color-status-success-text: #15803d;
 }
 
 * {
