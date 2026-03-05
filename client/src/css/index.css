@@ -1,37 +1,111 @@
 @import "tailwindcss";
 
-:root {
-  color-scheme: dark;
+/*Preset Themes*/
+:root,
+:root[data-theme="dark"] {
+  /* Foundation */
+  --theme-bg-main: #313338;
+  --theme-bg-sidebar: #2b2d31;
+  --theme-bg-surface: #2b2d31;
+  --theme-bg-surface-hover: #3f4147;
+
+  /* Text */
+  --theme-text-primary: #f2f3f5;
+  --theme-text-secondary: #b5bac1;
+  --theme-text-muted: #949ba4;
+  --theme-text-on-accent: #ffffff;
+
+  /* Structure */
+  --theme-border-default: #1e1f22;
+  --theme-border-hover: #5865F2;
+  --theme-border-track: #1e1f22;
+
+  /* Accents */
+  --theme-accent-primary: #5865F2;
+  --theme-accent-highlight: #00b0f4;
+
+  /* Icons */
+  --theme-icon-default: #dbdee1;
+  --theme-icon-muted: #80848e;
+
+  /* Status Colors */
+  --theme-status-error-bg: #471a1d;
+  --theme-status-error-border: #da373c;
+  --theme-status-error-text: #f2aaaa;
+  --theme-status-success-bg: #1c3329;
+  --theme-status-success-border: #23a559;
+  --theme-status-success-text: #a1e0b5;
+}
+
+:root[data-theme="light"] {
+  /* Foundation */
+  --theme-bg-main: #f6f6f6;
+  --theme-bg-sidebar: #eaeaea;
+  --theme-bg-surface: #ffffff;
+  --theme-bg-surface-hover: #f3f4f6;
+
+  /* Text */
+  --theme-text-primary: #1f1f1f;
+  --theme-text-secondary: #5f5f5f;
+  --theme-text-muted: #8a8a8a;
+  --theme-text-on-accent: #ffffff;
+
+  /* Structure */
+  --theme-border-default: #e5e7eb;
+  --theme-border-hover: #d1d5db;
+  --theme-border-track: #e5e7eb;
+
+  /* Accents */
+  --theme-accent-primary: #000000;
+  --theme-accent-highlight: #3b82f6;
+
+  /* Icons */
+  --theme-icon-default: #1f1f1f;
+  --theme-icon-muted: #8a8a8a;
+
+  /* Status Colors */
+  --theme-status-error-bg: #fef2f2;
+  --theme-status-error-border: #fecaca;
+  --theme-status-error-text: #b91c1c;
+  --theme-status-success-bg: #f0fdf4;
+  --theme-status-success-border: #bbf7d0;
+  --theme-status-success-text: #15803d;
 }
 
 @theme {
-    /* Foundation */
-   --color-bg-main: #f6f6f6; /* Main app background */
-   --color-bg-sidebar: #eaeaea; /* Sidebar background */
-   --color-bg-surface: #ffffff; /* Card/Container backgrounds */
-   --color-bg-surface-hover: #f3f4f6; /* Hover state */
-   /* Text */
-   --color-text-primary: #1f1f1f; /* Main headings */
-   --color-text-secondary: #5f5f5f; /* Subtitles, labels, secondary info */
-   --color-text-muted: #8a8a8a; /* Placeholder text, timestamps */
-   --color-text-on-accent: #ffffff; /* Text on buttons */
-   /* Structure */
-   --color-border-default: #e5e7eb; /* Standard borders */
-   --color-border-hover: #d1d5db; /* Hover border */
-   --color-border-track: #e5e7eb; /* Progress track */
-   /* Accents */
-   --color-accent-primary: #5865F2; /* Buttons / primary action */
-   --color-accent-highlight: #3b82f6; /* Highlight */
-   /* Icons */
-   --color-icon-default: #1f1f1f;
-   --color-icon-muted: #8a8a8a;
-   /* Status Colors */
-   --color-status-error-bg: #fef2f2;
-   --color-status-error-border: #fecaca;
-   --color-status-error-text: #b91c1c;
-   --color-status-success-bg: #f0fdf4;
-   --color-status-success-border: #bbf7d0;
-   --color-status-success-text: #15803d;
+  /* Foundation */
+  --color-bg-main: var(--theme-bg-main); /* Main app background */
+  --color-bg-sidebar: var(--theme-bg-sidebar); /* Sidebar background */
+  --color-bg-surface: var(--theme-bg-surface); /* Card/Container backgrounds */
+  --color-bg-surface-hover: var(--theme-bg-surface-hover); /* Hover color for interactive cards */
+
+  /* Text */
+  --color-text-primary: var(--theme-text-primary); /* Main headings */
+  --color-text-secondary: var(--theme-text-secondary); /* Subtitles, labels */
+  --color-text-muted: var(--theme-text-muted); /* Placeholder text and less important text */
+  --color-text-on-accent: var(--theme-text-on-accent); /* Text on top of main colors (white text on black button) */
+
+  /* Structure */
+  --color-border-default: var(--theme-border-default); /* card borders */
+  --color-border-hover: var(--theme-border-hover); /* Border color while hovering */
+  --color-border-track: var(--theme-border-track); /* Background of progress bar */
+
+  /* Accents - */
+  --color-accent-primary: var(--theme-accent-primary); /* main buttons and active elements */
+  --color-accent-highlight: var(--theme-accent-highlight); /* progress bar fill color and text hovers */
+
+  /* Icons - */
+  --color-icon-default: var(--theme-icon-default); /*icon color */
+  --color-icon-muted: var(--theme-icon-muted); /* muted icons */
+
+  /* Status Colors */
+  --color-status-error-bg: var(--theme-status-error-bg); /* background for errors */
+  --color-status-error-border: var(--theme-status-error-border); /* border for errors */
+  --color-status-error-text: var(--theme-status-error-text); /* text for errors */
+
+  --color-status-success-bg: var(--theme-status-success-bg); /* background for success */
+  --color-status-success-border: var(--theme-status-success-border); /* border for success */
+  --color-status-success-text: var(--theme-status-success-text); /* text for success */
 }
 
 * {

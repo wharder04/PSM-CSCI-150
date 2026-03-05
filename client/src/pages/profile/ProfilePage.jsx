@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../AuthContext";
 import { profileService } from "../../../services/api";
-import { MdEdit, MdClose, MdEmail, MdSchool, MdInfo, MdVerifiedUser } from "react-icons/md";
+import { MdEdit, MdClose, MdEmail, MdSchool, MdInfo, MdVerifiedUser, MdBrush } from "react-icons/md";
 
 function ProfilePage() {
   const { user: authUser, login } = useAuth();
@@ -29,11 +29,17 @@ function ProfilePage() {
         const response = await profileService.getProfile();
         if (response && response.ok) {
           setProfile(response.data);
+
+          //load theme
+          const loadedTheme = response.data.theme || "Dark";
+          document.documentElement.setAttribute("data-theme", loadedTheme.toLowerCase());
+
           setFormData({
             name: response.data.name || "",
             bio: response.data.bio || "",
             course: response.data.course || "",
             status: response.data.status || "Active",
+            theme: response.data.theme || "Dark",
             password: "",
           });
         } else {
@@ -69,6 +75,7 @@ function ProfilePage() {
         bio: profile.bio || "",
         course: profile.course || "",
         status: profile.status || "Active",
+        theme: profile.theme || "Dark",
         password: "",
       });
     }
@@ -87,6 +94,7 @@ function ProfilePage() {
         bio: profile.bio || "",
         course: profile.course || "",
         status: profile.status || "Active",
+        theme: profile.theme || "Dark",
         password: "",
       });
     }
@@ -118,7 +126,11 @@ function ProfilePage() {
         bio: formData.bio || "",
         course: formData.course || "",
         status: formData.status || "Active",
+        theme: formData.theme || "Dark",
       };
+
+      //Add theme on save
+      document.documentElement.setAttribute("data-theme", updateData.theme.toLowerCase());
 
       // Only include password if it's provided
       if (formData.password && formData.password.trim()) {
@@ -299,6 +311,21 @@ function ProfilePage() {
                 </p>
               </div>
             </div>
+            {/* theme code */ }
+            <div className="flex items-start gap-4 md:col-span-2">
+              <div className="w-10 h-10 rounded-lg bg-bg-surface-hover flex items-center justify-center flex-shrink-0">
+                <MdBrush size={20} className="text-text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-text-secondary font-medium mb-1">
+                  Theme
+                </p>
+                <p className="text-base text-text-primary">
+                  {profile?.theme || "Dark"}
+                </p>
+              </div>
+            </div>
+            {/*end theme code */ }
           </div>
         </div>
 
@@ -459,6 +486,27 @@ function ProfilePage() {
                   <option value="In a Meeting">In a Meeting</option>
                 </select>
               </div>
+              {/* theme code - theme select */ }
+              <div className="grid grid-cols-5 items-center">
+                <label
+                  htmlFor="theme"
+                  className="block text-sm font-medium text-text-primary mb-1"
+                >
+                  Theme
+                </label>
+                <select
+                  id="theme"
+                  name="theme"
+                  value={formData.theme}
+                  onChange={handleInputChange}
+                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border-default text-sm text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
+                  disabled={updateLoading}
+                >
+                  <option value="Dark">Dark</option>
+                  <option value="Light">Light</option>
+                </select>
+              </div>
+              {/*end theme code */ }
 
               <div className="grid grid-cols-5 items-center">
                 <label
