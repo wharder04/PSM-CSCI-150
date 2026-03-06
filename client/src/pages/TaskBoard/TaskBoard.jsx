@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
     DndContext,
     DragOverlay,
@@ -32,7 +32,7 @@ function getDateRangeAnchors(now = new Date()) {
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 
-    // Week starts Sunday (matches your earlier board logic style)
+    // Week starts Sunday
     const startOfWeek = new Date(startOfToday);
     startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
     const endOfWeek = new Date(startOfWeek);
@@ -49,9 +49,10 @@ export default function TaskBoard() {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Create modal
-    const [createOpen, setCreateOpen] = useState(false);
-    const [creating, setCreating] = useState(false);
+    // ✅ Modal (Create + Edit)
+    const [taskModalOpen, setTaskModalOpen] = useState(false);
+    const [savingTask, setSavingTask] = useState(false);
+    const [editingTask, setEditingTask] = useState(null); // null => create, task => edit
 
     // DnD
     const [activeId, setActiveId] = useState(null);
@@ -90,7 +91,6 @@ export default function TaskBoard() {
                 projectService.listMembers(projectId),
             ]);
 
-            // services may return either {data: []} or {success, data: []}
             const nextTasks = tasksRes?.success ? tasksRes.data : tasksRes?.data;
             const nextMembers = membersRes?.success ? membersRes.data : membersRes?.data;
 
@@ -143,7 +143,6 @@ export default function TaskBoard() {
             if (dueFilter === "NO_DUE_DATE") {
                 dueOk = !due;
             } else if (dueFilter === "OVERDUE") {
-                // Only overdue if it has a due date and is before today
                 dueOk = !!due && due < startOfToday;
             } else if (dueFilter === "TODAY") {
                 dueOk = !!due && due >= startOfToday && due < endOfToday;
@@ -196,8 +195,25 @@ export default function TaskBoard() {
     const filtersActive =
         priorityFilters.length > 0 || assigneeFilters.length > 0 || dueFilter !== "ALL";
 
-    // ✅ CREATE TASK (WORKING):
-    // CreateTaskModal always calls onCreate(projectId, payload) and already converts dueDate to ISO. (but we still guard)
+    // -----------------------------
+    // ✅ CREATE / EDIT MODAL HANDLERS
+    // -----------------------------
+    const openCreateModal = () => {
+        setEditingTask(null);
+        setTaskModalOpen(true);
+    };
+
+    const openEditModal = (task) => {
+        setEditingTask(task);
+        setTaskModalOpen(true);
+    };
+
+    const closeTaskModal = () => {
+        setTaskModalOpen(false);
+        setEditingTask(null);
+    };
+
+    // ✅ CREATE TASK (existing behavior, just renamed)
     const onCreateTask = async (projectId, payload) => {
         if (!projectId) {
             toast.error("Project is required.");
@@ -205,9 +221,8 @@ export default function TaskBoard() {
         }
 
         try {
-            setCreating(true);
+            setSavingTask(true);
 
-            // Defensive validation (modal also validates)
             const title = payload?.title?.trim?.() || "";
             if (!title) {
                 toast.error("Task title is required.");
@@ -221,7 +236,6 @@ export default function TaskBoard() {
             const normalizedPayload = {
                 ...payload,
                 title,
-                // ensure ISO if something slips through
                 dueDate: payload?.dueDate ? new Date(payload.dueDate).toISOString() : undefined,
             };
 
@@ -229,7 +243,7 @@ export default function TaskBoard() {
 
             if (res?.success) {
                 toast.success("Task created");
-                setCreateOpen(false);
+                closeTaskModal();
                 await fetchBoardData(projectId);
             } else {
                 toast.error(res?.error || "Failed to create task");
@@ -238,10 +252,57 @@ export default function TaskBoard() {
             console.error("Error creating task:", e);
             toast.error(e?.response?.data?.error || e?.message || "Failed to create task");
         } finally {
-            setCreating(false);
+            setSavingTask(false);
         }
     };
 
+    // ✅ UPDATE TASK (new)
+    // CreateTaskModal should call onUpdate(taskId, payload)
+    const onUpdateTask = async (taskId, payload) => {
+        if (!taskId) {
+            toast.error("Task id is missing.");
+            return;
+        }
+
+        try {
+            setSavingTask(true);
+
+            const title = payload?.title?.trim?.() || "";
+            if (!title) {
+                toast.error("Task title is required.");
+                return;
+            }
+            if (!payload?.dueDate) {
+                toast.error("Due date is required.");
+                return;
+            }
+
+            const normalizedPayload = {
+                ...payload,
+                title,
+                dueDate: payload?.dueDate ? new Date(payload.dueDate).toISOString() : undefined,
+            };
+
+            const res = await taskService.updateTask(taskId, normalizedPayload);
+
+            if (res?.success) {
+                toast.success("Task updated");
+                closeTaskModal();
+                await fetchBoardData(activeProjectId);
+            } else {
+                toast.error(res?.error || "Failed to update task");
+            }
+        } catch (e) {
+            console.error("Error updating task:", e);
+            toast.error(e?.response?.data?.error || e?.message || "Failed to update task");
+        } finally {
+            setSavingTask(false);
+        }
+    };
+
+    // -----------------------------
+    // DnD HELPERS
+    // -----------------------------
     const findTask = (id) => tasksWithUiStatus.find((t) => t._id === id) || null;
 
     const findContainer = (id) => {
@@ -341,8 +402,15 @@ export default function TaskBoard() {
                     <div className="text-xs font-semibold text-text-muted mb-2">Priority</div>
                     <div className="flex flex-col gap-2">
                         {["High", "Medium", "Low"].map((p) => (
-                            <label key={p} className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
-                                <input type="checkbox" checked={priorityFilters.includes(p)} onChange={() => togglePriority(p)} />
+                            <label
+                                key={p}
+                                className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={priorityFilters.includes(p)}
+                                    onChange={() => togglePriority(p)}
+                                />
                                 <span>{p}</span>
                             </label>
                         ))}
@@ -355,11 +423,19 @@ export default function TaskBoard() {
                     <div className="max-h-[150px] overflow-auto pr-1 flex flex-col gap-2">
                         {members.map((m) => {
                             const id = safeId(m?.memberId?._id || m?.memberId || m?._id);
-                            const label = m?.memberId?.name || m?.memberId?.email || m?.name || m?.email || "Member";
+                            const label =
+                                m?.memberId?.name || m?.memberId?.email || m?.name || m?.email || "Member";
                             if (!id) return null;
                             return (
-                                <label key={id} className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
-                                    <input type="checkbox" checked={assigneeFilters.includes(id)} onChange={() => toggleAssignee(id)} />
+                                <label
+                                    key={id}
+                                    className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={assigneeFilters.includes(id)}
+                                        onChange={() => toggleAssignee(id)}
+                                    />
                                     <span>{label}</span>
                                 </label>
                             );
@@ -404,7 +480,9 @@ export default function TaskBoard() {
                 <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
                     <div>
                         <h1 className="text-3xl font-bold text-text-primary mb-2 tracking-tight">Task Board</h1>
-                        <p className="text-base text-text-secondary mb-2">Drag and drop tasks to update their status</p>
+                        <p className="text-base text-text-secondary mb-2">
+                            Drag and drop tasks to update their status
+                        </p>
                         {activeProject ? (
                             <p className="text-sm text-text-muted">
                                 Project: <span className="text-text-secondary">{activeProject.name}</span>
@@ -449,21 +527,23 @@ export default function TaskBoard() {
                     <button
                         type="button"
                         className="flex items-center gap-2 px-5 py-2.5 bg-accent-primary text-text-on-accent rounded-xl text-sm font-semibold shadow-medium hover:-translate-y-0.5 hover:shadow-large transition-all duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-                        onClick={() => setCreateOpen(true)}
-                        disabled={!activeProjectId || creating}
+                        onClick={openCreateModal}
+                        disabled={!activeProjectId || savingTask}
                         title={!activeProjectId ? "Select a project first" : "Create a new task"}
                     >
                         <MdAdd size={18} />
-                        <span>{creating ? "Creating..." : "Create New Task"}</span>
+                        <span>{savingTask ? "Saving..." : "Create New Task"}</span>
                     </button>
                 </div>
             </div>
 
-            {/* ✅ IMPORTANT: CreateTaskModal uses isOpen (not open) */}
+            {/* ✅ One modal for both Create + Edit */}
             <CreateTaskModal
-                isOpen={createOpen}
-                onClose={() => setCreateOpen(false)}
+                isOpen={taskModalOpen}
+                onClose={closeTaskModal}
                 onCreate={onCreateTask}
+                onUpdate={onUpdateTask}           // ✅ add this to modal
+                initialTask={editingTask}         // ✅ add this to modal
                 projects={projects}
                 members={members}
                 defaultProjectId={activeProjectId}
@@ -484,7 +564,12 @@ export default function TaskBoard() {
                     <SortableContext items={COLUMNS.map((c) => c.id)} strategy={verticalListSortingStrategy}>
                         <div className="flex gap-5 overflow-x-auto pb-5 max-w-full">
                             {COLUMNS.map((col) => (
-                                <TaskColumn key={col.id} column={col} tasks={columnsToTasks[col.id] || []} />
+                                <TaskColumn
+                                    key={col.id}
+                                    column={col}
+                                    tasks={columnsToTasks[col.id] || []}
+                                    onEditTask={openEditModal} // ✅ TaskColumn should pass this into TaskCard as onEdit
+                                />
                             ))}
                         </div>
                     </SortableContext>
@@ -492,7 +577,7 @@ export default function TaskBoard() {
                     <DragOverlay>
                         {activeTask ? (
                             <div className="w-[300px]">
-                                <TaskCard task={activeTask} />
+                                <TaskCard task={activeTask} onEdit={openEditModal} />
                             </div>
                         ) : null}
                     </DragOverlay>
