@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../AuthContext";
-import { profileService } from "../../../services/api";
-import { MdEdit, MdClose, MdEmail, MdSchool, MdInfo, MdVerifiedUser, MdBrush } from "react-icons/md";
+import { profileService, authService } from "../../../services/api";
+import {
+  MdEdit,
+  MdClose,
+  MdEmail,
+  MdSchool,
+  MdInfo,
+  MdVerifiedUser,
+  MdBrush,
+} from "react-icons/md";
 
 function ProfilePage() {
   const { user: authUser, login } = useAuth();
@@ -32,7 +40,10 @@ function ProfilePage() {
 
           //load theme
           const loadedTheme = response.data.theme || "Dark";
-          document.documentElement.setAttribute("data-theme", loadedTheme.toLowerCase());
+          document.documentElement.setAttribute(
+            "data-theme",
+            loadedTheme.toLowerCase(),
+          );
 
           setFormData({
             name: response.data.name || "",
@@ -49,8 +60,8 @@ function ProfilePage() {
         console.error("Error fetching profile:", err);
         setError(
           err.response?.data?.error ||
-          err.message ||
-          "Failed to load profile. Please try again."
+            err.message ||
+            "Failed to load profile. Please try again.",
         );
       } finally {
         setLoading(false);
@@ -101,6 +112,7 @@ function ProfilePage() {
   };
 
   const handleUpdateProfile = async (e) => {
+    debugger;
     e.preventDefault();
     setUpdateLoading(true);
     setUpdateError(null);
@@ -130,7 +142,10 @@ function ProfilePage() {
       };
 
       //Add theme on save
-      document.documentElement.setAttribute("data-theme", updateData.theme.toLowerCase());
+      document.documentElement.setAttribute(
+        "data-theme",
+        updateData.theme.toLowerCase(),
+      );
 
       // Only include password if it's provided
       if (formData.password && formData.password.trim()) {
@@ -140,14 +155,42 @@ function ProfilePage() {
       const response = await profileService.updateProfile(updateData);
       if (response && response.ok) {
         setProfile(response.data);
-        // Update AuthContext with new user data
-        if (authUser) {
-          const updatedUser = {
-            ...authUser,
-            ...response.data,
-          };
-          login(updatedUser);
+
+        // if password was changed we need a new auth token
+        if (updateData.password) {
+          try {
+            const relog = await authService.login(
+              response.data.email || authUser?.email,
+              updateData.password,
+              true,
+            );
+            if (relog && relog.success) {
+              login(relog.user);
+            } else {
+              // fallback: update context using merged data (token may still be valid)
+              if (authUser) {
+                const updatedUser = { ...authUser, ...response.data };
+                login(updatedUser);
+              }
+            }
+          } catch (err) {
+            console.error("Re-login failed after password change:", err);
+            if (authUser) {
+              const updatedUser = { ...authUser, ...response.data };
+              login(updatedUser);
+            }
+          }
+        } else {
+          // regular update: just merge profile into context
+          if (authUser) {
+            const updatedUser = {
+              ...authUser,
+              ...response.data,
+            };
+            login(updatedUser);
+          }
         }
+
         setUpdateSuccess(true);
         // Reset password field after successful update
         setFormData((prev) => ({
@@ -165,9 +208,9 @@ function ProfilePage() {
       console.error("Error updating profile:", err);
       setUpdateError(
         err.response?.data?.error ||
-        err.response?.data?.details?.[0]?.message ||
-        err.message ||
-        "Failed to update profile. Please try again."
+          err.response?.data?.details?.[0]?.message ||
+          err.message ||
+          "Failed to update profile. Please try again.",
       );
     } finally {
       setUpdateLoading(false);
@@ -252,7 +295,7 @@ function ProfilePage() {
                 </p>
                 <span
                   className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                    profile?.status || "Active"
+                    profile?.status || "Active",
                   )}`}
                 >
                   {profile?.status || "Active"}
@@ -311,7 +354,7 @@ function ProfilePage() {
                 </p>
               </div>
             </div>
-            {/* theme code */ }
+            {/* theme code */}
             <div className="flex items-start gap-4 md:col-span-2">
               <div className="w-10 h-10 rounded-lg bg-bg-surface-hover flex items-center justify-center flex-shrink-0">
                 <MdBrush size={20} className="text-text-primary" />
@@ -325,7 +368,7 @@ function ProfilePage() {
                 </p>
               </div>
             </div>
-            {/*end theme code */ }
+            {/*end theme code */}
           </div>
         </div>
 
@@ -340,10 +383,10 @@ function ProfilePage() {
               <span className="text-sm text-text-primary">
                 {profile?.createdAt
                   ? new Date(profile.createdAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
                   : "N/A"}
               </span>
             </div>
@@ -352,10 +395,10 @@ function ProfilePage() {
               <span className="text-sm text-text-primary">
                 {profile?.updatedAt
                   ? new Date(profile.updatedAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
                   : "N/A"}
               </span>
             </div>
@@ -486,7 +529,7 @@ function ProfilePage() {
                   <option value="In a Meeting">In a Meeting</option>
                 </select>
               </div>
-              {/* theme code - theme select */ }
+              {/* theme code - theme select */}
               <div className="grid grid-cols-5 items-center">
                 <label
                   htmlFor="theme"
@@ -506,7 +549,7 @@ function ProfilePage() {
                   <option value="Light">Light</option>
                 </select>
               </div>
-              {/*end theme code */ }
+              {/*end theme code */}
 
               <div className="grid grid-cols-5 items-center">
                 <label
@@ -561,7 +604,6 @@ function ProfilePage() {
                 >
                   Cancel
                 </button>
-
               </div>
             </form>
           </div>
