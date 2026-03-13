@@ -1,0 +1,4 @@
+addComment: async (taskId, text) => {
+    const res = await api.post(`/tasks/${taskId}/comments`, { text });
+    return res.data;
+  },
