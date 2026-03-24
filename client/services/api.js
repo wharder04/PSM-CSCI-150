@@ -206,6 +206,16 @@ export const projectService = {
       throw error;
     }
   },
+  getDiscussion: async (projectId) => {
+    const res = await api.get(`/projects/${projectId}/discussion`);
+    return res.data;
+  },
+
+  sendDiscussionMessage: async (projectId, text) => {
+    const res = await api.post(`/projects/${projectId}/discussion`, { text });
+    return res.data;
+  },
+
 };
 
 export const taskService = {
@@ -248,6 +258,12 @@ export const taskService = {
       throw error;
     }
   },
+
+ addComment: async (taskId, text) => {
+    const res = await api.post(`/tasks/${taskId}/comments`, { text });
+    return res.data;
+  },
+
 
   deleteTask: async (taskId) => {
     try {

@@ -3,7 +3,7 @@
 import Project from "../models/Project.js";
 import ProjectMember from "../models/ProjectMember.js";
 import Task from "../models/Task.js";
-import User from "../models/User.js";  // 👈 NEW for lookup by email
+import User from "../models/User.js";
 import { sendEmail } from "../utils/mailer.js";
 
 // -----------------------------------------------------------------------------
@@ -18,8 +18,9 @@ export async function createProject(req, res, next) {
       startDate,
       dueDate,
       ownerId: req.user._id,
+      discussionMessages: [],
     });
-    // owner is implicitly a member (active)
+
     await ProjectMember.updateOne(
       { projectId: project._id, memberId: req.user._id },
       {
@@ -28,6 +29,7 @@ export async function createProject(req, res, next) {
       },
       { upsert: true }
     );
+
     res.status(201).json({ success: true, data: project });
   } catch (e) {
     next(e);
@@ -104,12 +106,10 @@ export async function listMembers(req, res, next) {
   }
 }
 
-// ✅ ADD MEMBER (by email or memberId)
 export async function addMember(req, res, next) {
   try {
     let { memberId, email } = req.body;
 
-    // Allow adding by email
     if (!memberId && email) {
       const user = await User.findOne({ email: email.trim().toLowerCase() });
       if (!user) {
@@ -126,7 +126,6 @@ export async function addMember(req, res, next) {
         .json({ success: false, error: "memberId or email is required" });
     }
 
-    // Cannot add the same person twice in the same way
     const doc = await ProjectMember.findOneAndUpdate(
       { projectId: req.project._id, memberId },
       {
@@ -136,7 +135,6 @@ export async function addMember(req, res, next) {
       { new: true, upsert: true }
     ).populate("memberId", "name email");
 
-    // Send invitation email
     try {
       const projectName = req.project.name;
       const inviterName = req.user.name;
@@ -157,7 +155,6 @@ export async function addMember(req, res, next) {
       });
     } catch (emailError) {
       console.error("Failed to send invitation email:", emailError);
-      // We don't fail the request if email fails, just log it
     }
 
     res.status(201).json({ success: true, data: doc });
@@ -195,7 +192,6 @@ export async function removeMember(req, res, next) {
   try {
     const { memberId } = req.params;
 
-    // Fetch member details before deletion
     const memberData = await ProjectMember.findOne({
       projectId: req.project._id,
       memberId,
@@ -224,6 +220,62 @@ export async function removeMember(req, res, next) {
 
     await ProjectMember.deleteOne({ projectId: req.project._id, memberId });
     res.json({ success: true, data: { memberId } });
+  } catch (e) {
+    next(e);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// PROJECT DISCUSSION BOARD
+// -----------------------------------------------------------------------------
+export async function getDiscussionMessages(req, res, next) {
+  try {
+    const project = await Project.findById(req.project._id).select("discussionMessages");
+
+    if (!project) {
+      return res.status(404).json({ success: false, error: "Project not found" });
+    }
+
+    res.json({
+      success: true,
+      data: project.discussionMessages || [],
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function addDiscussionMessage(req, res, next) {
+  try {
+    const { text } = req.body;
+
+    if (!text || !text.trim()) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Message text is required" });
+    }
+
+    const project = await Project.findById(req.project._id);
+
+    if (!project) {
+      return res.status(404).json({ success: false, error: "Project not found" });
+    }
+
+    project.discussionMessages.push({
+      text: text.trim(),
+      sender: {
+        _id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+      },
+    });
+
+    await project.save();
+
+    res.json({
+      success: true,
+      data: project.discussionMessages || [],
+    });
   } catch (e) {
     next(e);
   }

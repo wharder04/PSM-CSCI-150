@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useMemo,
-} from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { authService } from "../services/api";
 
 const AuthContext = createContext(undefined);
@@ -92,7 +86,7 @@ export const AuthProvider = ({ children }) => {
       login,
       logout,
     }),
-    [user, isAuthenticated, loading],
+    [user, isAuthenticated, loading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

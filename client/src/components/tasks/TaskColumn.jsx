@@ -2,13 +2,14 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import TaskCard from "./TaskCard.jsx";
 
-export default function TaskColumn({ column, tasks }) {
+export default function TaskColumn({ column, tasks, onEditTask, onCommentTask }) {
     const { setNodeRef, isOver } = useDroppable({ id: column.id });
 
     return (
         <div
             ref={setNodeRef}
-            className={`min-w-[300px] max-w-[300px] bg-bg-surface rounded-2xl p-5 shadow-soft border border-border-default flex flex-col h-fit max-h-[calc(100vh-240px)] ${isOver ? "ring-2 ring-border-hover" : ""}`}
+            className={`min-w-[300px] max-w-[300px] bg-bg-surface rounded-2xl p-5 shadow-soft border border-border-default flex flex-col h-fit max-h-[calc(100vh-240px)] ${isOver ? "ring-2 ring-border-hover" : ""
+                }`}
         >
             <div className="flex justify-between items-center mb-4 pb-3 border-b-2 border-border-default">
                 <div className="flex items-center gap-2.5">
@@ -26,7 +27,14 @@ export default function TaskColumn({ column, tasks }) {
                     strategy={verticalListSortingStrategy}
                 >
                     {tasks.length > 0 ? (
-                        tasks.map((t) => <TaskCard key={t._id} task={t} />)
+                        tasks.map((t) => (
+                            <TaskCard
+                                key={t._id}
+                                task={t}
+                                onEdit={onEditTask}
+                                onComment={onCommentTask}
+                            />
+                        ))
                     ) : (
                         <div className="text-center py-10 text-text-muted text-sm">
                             No tasks in this column

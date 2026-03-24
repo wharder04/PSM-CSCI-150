@@ -5,7 +5,6 @@ export const STATUS = {
   INCOMPLETE: "InComplete",
 };
 
-// Four columns as shown in your screenshots.
 export const COLUMNS = [
   { id: STATUS.ASSIGNED, title: "Assigned" },
   { id: STATUS.IN_PROGRESS, title: "In Progress" },
@@ -13,15 +12,30 @@ export const COLUMNS = [
   { id: STATUS.INCOMPLETE, title: "Incomplete" },
 ];
 
-export const PRIORITIES = ["High", "Medium", "Low"];
-
 export function formatNiceDate(value) {
   if (!value) return "No date";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return String(value);
 
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  return d.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+export function formatDateTime(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+
+  return d.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 export function priorityPillClasses(priority) {

@@ -2,7 +2,14 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
 import { projectService, taskService } from "../../../services/api";
-import { MdAdd, MdClose, MdEdit, MdDelete, MdToggleOn, MdToggleOff } from "react-icons/md";
+import {
+    MdAdd,
+    MdClose,
+    MdEdit,
+    MdDelete,
+    MdToggleOn,
+    MdToggleOff,
+} from "react-icons/md";
 
 export default function ProjectDetailsPage() {
     const { projectId } = useParams();
@@ -13,42 +20,41 @@ export default function ProjectDetailsPage() {
     const [tasks, setTasks] = useState([]);
     const [members, setMembers] = useState([]);
 
+    const [discussionMessages, setDiscussionMessages] = useState([]);
+    const [discussionText, setDiscussionText] = useState("");
+    const [discussionLoading, setDiscussionLoading] = useState(false);
+    const [discussionError, setDiscussionError] = useState(null);
+    const [sendingDiscussion, setSendingDiscussion] = useState(false);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Sort state (NEW)
     const [taskSort, setTaskSort] = useState("dueDateAsc");
 
-    // Create task modal state
     const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
     const [createTaskLoading, setCreateTaskLoading] = useState(false);
     const [createTaskError, setCreateTaskError] = useState(null);
 
-    // Edit task state
     const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
     const [editTaskLoading, setEditTaskLoading] = useState(false);
     const [editTaskError, setEditTaskError] = useState(null);
 
-    // Delete task state
     const [taskToDelete, setTaskToDelete] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deleteTaskLoading, setDeleteTaskLoading] = useState(false);
 
-    // Add member state
     const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
     const [addMemberLoading, setAddMemberLoading] = useState(false);
     const [addMemberError, setAddMemberError] = useState(null);
     const [memberEmail, setMemberEmail] = useState("");
 
-    // Remove/toggle member state
     const [memberToRemove, setMemberToRemove] = useState(null);
     const [isRemoveMemberModalOpen, setIsRemoveMemberModalOpen] = useState(false);
     const [removeMemberLoading, setRemoveMemberLoading] = useState(false);
     const [memberActionError, setMemberActionError] = useState(null);
     const [togglingMemberId, setTogglingMemberId] = useState(null);
 
-    // Edit/Delete Project state
     const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false);
     const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] = useState(false);
     const [editProjectLoading, setEditProjectLoading] = useState(false);
@@ -56,9 +62,12 @@ export default function ProjectDetailsPage() {
     const [editProjectError, setEditProjectError] = useState(null);
     const [deleteProjectError, setDeleteProjectError] = useState(null);
 
-    const [projectFormData, setProjectFormData] = useState({ name: "", desc: "", dueDate: "" });
+    const [projectFormData, setProjectFormData] = useState({
+        name: "",
+        desc: "",
+        dueDate: "",
+    });
 
-    // Task form data (Create + Edit)
     const [taskFormData, setTaskFormData] = useState({
         title: "",
         desc: "",
@@ -75,12 +84,29 @@ export default function ProjectDetailsPage() {
         return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
     };
 
+    const formatDateTime = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+
+        return date.toLocaleString(undefined, {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+        });
+    };
+
     const getPriorityColor = (priority) => {
         switch (priority) {
-            case "High": return "text-red-600";
-            case "Medium": return "text-yellow-600";
-            case "Low": return "text-green-600";
-            default: return "text-gray-700";
+            case "High":
+                return "text-red-600";
+            case "Medium":
+                return "text-yellow-600";
+            case "Low":
+                return "text-green-600";
+            default:
+                return "text-gray-700";
         }
     };
 
@@ -116,6 +142,25 @@ export default function ProjectDetailsPage() {
         }
     };
 
+    const fetchDiscussion = async () => {
+        try {
+            setDiscussionLoading(true);
+            setDiscussionError(null);
+
+            const response = await projectService.getDiscussion(projectId);
+            if (response?.success) {
+                setDiscussionMessages(response.data || []);
+            } else {
+                setDiscussionError("Failed to load discussion board");
+            }
+        } catch (err) {
+            console.error("Error fetching discussion:", err);
+            setDiscussionError("Failed to load discussion board");
+        } finally {
+            setDiscussionLoading(false);
+        }
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -137,7 +182,7 @@ export default function ProjectDetailsPage() {
                     return;
                 }
 
-                await Promise.all([fetchTasks(), fetchMembers()]);
+                await Promise.all([fetchTasks(), fetchMembers(), fetchDiscussion()]);
             } catch (err) {
                 console.error("Error fetching project details:", err);
                 setError("Failed to load project details. Please try again.");
@@ -150,7 +195,6 @@ export default function ProjectDetailsPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [projectId]);
 
-    // Summary counts (top cards)
     const taskStats = useMemo(() => {
         const now = new Date();
 
@@ -167,7 +211,6 @@ export default function ProjectDetailsPage() {
         return { total, assigned, incomplete, completed, overdue };
     }, [tasks]);
 
-    // NEW: Sorted tasks for the table
     const sortedTasks = useMemo(() => {
         const list = [...tasks];
 
@@ -195,7 +238,6 @@ export default function ProjectDetailsPage() {
         return list;
     }, [tasks, taskSort]);
 
-    // NEW: Member stats (Assigned / Completed / % / Overdue)
     const memberStats = useMemo(() => {
         const now = new Date();
         const totalTasks = tasks.length || 1;
@@ -221,15 +263,13 @@ export default function ProjectDetailsPage() {
             }
         }
 
-        // add percent
-        for (const [uid, s] of statsByUserId.entries()) {
+        for (const [, s] of statsByUserId.entries()) {
             s.percent = Math.round((s.assigned / totalTasks) * 100);
         }
 
         return statsByUserId;
     }, [tasks]);
 
-    // ---------------- PROJECT EDIT/DELETE ----------------
     const handleProjectInputChange = (e) => {
         const { name, value } = e.target;
         setProjectFormData((prev) => ({ ...prev, [name]: value }));
@@ -310,7 +350,6 @@ export default function ProjectDetailsPage() {
         }
     };
 
-    // ---------------- TASK CREATE/EDIT/DELETE ----------------
     const handleTaskInputChange = (e) => {
         const { name, value } = e.target;
         setTaskFormData((prev) => ({ ...prev, [name]: value }));
@@ -450,7 +489,6 @@ export default function ProjectDetailsPage() {
         }
     };
 
-    // ---------------- MEMBERS ----------------
     const handleAddMember = async (e) => {
         e.preventDefault();
         setAddMemberError(null);
@@ -522,7 +560,31 @@ export default function ProjectDetailsPage() {
         }
     };
 
-    // ---------------- RENDER STATES ----------------
+    const handleSendDiscussionMessage = async (e) => {
+        e.preventDefault();
+        setDiscussionError(null);
+
+        if (!discussionText.trim()) return;
+
+        try {
+            setSendingDiscussion(true);
+
+            const response = await projectService.sendDiscussionMessage(projectId, discussionText.trim());
+
+            if (response?.success) {
+                setDiscussionMessages(response.data || []);
+                setDiscussionText("");
+            } else {
+                setDiscussionError(response?.error || "Failed to send message");
+            }
+        } catch (err) {
+            console.error("Error sending discussion message:", err);
+            setDiscussionError(err.response?.data?.error || err.message || "Failed to send message.");
+        } finally {
+            setSendingDiscussion(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen w-full p-8 bg-bg-base flex items-center justify-center">
@@ -577,7 +639,6 @@ export default function ProjectDetailsPage() {
                     <p className="text-base text-text-secondary">{project.desc || "No description provided"}</p>
                 </div>
 
-                {/* Summary Cards */}
                 <div className="grid grid-cols-5 gap-4 mb-8 w-3/4">
                     <div className="bg-gray-100 rounded-xl p-4 border border-gray-300 shadow-soft">
                         <div className="text-sm text-gray-700 mb-1">Total Tasks</div>
@@ -601,7 +662,6 @@ export default function ProjectDetailsPage() {
                     </div>
                 </div>
 
-                {/* TASKS HEADER + SORT */}
                 <div className="flex justify-between items-center mb-4 mt-8">
                     <h2 className="text-xl font-bold text-text-primary">Tasks</h2>
 
@@ -635,7 +695,6 @@ export default function ProjectDetailsPage() {
                     </div>
                 </div>
 
-                {/* TASKS TABLE */}
                 <div className="bg-panel rounded-lg border border-gray-200 shadow-soft overflow-hidden">
                     <table className="w-full">
                         <thead className="bg-panel-muted border-b border-gray-200">
@@ -736,7 +795,6 @@ export default function ProjectDetailsPage() {
                     </table>
                 </div>
 
-                {/* TEAM MEMBERS HEADER */}
                 <div className="flex justify-between items-center mb-4 mt-8">
                     <h2 className="text-xl font-bold text-text-primary">Team Members</h2>
                     <button
@@ -748,7 +806,6 @@ export default function ProjectDetailsPage() {
                     </button>
                 </div>
 
-                {/* TEAM MEMBERS TABLE + NEW STATS COLUMNS */}
                 <div className="bg-panel rounded-lg border border-gray-200 shadow-soft overflow-hidden">
                     <table className="w-full">
                         <thead className="bg-panel-muted border-b border-gray-200">
@@ -852,7 +909,92 @@ export default function ProjectDetailsPage() {
                     </table>
                 </div>
 
-                {/* ---------------------- CREATE TASK MODAL ---------------------- */}
+                <div className="mt-10">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-bold text-text-primary">Discussion Board</h2>
+                        <span className="text-sm text-text-secondary">
+                            {discussionMessages.length} message{discussionMessages.length === 1 ? "" : "s"}
+                        </span>
+                    </div>
+
+                    <div className="bg-white rounded-2xl border border-gray-300 shadow-soft overflow-hidden">
+                        <div className="h-[420px] overflow-y-auto p-6 bg-white border-b border-gray-200">
+                            {discussionLoading ? (
+                                <div className="text-sm text-gray-500">Loading discussion...</div>
+                            ) : discussionMessages.length > 0 ? (
+                                <div className="space-y-4">
+                                    {discussionMessages.map((msg) => (
+                                        <div
+                                            key={msg._id || `${msg.createdAt}-${msg.text}`}
+                                            className="rounded-xl border border-gray-200 bg-gray-50 p-4"
+                                        >
+                                            <div className="flex items-center justify-between gap-4 mb-2">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+                                                        {getInitials(msg?.sender?.name || msg?.sender?.email || "U")}
+                                                    </span>
+                                                    <div>
+                                                        <div className="text-sm font-semibold text-gray-900">
+                                                            {msg?.sender?.name || msg?.sender?.email || "User"}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500">
+                                                            {formatDateTime(msg.createdAt)}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                                                {msg.text}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-center">
+                                    <div>
+                                        <div className="text-4xl mb-3">💬</div>
+                                        <p className="text-sm text-gray-500">
+                                            No messages yet. Start the project discussion.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <form onSubmit={handleSendDiscussionMessage} className="p-6 bg-white">
+                            {discussionError && (
+                                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                                    {discussionError}
+                                </div>
+                            )}
+
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Message
+                            </label>
+
+                            <textarea
+                                value={discussionText}
+                                onChange={(e) => setDiscussionText(e.target.value)}
+                                placeholder="Type a message for the project team..."
+                                rows={5}
+                                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                disabled={sendingDiscussion}
+                            />
+
+                            <div className="flex justify-end mt-4">
+                                <button
+                                    type="submit"
+                                    disabled={sendingDiscussion || !discussionText.trim()}
+                                    className="px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                >
+                                    {sendingDiscussion ? "Sending..." : "Send Message"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
                 {isCreateTaskModalOpen && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={handleCloseTaskModal}>
                         <div className="bg-white rounded-xl shadow-large w-full max-w-2xl" onMouseDown={(e) => e.stopPropagation()}>
@@ -988,7 +1130,6 @@ export default function ProjectDetailsPage() {
                     </div>
                 )}
 
-                {/* ---------------------- EDIT TASK MODAL ---------------------- */}
                 {isEditTaskModalOpen && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={handleCloseEditTaskModal}>
                         <div className="bg-white rounded-xl shadow-large w-full max-w-2xl" onMouseDown={(e) => e.stopPropagation()}>
@@ -1006,7 +1147,6 @@ export default function ProjectDetailsPage() {
                                     </div>
                                 )}
 
-                                {/* same inputs as create */}
                                 <div className="grid grid-cols-5 items-center">
                                     <label className="block text-sm font-medium text-gray-700">Title</label>
                                     <input
@@ -1117,7 +1257,6 @@ export default function ProjectDetailsPage() {
                     </div>
                 )}
 
-                {/* DELETE TASK CONFIRM */}
                 {isDeleteModalOpen && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={handleCloseDeleteModal}>
                         <div className="bg-white rounded-xl shadow-large w-full max-w-md p-6" onMouseDown={(e) => e.stopPropagation()}>
@@ -1144,7 +1283,6 @@ export default function ProjectDetailsPage() {
                     </div>
                 )}
 
-                {/* ADD MEMBER MODAL */}
                 {isAddMemberModalOpen && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={() => setIsAddMemberModalOpen(false)}>
                         <div className="bg-white rounded-xl shadow-large w-full max-w-md p-6" onMouseDown={(e) => e.stopPropagation()}>
@@ -1180,7 +1318,6 @@ export default function ProjectDetailsPage() {
                     </div>
                 )}
 
-                {/* REMOVE MEMBER MODAL */}
                 {isRemoveMemberModalOpen && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={() => setIsRemoveMemberModalOpen(false)}>
                         <div className="bg-white rounded-xl shadow-large w-full max-w-md p-6" onMouseDown={(e) => e.stopPropagation()}>
@@ -1212,7 +1349,6 @@ export default function ProjectDetailsPage() {
                     </div>
                 )}
 
-                {/* EDIT PROJECT MODAL */}
                 {isEditProjectModalOpen && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={handleCloseEditProjectModal}>
                         <div className="bg-white rounded-xl shadow-large w-full max-w-lg p-6" onMouseDown={(e) => e.stopPropagation()}>
@@ -1265,7 +1401,6 @@ export default function ProjectDetailsPage() {
                     </div>
                 )}
 
-                {/* DELETE PROJECT MODAL */}
                 {isDeleteProjectModalOpen && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={handleCloseDeleteProjectModal}>
                         <div className="bg-white rounded-xl shadow-large w-full max-w-md p-6" onMouseDown={(e) => e.stopPropagation()}>

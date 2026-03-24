@@ -18,6 +18,8 @@ import {
   removeMember,
   getProgress,
   getDashboardData,
+  getDiscussionMessages,
+  addDiscussionMessage,
 } from "../controllers/projectsController.js";
 
 const router = Router();
@@ -27,6 +29,10 @@ router.post("/", auth, createProject);
 
 router.get("/dashboard", auth, getDashboardData);
 
+// PROGRESS
+router.get("/progress/:projectId", auth, getProgress);
+
+// SINGLE PROJECT
 router.get("/:projectId", auth, requireProjectMember, getProject);
 
 router.put(
@@ -45,7 +51,7 @@ router.delete(
   deleteProject
 );
 
-// 👇 MEMBERS
+// MEMBERS
 router.get("/:projectId/members", auth, requireProjectMember, listMembers);
 
 router.post(
@@ -72,7 +78,19 @@ router.delete(
   removeMember
 );
 
-// PROGRESS
-router.get("/progress/:projectId", auth, getProgress);
+// DISCUSSION BOARD
+router.get(
+  "/:projectId/discussion",
+  auth,
+  requireProjectMember,
+  getDiscussionMessages
+);
+
+router.post(
+  "/:projectId/discussion",
+  auth,
+  requireProjectMember,
+  addDiscussionMessage
+);
 
 export default router;

@@ -1,27 +1,62 @@
-import { Router } from 'express';
-import { body, param } from 'express-validator';
-import auth from '../middleware/auth.js';
-import { handleValidation } from '../middleware/validate.js';
+import { Router } from "express";
+import { body, param } from "express-validator";
+import auth from "../middleware/auth.js";
+import { handleValidation } from "../middleware/validate.js";
 import {
-  createTask, listTasks, getTask, updateTask, deleteTask
-} from '../controllers/taskController.js';
+  createTask,
+  listTasks,
+  getTask,
+  updateTask,
+  deleteTask,
+  addTaskComment,
+} from "../controllers/taskController.js";
 
-const r = Router({ mergeParams: true });
+const router = Router({ mergeParams: true });
 
-const titleRule = body('title').isString().trim().notEmpty().withMessage('Title required');
-const statusRule = body('status').optional()
-  .isIn(['UnAssigned', 'Assigned', 'InProgress', 'Testing', 'Completed', 'InComplete'])
-  .withMessage('Invalid status');
+const titleRule = body("title")
+  .optional()
+  .isString()
+  .trim()
+  .notEmpty()
+  .withMessage("Title required");
 
-const idRule = param('taskId').isMongoId().withMessage('Invalid task id');
+const statusRule = body("status")
+  .optional()
+  .isIn([
+    "UnAssigned",
+    "Assigned",
+    "InProgress",
+    "Testing",
+    "Completed",
+    "InComplete",
+  ])
+  .withMessage("Invalid status");
 
-r.route('/')
+const taskIdRule = param("taskId").isMongoId().withMessage("Invalid task id");
+
+router
+  .route("/")
   .get(auth, listTasks)
-  .post(auth, titleRule, handleValidation, createTask);
+  .post(
+    auth,
+    body("title").isString().trim().notEmpty().withMessage("Title required"),
+    handleValidation,
+    createTask
+  );
 
-r.route('/:taskId')
-  .get(auth, idRule, handleValidation, getTask)
-  .put(auth, idRule, handleValidation, statusRule, handleValidation, updateTask)
-  .delete(auth, idRule, handleValidation, deleteTask);
+router
+  .route("/:taskId")
+  .get(auth, taskIdRule, handleValidation, getTask)
+  .put(auth, taskIdRule, titleRule, statusRule, handleValidation, updateTask)
+  .delete(auth, taskIdRule, handleValidation, deleteTask);
 
-export default r;
+router.post(
+  "/:taskId/comments",
+  auth,
+  taskIdRule,
+  body("text").isString().trim().notEmpty().withMessage("Comment required"),
+  handleValidation,
+  addTaskComment
+);
+
+export default router;

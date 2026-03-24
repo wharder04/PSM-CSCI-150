@@ -1,43 +1,38 @@
 import Task from "../models/Task.js";
 import User from "../models/User.js";
 
+async function buildUserMini(userId) {
+  if (!userId) return null;
+
+  const user = await User.findById(userId).select("name email");
+  if (!user) return null;
+
+  return {
+    _id: user._id,
+    email: user.email,
+    name: user.name,
+  };
+}
+
 export async function createTask(req, res, next) {
   try {
-    console.log("body: ", req.body);
-    const { title, desc, dueDate, priority, assignedTo } = req.body;
+    const { title, desc, dueDate, priority, assignedTo, status } = req.body;
 
-    // Fetch assignee (current user) data
-    const assigneeUser = await User.findById(req.user._id).select("name email");
-    const assigneeData = assigneeUser ? {
-      _id: assigneeUser._id,
-      email: assigneeUser.email,
-      name: assigneeUser.name
-    } : null;
-
-    // Fetch assignedTo user data if provided
-    let assignedToData = null;
-    if (assignedTo) {
-      const assignedToUser = await User.findById(assignedTo).select("name email");
-      if (assignedToUser) {
-        assignedToData = {
-          _id: assignedToUser._id,
-          email: assignedToUser.email,
-          name: assignedToUser.name
-        };
-      }
-    }
+    const assigneeData = await buildUserMini(req.user._id);
+    const assignedToData = assignedTo ? await buildUserMini(assignedTo) : null;
 
     const task = await Task.create({
       title,
       desc,
       dueDate,
-      status: assignedTo ? "Assigned" : "UnAssigned",
+      status: status || (assignedTo ? "Assigned" : "UnAssigned"),
       projectId: req.params.projectId,
       createdBy: req.user._id,
-      priority: priority,
+      priority: priority || "Medium",
       assignee: assigneeData,
       assignedTo: assignedToData,
       dateAssigned: new Date(),
+      comments: [],
     });
 
     res.status(201).json({ success: true, data: task });
@@ -48,7 +43,11 @@ export async function createTask(req, res, next) {
 
 export async function listTasks(req, res, next) {
   try {
-    const tasks = await Task.find({ projectId: req.params.projectId }).sort({
+    const filter = req.params.projectId
+      ? { projectId: req.params.projectId }
+      : {};
+
+    const tasks = await Task.find(filter).sort({
       createdAt: -1,
     });
 
@@ -61,6 +60,10 @@ export async function listTasks(req, res, next) {
 export async function getTask(req, res, next) {
   try {
     const task = await Task.findById(req.params.taskId);
+
+    if (!task) {
+      return res.status(404).json({ success: false, error: "Task not found" });
+    }
 
     res.json({ success: true, data: task });
   } catch (e) {
@@ -75,30 +78,26 @@ export async function updateTask(req, res, next) {
       return res.status(404).json({ success: false, error: "Task not found" });
     }
 
-    const allowed = ["title", "desc", "status", "dueDate", "priority"];
-    for (const k of allowed) if (k in req.body) task[k] = req.body[k];
+    const allowed = ["title", "desc", "status", "dueDate", "priority", "order"];
+    for (const key of allowed) {
+      if (key in req.body) {
+        task[key] = req.body[key];
+      }
+    }
 
-    // Handle assignedTo update with user data
     if ("assignedTo" in req.body) {
       if (req.body.assignedTo) {
-        // Fetch user data for assignedTo
-        const assignedToUser = await User.findById(req.body.assignedTo).select("name email");
-        if (assignedToUser) {
-          task.assignedTo = {
-            _id: assignedToUser._id,
-            email: assignedToUser.email,
-            name: assignedToUser.name
-          };
-          if (task.status === "UnAssigned") {
-            task.status = "Assigned";
-          }
-          // Update dateAssigned if assigning for the first time
-          if (!task.dateAssigned) {
-            task.dateAssigned = new Date();
-          }
+        const assignedToData = await buildUserMini(req.body.assignedTo);
+        task.assignedTo = assignedToData;
+
+        if (task.status === "UnAssigned") {
+          task.status = "Assigned";
+        }
+
+        if (!task.dateAssigned) {
+          task.dateAssigned = new Date();
         }
       } else {
-        // Clear assignedTo
         task.assignedTo = null;
         if (task.status === "Assigned") {
           task.status = "UnAssigned";
@@ -107,6 +106,37 @@ export async function updateTask(req, res, next) {
     }
 
     await task.save();
+
+    res.json({ success: true, data: task });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function addTaskComment(req, res, next) {
+  try {
+    const { text } = req.body;
+
+    if (!text || !text.trim()) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Comment text is required" });
+    }
+
+    const task = await Task.findById(req.params.taskId);
+    if (!task) {
+      return res.status(404).json({ success: false, error: "Task not found" });
+    }
+
+    const author = await buildUserMini(req.user._id);
+
+    task.comments.push({
+      text: text.trim(),
+      createdBy: author,
+    });
+
+    await task.save();
+
     res.json({ success: true, data: task });
   } catch (e) {
     next(e);
