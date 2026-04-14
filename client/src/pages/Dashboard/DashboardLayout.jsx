@@ -8,6 +8,7 @@ import {
   MdFolder,
   MdVerifiedUser,
   MdLogout,
+  MdCalendarMonth,
 } from "react-icons/md";
 import { toast } from "react-toastify";
 
@@ -87,6 +88,23 @@ export default function DashboardLayout({ children }) {
               }`}
             />
             <span>Tasks</span>
+          </Link>
+
+          <Link
+            to="/calendar"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${
+              isActive("/calendar")
+                ? "bg-bg-surface text-text-primary font-semibold shadow-soft"
+                : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80"
+            } focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)]`}
+          >
+            <MdCalendarMonth
+              size={22}
+              className={`text-icon-default transition-transform duration-200 ${
+                isActive("/calendar") ? "" : "group-hover:scale-110"
+              }`}
+            />
+            <span>Calendar</span>
           </Link>
 
           {/* Large white rounded box placeholder */}

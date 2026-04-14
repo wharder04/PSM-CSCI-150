@@ -14,6 +14,7 @@ import TaskBoard from "./pages/TaskBoard/TaskBoard.jsx";
 import DashboardLayout from "./pages/dashboard/DashboardLayout.jsx";
 import ProfilePage from "./pages/profile/ProfilePage.jsx";
 import Profile from "./pages/dashboard/Profile.jsx";
+import CalendarView from "./pages/Calendar/CalendarView.jsx";
 
 const RouteProtection = () => {
   const { isAuthenticated } = useAuth();
@@ -115,6 +116,18 @@ const RouteProtection = () => {
           isAuthenticated ? (
             <DashboardLayout>
               <Profile />
+            </DashboardLayout>
+          ) : (
+            <Navigate to="/auth/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/calendar"
+        element={
+          isAuthenticated ? (
+            <DashboardLayout>
+              <CalendarView />
             </DashboardLayout>
           ) : (
             <Navigate to="/auth/login" replace />
