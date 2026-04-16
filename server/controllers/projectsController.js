@@ -305,28 +305,48 @@ export async function getProgress(req, res, next) {
 export async function getDashboardData(req, res, next) {
   try {
     const userId = req.user._id;
+    const { projectId } = req.query;
 
-    const owner = await Project.find({ ownerId: userId }).sort({
+    const ownerDocs = await Project.find({ ownerId: userId }).sort({
       createdAt: -1,
-    });
+    }).lean();
 
     const memberIds = await ProjectMember.find({
       memberId: userId,
       isActive: true,
     }).distinct("projectId");
 
-    const memberOf = await Project.find({
+    const memberOfDocs = await Project.find({
       _id: { $in: memberIds },
       ownerId: { $ne: userId },
-    }).sort({ createdAt: -1 });
+    }).sort({ createdAt: -1 }).lean();
 
-    const projectIds = [
+    const addMemberCount = async (proj) => {
+      const memberCount = await ProjectMember.countDocuments({
+        projectId: proj._id,
+        isActive: true,
+      });
+      return { ...proj, memberCount };
+    };
+
+    const owner = await Promise.all(ownerDocs.map(addMemberCount));
+    const memberOf = await Promise.all(memberOfDocs.map(addMemberCount));
+
+    const allProjectIds = [
       ...owner.map((p) => p._id),
       ...memberOf.map((p) => p._id),
     ];
 
-    const taskFilter = projectIds.length
-      ? { projectId: { $in: projectIds } }
+    let queryProjectIds = allProjectIds;
+    if (projectId) {
+      const hasAccess = allProjectIds.some((id) => id.toString() === projectId);
+      if (hasAccess) {
+        queryProjectIds = [projectId];
+      }
+    }
+
+    const taskFilter = queryProjectIds.length
+      ? { projectId: { $in: queryProjectIds } }
       : { createdBy: userId };
 
     const [

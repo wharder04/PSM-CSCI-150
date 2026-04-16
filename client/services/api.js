@@ -122,9 +122,10 @@ export const projectService = {
       console.log("error obj", error);
     }
   },
-  getDashboardData: async () => {
+  getDashboardData: async (projectId) => {
     try {
-      const res = await api.get("/projects/dashboard");
+      const url = projectId ? `/projects/dashboard?projectId=${projectId}` : "/projects/dashboard";
+      const res = await api.get(url);
       return res.data;
     } catch (error) {
       console.log("error obj", error);
