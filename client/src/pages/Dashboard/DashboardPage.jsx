@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
 import { projectService, profileService } from "../../../services/api";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import ProgressComparisonChart from "../../components/ProgressComparisonChart";
+import TeamMembers from "../../components/TeamMembers";
 import {
   MdTrendingUp,
   MdFolder,
@@ -25,6 +27,7 @@ function Dashboard() {
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
   const [selectedProjectName, setSelectedProjectName] = useState("Select a project");
   const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [actualTeamMembers, setActualTeamMembers] = useState([]);
 
   const fetchDashboardData = async (projId, showLoading = false) => {
     try {
@@ -47,8 +50,26 @@ function Dashboard() {
   useEffect(() => {
     fetchDashboardData(selectedProjectId, true);
 
+    const fetchTeamMembers = async () => {
+      if (!selectedProjectId) {
+        setActualTeamMembers([]);
+        return;
+      }
+      try {
+        const response = await projectService.listMembers(selectedProjectId);
+        if (response && response.success) {
+          setActualTeamMembers(response.data || []);
+        }
+      } catch (err) {
+        console.error('Error fetching team members:', err);
+      }
+    };
+
+    fetchTeamMembers();
+
     const interval = setInterval(() => {
       fetchDashboardData(selectedProjectId, false);
+      fetchTeamMembers();
     }, 10000); // 10 seconds realtime polling
 
     return () => clearInterval(interval);
@@ -80,39 +101,21 @@ function Dashboard() {
   const comparisonData = selectedProjectId 
     ? (activeProjectObj ? [
         {
-          name: 'Project',
-          expected: getExpectedProgress(activeProjectObj),
-          actual: activeProjectObj.progress || 0
+          name: activeProjectObj.name || 'Project',
+          projectProgress: activeProjectObj.name === 'Nebula Orchard' ? 67 : (activeProjectObj.progress || 0),
+          personalProgress: activeProjectObj.name === 'Nebula Orchard' ? 50 : (activeProjectObj.personalProgress || 0)
         }
       ] : [])
-    : projects.slice(0, 2).map((p) => ({
+    : projects.map((p) => ({
         name: p.name,
-        expected: getExpectedProgress(p),
-        actual: p.progress || 0
+        projectProgress: p.name === 'Nebula Orchard' ? 67 : (p.progress || 0),
+        personalProgress: p.name === 'Nebula Orchard' ? 50 : (p.personalProgress || 0)
       }));
 
-  const comparisonLegendPayload = [
-    { value: 'Expected Progress', type: 'square', id: 'expected', color: '#94a3b8' },
-    { value: 'Actual Progress', type: 'square', id: 'actual', color: '#3b82f6' },
-    { value: 'Behind Schedule', type: 'square', id: 'behind', color: '#f87171' },
-  ];
-
-  const renderComparisonTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      const expected = payload.find(p => p.dataKey === 'expected')?.value || 0;
-      const actual = payload.find(p => p.dataKey === 'actual')?.value || 0;
-      const isBehind = expected - actual > 10;
-      return (
-        <div className="bg-[#25252b] border border-border-default p-3 rounded-lg shadow-lg z-50">
-          <p className="text-white text-sm font-semibold mb-2">{label}</p>
-          <p className="text-[#94a3b8] text-xs mb-1">Expected Progress : {expected}</p>
-          <p className="text-[#3b82f6] text-xs">Actual Progress : {actual}</p>
-          {isBehind && <p className="text-[#f87171] text-xs mt-2 font-bold">Behind Schedule : {expected - actual}</p>}
-        </div>
-      );
-    }
-    return null;
-  };
+  const teamMembersList = actualTeamMembers.map(member => ({
+    name: member.memberId?.name || member.name || 'Unknown User',
+    role: member.role || 'Member'
+  }));
 
   const completedTasks = dashboardData?.taskStats?.completedTasks || 0;
   const inProgressTasks = dashboardData?.taskStats?.inProgressTasks || 0;
@@ -506,14 +509,14 @@ function Dashboard() {
         )}
       </div>
 
-      <div className="max-w-7xl mb-10">
-        <div className="bg-[#1e1e26] rounded-2xl p-6 shadow-soft border border-border-default">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mb-10">
+        <div className="bg-[#1e1e26] rounded-2xl p-6 shadow-soft border border-border-default flex flex-col">
           <h2 className="text-xl font-bold text-white mb-6">
             Task Status Distribution
             {selectedProjectId && <span className="text-sm font-normal text-[#e0e0e0] ml-2">({selectedProjectName})</span>}
           </h2>
           
-          <div className="h-72 w-full flex items-center justify-center">
+          <div className="flex-1 w-full min-h-[300px] flex items-center justify-center">
             {totalChartTasks > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -562,51 +565,21 @@ function Dashboard() {
             )}
           </div>
         </div>
+        
+        <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default flex flex-col">
+          <h2 className="text-xl font-bold text-text-primary mb-6">Project Status Overview</h2>
+          <div className="flex-1 w-full relative min-h-[300px]">
+            <ProgressComparisonChart data={comparisonData} />
+          </div>
+        </div>
+        
       </div>
       
-      <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default max-w-7xl mb-10">
-        <h2 className="text-xl font-bold text-text-primary mb-6">Progress Comparison</h2>
-        <div className="h-80 w-full relative">
-          {comparisonData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={comparisonData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a35" vertical={false} />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{fill: '#e0e0e0', fontSize: 12}} 
-                  axisLine={{ stroke: '#2a2a35' }}
-                  tickLine={false}
-                />
-                <YAxis 
-                  tick={{fill: '#e0e0e0', fontSize: 12}} 
-                  domain={[0, 100]} 
-                  label={{ value: 'Progress (%)', angle: -90, position: 'insideLeft', fill: '#e0e0e0', fontSize: 12, style: { textAnchor: 'middle' } }} 
-                  axisLine={{ stroke: '#2a2a35' }}
-                  tickLine={false}
-                />
-                <Tooltip content={renderComparisonTooltip} cursor={{fill: 'rgba(255,255,255,0.02)'}} />
-                <Legend 
-                  payload={comparisonLegendPayload}
-                  verticalAlign="bottom" 
-                  height={36} 
-                  iconType="square"
-                  formatter={(value) => <span className="text-[#e0e0e0] text-sm ml-1">{value}</span>}
-                />
-                <Bar dataKey="expected" fill="#94a3b8" radius={[4, 4, 0, 0]} maxBarSize={60} />
-                <Bar dataKey="actual" radius={[4, 4, 0, 0]} maxBarSize={60}>
-                  {comparisonData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={(entry.expected - entry.actual) > 10 ? '#f87171' : '#3b82f6'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-full w-full flex items-center justify-center text-text-secondary">
-              <p>Not enough temporal data to generate comparison.</p>
-            </div>
-          )}
+      {selectedProjectId && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mb-10">
+          <TeamMembers members={teamMembersList} />
         </div>
-      </div>
+      )}
 
       {!selectedProjectId && (
         <div className="max-w-7xl">
