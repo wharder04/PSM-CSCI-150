@@ -5,21 +5,50 @@ import {
     MdEdit,
     MdDragIndicator,
     MdComment,
+    MdLock,
+    MdPersonOutline,
+    MdOutlineCheckCircle,
 } from "react-icons/md";
-import { formatNiceDate, priorityPillClasses } from "./taskUtils";
+import { formatNiceDate, isTaskOverdue, priorityPillClasses } from "./taskUtils";
 
-export default function TaskCard({ task, onEdit, onComment }) {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-        useSortable({ id: task._id });
+export default function TaskCard({
+    task,
+    onEdit,
+    onComment,
+    canDrag = false,
+    isAssignedToCurrentUser = false,
+    canEditTask = true,
+}) {
+    if (!task || !task._id) return null;
+
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
+        id: String(task._id),
+        disabled: !canDrag,
+    });
 
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        opacity: isDragging ? 0.6 : 1,
+        opacity: isDragging ? 0.65 : 1,
     };
 
     const assignedToName = task?.assignedTo?.name || "";
     const commentCount = Array.isArray(task?.comments) ? task.comments.length : 0;
+    const overdue = isTaskOverdue(task);
+    const isUnassigned = !task?.assignedTo?._id && !task?.assignedTo;
+
+    const lockedReason = isUnassigned
+        ? "Assign this task before it can move"
+        : isAssignedToCurrentUser
+            ? ""
+            : "Only the assigned user can move this task";
 
     const stopAndRun = (fn, e) => {
         e.preventDefault();
@@ -31,82 +60,102 @@ export default function TaskCard({ task, onEdit, onComment }) {
         <div
             ref={setNodeRef}
             style={style}
-            className={`bg-bg-surface border border-border-default rounded-xl p-4 hover:bg-bg-surface-hover hover:border-border-hover hover:shadow-large hover:-translate-y-0.5 transition-all duration-200 ${isDragging ? "shadow-large" : ""
-                }`}
+            className={`rounded-2xl border bg-bg-surface px-4 py-4 shadow-soft transition-all duration-200 ${overdue
+                    ? "border-red-300 bg-red-50/20"
+                    : "border-border-default hover:border-border-hover hover:shadow-large"
+                } ${isDragging ? "shadow-large" : ""}`}
         >
-            <div className="flex justify-between items-start mb-3 gap-2">
-                <h3 className="text-sm font-semibold text-text-primary flex-1 leading-snug pr-1">
-                    {task.title}
-                </h3>
+            <div className="mb-3 flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                    <h3 className="break-words text-sm font-semibold leading-snug text-text-primary">
+                        {task.title || "Untitled Task"}
+                    </h3>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
-                    <span
-                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wide ${priorityPillClasses(
-                            task.priority
-                        )}`}
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${priorityPillClasses(
+                                task.priority
+                            )}`}
+                        >
+                            {task.priority || "Low"}
+                        </span>
+
+                        {isUnassigned ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700">
+                                <MdLock size={12} />
+                                Unassigned
+                            </span>
+                        ) : isAssignedToCurrentUser ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-100 px-2.5 py-1 text-[11px] font-medium text-blue-700">
+                                <MdOutlineCheckCircle size={12} />
+                                Yours
+                            </span>
+                        ) : null}
+                    </div>
+                </div>
+
+                <div className="shrink-0 flex items-center gap-1.5">
+                    <button
+                        type="button"
+                        onClick={(e) => stopAndRun(onComment, e)}
+                        className="inline-flex items-center justify-center rounded-xl border border-border-default bg-bg-main p-2 text-text-secondary transition hover:border-border-hover hover:text-text-primary"
+                        title="Comments"
                     >
-                        {task.priority || "Low"}
-                    </span>
+                        <MdComment size={16} />
+                    </button>
 
                     <button
                         type="button"
-                        onClick={(e) => stopAndRun(onEdit, e)}
-                        className="p-1.5 rounded-lg border border-border-default hover:border-border-hover hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary transition"
-                        aria-label="Edit task"
-                        title="Edit"
+                        onClick={(e) => {
+                            if (!canEditTask) return;
+                            stopAndRun(onEdit, e);
+                        }}
+                        disabled={!canEditTask}
+                        className="inline-flex items-center justify-center rounded-xl border border-border-default bg-bg-main p-2 text-text-secondary transition hover:border-border-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                        title={canEditTask ? "Edit task" : "You are not allowed to edit tasks"}
                     >
                         <MdEdit size={16} />
                     </button>
 
                     <button
                         type="button"
-                        onClick={(e) => stopAndRun(onComment, e)}
-                        className="flex items-center gap-1 p-1.5 rounded-lg border border-border-default hover:border-border-hover hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary transition"
-                        aria-label="Comment on task"
-                        title="Comment"
-                    >
-                        <MdComment size={16} />
-                        {commentCount > 0 ? (
-                            <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-accent-primary text-text-on-accent text-[10px] font-bold flex items-center justify-center">
-                                {commentCount}
-                            </span>
-                        ) : null}
-                    </button>
-
-                    <button
-                        type="button"
-                        className="p-1.5 rounded-lg border border-border-default hover:border-border-hover hover:bg-bg-surface-hover text-text-muted hover:text-text-primary transition cursor-grab active:cursor-grabbing"
-                        aria-label="Drag task"
-                        title="Drag"
-                        {...attributes}
-                        {...listeners}
+                        className={`inline-flex items-center justify-center rounded-xl border p-2 transition ${canDrag
+                                ? "cursor-grab border-border-default bg-bg-main text-text-secondary hover:border-border-hover hover:text-text-primary active:cursor-grabbing"
+                                : "cursor-not-allowed border-border-default bg-bg-main text-text-muted"
+                            }`}
+                        title={canDrag ? "Drag task" : lockedReason}
+                        {...(canDrag ? attributes : {})}
+                        {...(canDrag ? listeners : {})}
                         onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                         }}
                     >
-                        <MdDragIndicator size={18} />
+                        {canDrag ? <MdDragIndicator size={18} /> : <MdLock size={16} />}
                     </button>
                 </div>
             </div>
 
-            <div className="mb-3">
-                <p className={`text-xs ${assignedToName ? "text-text-secondary" : "text-text-muted"}`}>
-                    {assignedToName || "Unassigned"}
-                </p>
-            </div>
-
-            <div className="flex items-center justify-between pt-3 border-t border-border-default gap-3">
-                <div className="flex items-center gap-1.5">
-                    <MdCalendarToday size={14} className="text-text-muted" />
-                    <span className="text-xs text-text-secondary">
-                        {formatNiceDate(task.dueDate || task.dateAssigned || task.createdAt)}
+            <div className="grid gap-3">
+                <div className="flex items-center gap-2 text-sm">
+                    <MdPersonOutline className="text-text-muted" size={15} />
+                    <span className={assignedToName ? "text-text-secondary" : "text-text-muted"}>
+                        {assignedToName || "No assignee"}
                     </span>
                 </div>
 
-                {commentCount > 0 ? (
-                    <span className="text-[11px] text-text-muted">{commentCount} comment{commentCount === 1 ? "" : "s"}</span>
-                ) : null}
+                <div className="flex items-center justify-between gap-3 border-t border-border-default pt-3">
+                    <div className="flex items-center gap-2 text-sm">
+                        <MdCalendarToday className={overdue ? "text-red-500" : "text-text-muted"} size={14} />
+                        <span className={overdue ? "font-medium text-red-600" : "text-text-secondary"}>
+                            {formatNiceDate(task.dueDate || task.createdAt)}
+                        </span>
+                    </div>
+
+                    <span className="text-xs text-text-muted">
+                        {commentCount} comment{commentCount === 1 ? "" : "s"}
+                    </span>
+                </div>
             </div>
         </div>
     );

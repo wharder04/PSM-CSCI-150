@@ -13,6 +13,8 @@ import {
 
 const router = Router({ mergeParams: true });
 
+const taskIdRule = param("taskId").isMongoId().withMessage("Invalid task id");
+
 const titleRule = body("title")
   .optional()
   .isString()
@@ -22,17 +24,8 @@ const titleRule = body("title")
 
 const statusRule = body("status")
   .optional()
-  .isIn([
-    "UnAssigned",
-    "Assigned",
-    "InProgress",
-    "Testing",
-    "Completed",
-    "InComplete",
-  ])
+  .isIn(["UnAssigned", "Assigned", "InProgress", "Completed", "InComplete"])
   .withMessage("Invalid status");
-
-const taskIdRule = param("taskId").isMongoId().withMessage("Invalid task id");
 
 router
   .route("/")

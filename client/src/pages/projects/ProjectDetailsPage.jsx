@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
 import { projectService, taskService } from "../../../services/api";
 import {
@@ -9,6 +9,11 @@ import {
     MdDelete,
     MdToggleOn,
     MdToggleOff,
+    MdGroup,
+    MdForum,
+    MdOutlineTaskAlt,
+    MdCalendarToday,
+    MdArrowForward,
 } from "react-icons/md";
 
 export default function ProjectDetailsPage() {
@@ -28,21 +33,6 @@ export default function ProjectDetailsPage() {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
-    const [taskSort, setTaskSort] = useState("dueDateAsc");
-
-    const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
-    const [createTaskLoading, setCreateTaskLoading] = useState(false);
-    const [createTaskError, setCreateTaskError] = useState(null);
-
-    const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
-    const [editingTask, setEditingTask] = useState(null);
-    const [editTaskLoading, setEditTaskLoading] = useState(false);
-    const [editTaskError, setEditTaskError] = useState(null);
-
-    const [taskToDelete, setTaskToDelete] = useState(null);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [deleteTaskLoading, setDeleteTaskLoading] = useState(false);
 
     const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
     const [addMemberLoading, setAddMemberLoading] = useState(false);
@@ -68,15 +58,6 @@ export default function ProjectDetailsPage() {
         dueDate: "",
     });
 
-    const [taskFormData, setTaskFormData] = useState({
-        title: "",
-        desc: "",
-        priority: "Low",
-        dueDate: "",
-        assignedTo: "",
-        status: "UnAssigned",
-    });
-
     const formatDate = (dateString) => {
         if (!dateString) return "";
         const date = new Date(dateString);
@@ -97,21 +78,8 @@ export default function ProjectDetailsPage() {
         });
     };
 
-    const getPriorityColor = (priority) => {
-        switch (priority) {
-            case "High":
-                return "text-red-600";
-            case "Medium":
-                return "text-yellow-600";
-            case "Low":
-                return "text-green-600";
-            default:
-                return "text-gray-700";
-        }
-    };
-
     const getInitials = (name) => {
-        if (!name) return "";
+        if (!name) return "U";
         const parts = name.trim().split(/\s+/);
         if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
         return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
@@ -130,6 +98,7 @@ export default function ProjectDetailsPage() {
             if (tasksResponse?.success) setTasks(tasksResponse.data || []);
         } catch (err) {
             console.error("Error fetching tasks:", err);
+            setTasks([]);
         }
     };
 
@@ -139,6 +108,7 @@ export default function ProjectDetailsPage() {
             if (membersResponse?.success) setMembers(membersResponse.data || []);
         } catch (err) {
             console.error("Error fetching members:", err);
+            setMembers([]);
         }
     };
 
@@ -156,6 +126,7 @@ export default function ProjectDetailsPage() {
         } catch (err) {
             console.error("Error fetching discussion:", err);
             setDiscussionError("Failed to load discussion board");
+            setDiscussionMessages([]);
         } finally {
             setDiscussionLoading(false);
         }
@@ -192,15 +163,13 @@ export default function ProjectDetailsPage() {
         };
 
         if (projectId) fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [projectId]);
 
     const taskStats = useMemo(() => {
         const now = new Date();
 
         const total = tasks.length;
-        const assigned = tasks.filter((t) => t.status === "Assigned").length;
-        const incomplete = tasks.filter((t) => t.status === "InComplete").length;
+        const inProgress = tasks.filter((t) => t.status === "InProgress").length;
         const completed = tasks.filter((t) => t.status === "Completed").length;
         const overdue = tasks.filter((t) => {
             if (!t.dueDate) return false;
@@ -208,40 +177,14 @@ export default function ProjectDetailsPage() {
             return new Date(t.dueDate) < now;
         }).length;
 
-        return { total, assigned, incomplete, completed, overdue };
+        const completionRate = total ? Math.round((completed / total) * 100) : 0;
+
+        return { total, inProgress, completed, overdue, completionRate };
     }, [tasks]);
-
-    const sortedTasks = useMemo(() => {
-        const list = [...tasks];
-
-        const byStr = (a, b) => (a || "").localeCompare(b || "");
-        const byDate = (a, b) => {
-            const da = a ? new Date(a).getTime() : Number.POSITIVE_INFINITY;
-            const db = b ? new Date(b).getTime() : Number.POSITIVE_INFINITY;
-            return da - db;
-        };
-
-        const priorityRank = (p) => (p === "High" ? 0 : p === "Medium" ? 1 : 2);
-
-        list.sort((A, B) => {
-            if (taskSort === "dueDateAsc") return byDate(A.dueDate, B.dueDate);
-            if (taskSort === "dueDateDesc") return byDate(B.dueDate, A.dueDate);
-            if (taskSort === "titleAsc") return byStr(A.title, B.title);
-            if (taskSort === "titleDesc") return byStr(B.title, A.title);
-            if (taskSort === "priorityHigh") return priorityRank(A.priority) - priorityRank(B.priority);
-            if (taskSort === "priorityLow") return priorityRank(B.priority) - priorityRank(A.priority);
-            if (taskSort === "statusAsc") return byStr(A.status, B.status);
-            if (taskSort === "statusDesc") return byStr(B.status, A.status);
-            return 0;
-        });
-
-        return list;
-    }, [tasks, taskSort]);
 
     const memberStats = useMemo(() => {
         const now = new Date();
         const totalTasks = tasks.length || 1;
-
         const statsByUserId = new Map();
 
         const getAssignedUserId = (task) => task?.assignedTo?._id || task?.assignedTo || null;
@@ -256,6 +199,7 @@ export default function ProjectDetailsPage() {
 
             const s = statsByUserId.get(uid);
             s.assigned += 1;
+
             if (t.status === "Completed") s.completed += 1;
 
             if (t.dueDate && t.status !== "Completed" && new Date(t.dueDate) < now) {
@@ -269,6 +213,35 @@ export default function ProjectDetailsPage() {
 
         return statsByUserId;
     }, [tasks]);
+
+    const recentActivity = useMemo(() => {
+        const discussionActivity = discussionMessages.map((message) => ({
+            id: `discussion-${message._id}`,
+            createdAt: message.createdAt,
+            title: `${message?.sender?.name || message?.sender?.email || "Someone"} posted in discussion`,
+            subtitle: message.text,
+        }));
+
+        const commentActivity = tasks.flatMap((task) =>
+            (task.comments || []).map((comment) => ({
+                id: `comment-${task._id}-${comment._id}`,
+                createdAt: comment.createdAt,
+                title: `${comment?.createdBy?.name || comment?.createdBy?.email || "Someone"} commented on "${task.title}"`,
+                subtitle: comment.text,
+            }))
+        );
+
+        const createdTaskActivity = tasks.map((task) => ({
+            id: `task-${task._id}`,
+            createdAt: task.createdAt,
+            title: `Task created: "${task.title}"`,
+            subtitle: task.desc || "New task added",
+        }));
+
+        return [...discussionActivity, ...commentActivity, ...createdTaskActivity]
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .slice(0, 6);
+    }, [discussionMessages, tasks]);
 
     const handleProjectInputChange = (e) => {
         const { name, value } = e.target;
@@ -350,145 +323,6 @@ export default function ProjectDetailsPage() {
         }
     };
 
-    const handleTaskInputChange = (e) => {
-        const { name, value } = e.target;
-        setTaskFormData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const resetTaskForm = () => {
-        setTaskFormData({
-            title: "",
-            desc: "",
-            priority: "Low",
-            dueDate: "",
-            assignedTo: "",
-            status: "UnAssigned",
-        });
-    };
-
-    const handleCloseTaskModal = () => {
-        setIsCreateTaskModalOpen(false);
-        resetTaskForm();
-        setCreateTaskError(null);
-    };
-
-    const handleCreateTask = async (e) => {
-        e.preventDefault();
-        setCreateTaskError(null);
-
-        if (!taskFormData.title.trim()) return setCreateTaskError("Task title is required");
-        if (!taskFormData.dueDate) return setCreateTaskError("Due date is required");
-
-        setCreateTaskLoading(true);
-        try {
-            const payload = {
-                title: taskFormData.title.trim(),
-                desc: taskFormData.desc?.trim() || undefined,
-                priority: taskFormData.priority,
-                dueDate: taskFormData.dueDate ? new Date(taskFormData.dueDate).toISOString() : undefined,
-                assignedTo: taskFormData.assignedTo || undefined,
-                status: taskFormData.status || "UnAssigned",
-            };
-
-            const response = await taskService.createTask(projectId, payload);
-            if (response?.success) {
-                await fetchTasks();
-                handleCloseTaskModal();
-            } else {
-                setCreateTaskError(response?.error || "Failed to create task");
-            }
-        } catch (err) {
-            console.error("Error creating task:", err);
-            setCreateTaskError(err.response?.data?.error || err.message || "Failed to create task.");
-        } finally {
-            setCreateTaskLoading(false);
-        }
-    };
-
-    const handleEditTask = (task) => {
-        setEditingTask(task);
-        const dueDate = task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : "";
-
-        setTaskFormData({
-            title: task.title || "",
-            desc: task.desc || "",
-            priority: task.priority || "Low",
-            dueDate,
-            assignedTo: task.assignedTo?._id || task.assignedTo || "",
-            status: task.status || "UnAssigned",
-        });
-
-        setIsEditTaskModalOpen(true);
-        setEditTaskError(null);
-    };
-
-    const handleCloseEditTaskModal = () => {
-        setIsEditTaskModalOpen(false);
-        setEditingTask(null);
-        resetTaskForm();
-        setEditTaskError(null);
-    };
-
-    const handleUpdateTask = async (e) => {
-        e.preventDefault();
-        setEditTaskError(null);
-
-        if (!taskFormData.title.trim()) return setEditTaskError("Task title is required");
-        if (!taskFormData.dueDate) return setEditTaskError("Due date is required");
-
-        setEditTaskLoading(true);
-        try {
-            const payload = {
-                title: taskFormData.title.trim(),
-                desc: taskFormData.desc?.trim() || undefined,
-                priority: taskFormData.priority,
-                dueDate: taskFormData.dueDate ? new Date(taskFormData.dueDate).toISOString() : undefined,
-                assignedTo: taskFormData.assignedTo || undefined,
-                status: taskFormData.status,
-            };
-
-            const response = await taskService.updateTask(editingTask._id, payload);
-            if (response?.success) {
-                await fetchTasks();
-                handleCloseEditTaskModal();
-            } else {
-                setEditTaskError(response?.error || "Failed to update task");
-            }
-        } catch (err) {
-            console.error("Error updating task:", err);
-            setEditTaskError(err.response?.data?.error || err.message || "Failed to update task.");
-        } finally {
-            setEditTaskLoading(false);
-        }
-    };
-
-    const handleDeleteClick = (task) => {
-        setTaskToDelete(task);
-        setIsDeleteModalOpen(true);
-    };
-
-    const handleCloseDeleteModal = () => {
-        setIsDeleteModalOpen(false);
-        setTaskToDelete(null);
-    };
-
-    const handleDeleteTask = async () => {
-        if (!taskToDelete) return;
-
-        setDeleteTaskLoading(true);
-        try {
-            const response = await taskService.deleteTask(taskToDelete._id);
-            if (response?.success) {
-                await fetchTasks();
-            }
-        } catch (err) {
-            console.error("Error deleting task:", err);
-        } finally {
-            setDeleteTaskLoading(false);
-            handleCloseDeleteModal();
-        }
-    };
-
     const handleAddMember = async (e) => {
         e.preventDefault();
         setAddMemberError(null);
@@ -529,6 +363,24 @@ export default function ProjectDetailsPage() {
             setMemberActionError(err.response?.data?.error || err.message || "Failed to toggle member status.");
         } finally {
             setTogglingMemberId(null);
+        }
+    };
+
+    const handleToggleTaskPermission = async (memberId) => {
+        setMemberActionError(null);
+
+        try {
+            const response = await projectService.toggleMemberTaskPermission(projectId, memberId);
+            if (response?.success) {
+                await fetchMembers();
+            } else {
+                setMemberActionError(response?.error || "Failed to update task permission");
+            }
+        } catch (err) {
+            console.error("Error toggling task permission:", err);
+            setMemberActionError(
+                err.response?.data?.error || err.message || "Failed to update task permission."
+            );
         }
     };
 
@@ -587,9 +439,9 @@ export default function ProjectDetailsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen w-full p-8 bg-bg-base flex items-center justify-center">
+            <div className="min-h-screen w-full bg-bg-base p-8 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-dark mb-4"></div>
+                    <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-b-2 border-accent-dark"></div>
                     <p className="text-sm text-text-secondary">Loading project details...</p>
                 </div>
             </div>
@@ -598,840 +450,592 @@ export default function ProjectDetailsPage() {
 
     if (error || !project) {
         return (
-            <div className="min-h-screen w-full p-8 bg-bg-base flex items-center justify-center">
+            <div className="min-h-screen w-full bg-bg-base p-8 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="text-6xl mb-4">⚠️</div>
-                    <h3 className="text-xl font-semibold text-text-primary mb-2">Error loading project</h3>
-                    <p className="text-sm text-text-secondary mb-4">{error || "Project not found"}</p>
+                    <div className="mb-4 text-6xl">⚠️</div>
+                    <h3 className="mb-2 text-xl font-semibold text-text-primary">Error loading project</h3>
+                    <p className="mb-4 text-sm text-text-secondary">{error || "Project not found"}</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen w-9/10 p-2 bg-bg-base">
-            <div className="mx-auto">
-                <div className="flex items-center justify-between mb-4">
-                    <h1 className="text-4xl font-bold text-text-primary">{project.name}</h1>
+        <div className="min-h-screen w-9/10 bg-bg-base p-2">
+            <div className="mx-auto space-y-6">
+                <section className="rounded-3xl border border-border bg-panel px-6 py-6 shadow-soft">
+                    <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+                        <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-3">
+                                <h1 className="text-4xl font-bold text-text-primary">{project.name}</h1>
 
-                    {isProjectOwner() && (
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={handleOpenEditProjectModal}
-                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors cursor-pointer"
-                            >
-                                <MdEdit size={18} />
-                                <span>Edit Project</span>
-                            </button>
+                                <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                                    {isProjectOwner() ? "Project Admin" : "Project Member"}
+                                </span>
 
-                            <button
-                                onClick={handleOpenDeleteProjectModal}
-                                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer"
-                            >
-                                <MdDelete size={18} />
-                                <span>Delete Project</span>
-                            </button>
+                                {project.dueDate ? (
+                                    <span className="rounded-full border border-border bg-bg-base px-3 py-1 text-xs text-text-secondary">
+                                        Due {formatDate(project.dueDate)}
+                                    </span>
+                                ) : null}
+                            </div>
+
+                            <p className="mt-3 max-w-4xl text-base leading-7 text-text-secondary">
+                                {project.desc || "No description provided"}
+                            </p>
+
+                            <div className="mt-5 flex flex-wrap gap-4 text-sm text-text-secondary">
+                                <div className="inline-flex items-center gap-2 rounded-2xl border border-border bg-bg-base px-4 py-2">
+                                    <MdGroup size={16} />
+                                    <span>{members.filter((m) => m.isActive).length} active members</span>
+                                </div>
+
+                                <div className="inline-flex items-center gap-2 rounded-2xl border border-border bg-bg-base px-4 py-2">
+                                    <MdOutlineTaskAlt size={16} />
+                                    <span>{taskStats.total} total tasks</span>
+                                </div>
+
+                                <div className="inline-flex items-center gap-2 rounded-2xl border border-border bg-bg-base px-4 py-2">
+                                    <MdCalendarToday size={16} />
+                                    <span>{project.dueDate ? `Due ${formatDate(project.dueDate)}` : "No due date"}</span>
+                                </div>
+                            </div>
                         </div>
-                    )}
-                </div>
 
-                <div className="mb-8">
-                    <p className="text-base text-text-secondary">{project.desc || "No description provided"}</p>
-                </div>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap xl:justify-end">
+                            <button
+                                onClick={() => navigate("/tasks", { state: { selectedProjectId: projectId } })}
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+                            >
+                                <MdAdd size={18} />
+                                <span>Create Task</span>
+                            </button>
 
-                <div className="grid grid-cols-5 gap-4 mb-8 w-3/4">
-                    <div className="bg-gray-100 rounded-xl p-4 border border-gray-300 shadow-soft">
-                        <div className="text-sm text-gray-700 mb-1">Total Tasks</div>
-                        <div className="text-2xl font-bold text-gray-900">{taskStats.total}</div>
-                    </div>
-                    <div className="bg-gray-100 rounded-xl p-4 border border-gray-300 shadow-soft">
-                        <div className="text-sm text-gray-700 mb-1">Assigned Tasks</div>
-                        <div className="text-2xl font-bold text-gray-900">{taskStats.assigned}</div>
-                    </div>
-                    <div className="bg-gray-100 rounded-xl p-4 border border-gray-300 shadow-soft">
-                        <div className="text-sm text-gray-700 mb-1">Incomplete Tasks</div>
-                        <div className="text-2xl font-bold text-gray-900">{taskStats.incomplete}</div>
-                    </div>
-                    <div className="bg-gray-100 rounded-xl p-4 border border-gray-300 shadow-soft">
-                        <div className="text-sm text-gray-700 mb-1">Completed Tasks</div>
-                        <div className="text-2xl font-bold text-gray-900">{taskStats.completed}</div>
-                    </div>
-                    <div className="bg-gray-100 rounded-xl p-4 border border-gray-300 shadow-soft">
-                        <div className="text-sm text-gray-700 mb-1">Overdue Tasks</div>
-                        <div className="text-2xl font-bold text-gray-900">{taskStats.overdue}</div>
-                    </div>
-                </div>
+                            {isProjectOwner() && (
+                                <>
+                                    <button
+                                        onClick={() => setIsAddMemberModalOpen(true)}
+                                        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-bg-base px-5 py-3 text-sm font-medium text-text-primary hover:border-border-hover"
+                                    >
+                                        <MdGroup size={18} />
+                                        <span>Add Member</span>
+                                    </button>
 
-                <div className="flex justify-between items-center mb-4 mt-8">
-                    <h2 className="text-xl font-bold text-text-primary">Tasks</h2>
+                                    <button
+                                        onClick={handleOpenEditProjectModal}
+                                        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-bg-base px-5 py-3 text-sm font-medium text-text-primary hover:border-border-hover"
+                                    >
+                                        <MdEdit size={18} />
+                                        <span>Edit Project</span>
+                                    </button>
 
-                    <div className="flex items-center gap-3">
-                        <select
-                            value={taskSort}
-                            onChange={(e) => setTaskSort(e.target.value)}
-                            className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 text-sm"
-                            title="Sort tasks"
-                        >
-                            <option value="dueDateAsc">Due Date (Soonest)</option>
-                            <option value="dueDateDesc">Due Date (Latest)</option>
-                            <option value="titleAsc">Title (A → Z)</option>
-                            <option value="titleDesc">Title (Z → A)</option>
-                            <option value="priorityHigh">Priority (High → Low)</option>
-                            <option value="priorityLow">Priority (Low → High)</option>
-                            <option value="statusAsc">Status (A → Z)</option>
-                            <option value="statusDesc">Status (Z → A)</option>
-                        </select>
-
-                        <button
-                            onClick={() => {
-                                resetTaskForm();
-                                setIsCreateTaskModalOpen(true);
-                            }}
-                            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors cursor-pointer"
-                        >
-                            <MdAdd size={20} />
-                            <span>New Task</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div className="bg-panel rounded-lg border border-gray-200 shadow-soft overflow-hidden">
-                    <table className="w-full">
-                        <thead className="bg-panel-muted border-b border-gray-200">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Name</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Assigned to</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Assignee</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Due Date</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Date Assigned</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Priority</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-
-                        <tbody className="divide-y divide-border">
-                            {sortedTasks.length > 0 ? (
-                                sortedTasks.map((task) => (
-                                    <tr key={task._id} className="hover:bg-panel-muted transition-colors">
-                                        <td className="px-6 py-4 text-sm text-text-primary font-medium">
-                                            <div className="flex flex-col gap-2">
-                                                <Link to={`/tasks/${task._id}`} className="hover:text-blue-500 hover:underline font-bold text-md">
-                                                    {task.title || task.name || "Untitled Task"}
-                                                </Link>
-                                                {task.desc && <span className="text-sm text-text-secondary">{task.desc}</span>}
-                                            </div>
-                                        </td>
-
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                                            {task.assignedTo?.name || task.assignedTo?.email ? (
-                                                <div className="flex items-center gap-2">
-                                                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
-                                                        {getInitials(task.assignedTo?.name || task.assignedTo?.email)}
-                                                    </span>
-                                                    <span>{task.assignedTo?.name || task.assignedTo?.email}</span>
-                                                </div>
-                                            ) : (
-                                                "Unassigned"
-                                            )}
-                                        </td>
-
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                                            {task.assignee?.name || task.assignee?.email ? (
-                                                <div className="flex items-center gap-2">
-                                                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold">
-                                                        {getInitials(task.assignee?.name || task.assignee?.email)}
-                                                    </span>
-                                                    <span>{task.assignee?.name || task.assignee?.email}</span>
-                                                </div>
-                                            ) : (
-                                                "—"
-                                            )}
-                                        </td>
-
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                                            {task.dueDate ? formatDate(task.dueDate) : "—"}
-                                        </td>
-
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                                            {task.dateAssigned ? formatDate(task.dateAssigned) : task.createdAt ? formatDate(task.createdAt) : "—"}
-                                        </td>
-
-                                        <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getPriorityColor(task.priority)}`}>
-                                            {task.priority || "—"}
-                                        </td>
-
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                                            {task.status || "—"}
-                                        </td>
-
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary flex items-center gap-2">
-                                            <button
-                                                onClick={() => handleEditTask(task)}
-                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors cursor-pointer"
-                                                title="Edit task"
-                                            >
-                                                <MdEdit size={20} />
-                                            </button>
-
-                                            <button
-                                                onClick={() => handleDeleteClick(task)}
-                                                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer"
-                                                title="Delete task"
-                                            >
-                                                <MdDelete size={20} />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={8} className="px-6 py-12 text-center">
-                                        <div className="text-text-muted text-sm">No tasks found. Create your first task to get started.</div>
-                                    </td>
-                                </tr>
+                                    <button
+                                        onClick={handleOpenDeleteProjectModal}
+                                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-semibold text-white hover:bg-red-700"
+                                    >
+                                        <MdDelete size={18} />
+                                        <span>Delete Project</span>
+                                    </button>
+                                </>
                             )}
-                        </tbody>
-                    </table>
-                </div>
+                        </div>
+                    </div>
+                </section>
 
-                <div className="flex justify-between items-center mb-4 mt-8">
-                    <h2 className="text-xl font-bold text-text-primary">Team Members</h2>
-                    <button
-                        onClick={() => setIsAddMemberModalOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors cursor-pointer"
-                    >
-                        <MdAdd size={20} />
-                        <span>Add Member</span>
-                    </button>
-                </div>
+                <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="rounded-3xl border border-border bg-panel px-5 py-5 shadow-soft">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-text-muted">Total Tasks</div>
+                        <div className="mt-2 text-3xl font-bold text-text-primary">{taskStats.total}</div>
+                        <p className="mt-2 text-sm text-text-secondary">All tasks in this project</p>
+                    </div>
 
-                <div className="bg-panel rounded-lg border border-gray-200 shadow-soft overflow-hidden">
-                    <table className="w-full">
-                        <thead className="bg-panel-muted border-b border-gray-200">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Name</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Email</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Assigned</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Completed</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">% of Project</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Overdue</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Joined Date</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-text-primary uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border">
+                    <div className="rounded-3xl border border-border bg-panel px-5 py-5 shadow-soft">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-text-muted">In Progress</div>
+                        <div className="mt-2 text-3xl font-bold text-text-primary">
+                            {tasks.filter((t) => t.status === "InProgress").length}
+                        </div>
+                        <p className="mt-2 text-sm text-text-secondary">Currently being worked on</p>
+                    </div>
+
+                    <div className="rounded-3xl border border-border bg-panel px-5 py-5 shadow-soft">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-text-muted">Completed</div>
+                        <div className="mt-2 text-3xl font-bold text-text-primary">{taskStats.completed}</div>
+                        <p className="mt-2 text-sm text-text-secondary">
+                            {taskStats.total ? Math.round((taskStats.completed / taskStats.total) * 100) : 0}% completion rate
+                        </p>
+                    </div>
+
+                    <div className="rounded-3xl border border-border bg-panel px-5 py-5 shadow-soft">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-text-muted">Overdue</div>
+                        <div className="mt-2 text-3xl font-bold text-red-500">{taskStats.overdue}</div>
+                        <p className="mt-2 text-sm text-text-secondary">Need attention soonest</p>
+                    </div>
+                </section>
+
+                <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr,0.8fr]">
+                    <div className="rounded-3xl border border-border bg-panel px-6 py-6 shadow-soft">
+                        <div className="mb-5 flex items-center justify-between gap-4">
+                            <div>
+                                <h2 className="text-2xl font-semibold text-text-primary">Team Members</h2>
+                                <p className="mt-1 text-sm text-text-secondary">
+                                    Assigned work, completion, overdue load, and task permissions.
+                                </p>
+                            </div>
+
+                            <span className="rounded-full border border-border bg-bg-base px-3 py-1 text-xs text-text-secondary">
+                                {members.length} total
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                             {members.length > 0 ? (
                                 members.map((member) => {
                                     const uid = member.memberId?._id || member.memberId;
                                     const s = uid ? memberStats.get(uid) : null;
 
                                     return (
-                                        <tr key={member._id} className="hover:bg-panel-muted transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-text-primary font-medium">
-                                                {member.memberId?.name || "—"}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                                                {member.memberId?.email || "—"}
-                                            </td>
+                                        <div key={member._id} className="rounded-3xl border border-border bg-bg-base p-5">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0 flex items-center gap-3">
+                                                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
+                                                        {getInitials(member.memberId?.name || member.memberId?.email || "U")}
+                                                    </div>
 
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {s?.assigned ?? 0}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {s?.completed ?? 0}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {s?.percent ?? 0}%
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {s?.overdue ?? 0}
-                                            </td>
+                                                    <div className="min-w-0">
+                                                        <h3 className="truncate text-base font-semibold text-text-primary">
+                                                            {member.memberId?.name || "—"}
+                                                        </h3>
+                                                        <p className="truncate text-sm text-text-secondary">
+                                                            {member.memberId?.email || "—"}
+                                                        </p>
+                                                    </div>
+                                                </div>
 
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 <span
-                                                    className={`px-2 py-1 rounded-full text-xs font-medium ${member.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
+                                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${member.isActive
+                                                            ? "bg-green-100 text-green-700"
+                                                            : "bg-slate-100 text-slate-700"
                                                         }`}
                                                 >
                                                     {member.isActive ? "Active" : "Inactive"}
                                                 </span>
-                                            </td>
+                                            </div>
 
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                                                {member.addDate ? formatDate(member.addDate) : member.createdAt ? formatDate(member.createdAt) : "—"}
-                                            </td>
+                                            <div className="mt-5 grid grid-cols-2 gap-3">
+                                                <div className="rounded-2xl border border-border bg-panel px-4 py-3">
+                                                    <div className="text-xs uppercase tracking-wide text-text-muted">Assigned</div>
+                                                    <div className="mt-1 text-xl font-semibold text-text-primary">{s?.assigned ?? 0}</div>
+                                                </div>
 
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary flex items-center gap-2">
-                                                <button
-                                                    onClick={() => handleToggleMemberStatus(member.memberId._id)}
-                                                    disabled={togglingMemberId === member.memberId._id}
-                                                    className="px-3 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
-                                                    title={member.isActive ? "Deactivate member" : "Activate member"}
-                                                >
-                                                    {togglingMemberId === member.memberId._id ? (
-                                                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                                    ) : member.isActive ? (
-                                                        <>
-                                                            <MdToggleOn size={18} />
-                                                            <span className="text-xs">Deactivate</span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <MdToggleOff size={18} />
-                                                            <span className="text-xs">Activate</span>
-                                                        </>
-                                                    )}
-                                                </button>
+                                                <div className="rounded-2xl border border-border bg-panel px-4 py-3">
+                                                    <div className="text-xs uppercase tracking-wide text-text-muted">Completed</div>
+                                                    <div className="mt-1 text-xl font-semibold text-text-primary">{s?.completed ?? 0}</div>
+                                                </div>
 
-                                                {isProjectOwner() && (
-                                                    <button
-                                                        onClick={() => handleRemoveMemberClick(member)}
-                                                        className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors flex items-center gap-1 cursor-pointer"
-                                                        title="Remove member"
-                                                    >
-                                                        <MdDelete size={18} />
-                                                        <span className="text-xs">Remove</span>
-                                                    </button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            ) : (
-                                <tr>
-                                    <td colSpan={9} className="px-6 py-12 text-center">
-                                        <div className="text-text-muted text-sm">No team members found.</div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                                <div className="rounded-2xl border border-border bg-panel px-4 py-3">
+                                                    <div className="text-xs uppercase tracking-wide text-text-muted">% of Project</div>
+                                                    <div className="mt-1 text-xl font-semibold text-text-primary">{s?.percent ?? 0}%</div>
+                                                </div>
 
-                <div className="mt-10">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-bold text-text-primary">Discussion Board</h2>
-                        <span className="text-sm text-text-secondary">
-                            {discussionMessages.length} message{discussionMessages.length === 1 ? "" : "s"}
-                        </span>
-                    </div>
-
-                    <div className="bg-white rounded-2xl border border-gray-300 shadow-soft overflow-hidden">
-                        <div className="h-[420px] overflow-y-auto p-6 bg-white border-b border-gray-200">
-                            {discussionLoading ? (
-                                <div className="text-sm text-gray-500">Loading discussion...</div>
-                            ) : discussionMessages.length > 0 ? (
-                                <div className="space-y-4">
-                                    {discussionMessages.map((msg) => (
-                                        <div
-                                            key={msg._id || `${msg.createdAt}-${msg.text}`}
-                                            className="rounded-xl border border-gray-200 bg-gray-50 p-4"
-                                        >
-                                            <div className="flex items-center justify-between gap-4 mb-2">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
-                                                        {getInitials(msg?.sender?.name || msg?.sender?.email || "U")}
-                                                    </span>
-                                                    <div>
-                                                        <div className="text-sm font-semibold text-gray-900">
-                                                            {msg?.sender?.name || msg?.sender?.email || "User"}
-                                                        </div>
-                                                        <div className="text-xs text-gray-500">
-                                                            {formatDateTime(msg.createdAt)}
-                                                        </div>
-                                                    </div>
+                                                <div className="rounded-2xl border border-border bg-panel px-4 py-3">
+                                                    <div className="text-xs uppercase tracking-wide text-text-muted">Overdue</div>
+                                                    <div className="mt-1 text-xl font-semibold text-red-500">{s?.overdue ?? 0}</div>
                                                 </div>
                                             </div>
 
-                                            <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
-                                                {msg.text}
+                                            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-text-secondary">
+                                                <span>Joined {formatDate(member.addDate || member.createdAt)}</span>
+
+                                                {isProjectOwner() && (
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <button
+                                                            onClick={() => handleToggleMemberStatus(member.memberId._id)}
+                                                            disabled={togglingMemberId === member.memberId._id}
+                                                            className="inline-flex items-center gap-1 rounded-2xl border border-border bg-panel px-3 py-2 text-sm hover:border-border-hover disabled:opacity-60"
+                                                            title={member.isActive ? "Deactivate member" : "Activate member"}
+                                                        >
+                                                            {member.isActive ? <MdToggleOn size={18} /> : <MdToggleOff size={18} />}
+                                                            <span>
+                                                                {togglingMemberId === member.memberId._id
+                                                                    ? "Saving..."
+                                                                    : member.isActive
+                                                                        ? "Deactivate"
+                                                                        : "Activate"}
+                                                            </span>
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => handleToggleTaskPermission(member.memberId._id)}
+                                                            className={`inline-flex items-center gap-1 rounded-2xl px-3 py-2 text-sm font-medium ${member.canManageTasks
+                                                                    ? "bg-green-600 text-white hover:bg-green-700"
+                                                                    : "bg-slate-600 text-white hover:bg-slate-700"
+                                                                }`}
+                                                            title={member.canManageTasks ? "Can create/edit tasks" : "Cannot create/edit tasks"}
+                                                        >
+                                                            {member.canManageTasks ? "Task Access: On" : "Task Access: Off"}
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => handleRemoveMemberClick(member)}
+                                                            className="inline-flex items-center gap-1 rounded-2xl bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+                                                        >
+                                                            <MdDelete size={16} />
+                                                            <span>Remove</span>
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <div className="lg:col-span-2 rounded-3xl border border-dashed border-border bg-bg-base px-6 py-10 text-center text-text-muted">
+                                    No team members found.
+                                </div>
+                            )}
+                        </div>
+
+                        {memberActionError && (
+                            <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                {memberActionError}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="space-y-6">
+                        <section className="rounded-3xl border border-border bg-panel px-6 py-6 shadow-soft">
+                            <div className="mb-5 flex items-center justify-between gap-4">
+                                <div>
+                                    <h2 className="text-2xl font-semibold text-text-primary">Recent Activity</h2>
+                                    <p className="mt-1 text-sm text-text-secondary">
+                                        Latest discussion and task updates.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                {recentActivity.length > 0 ? (
+                                    recentActivity.map((item) => (
+                                        <div key={item.id} className="rounded-2xl border border-border bg-bg-base px-4 py-4">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <h3 className="text-sm font-semibold text-text-primary">{item.title}</h3>
+                                                    <p className="mt-1 line-clamp-2 text-sm text-text-secondary">{item.subtitle}</p>
+                                                </div>
+
+                                                <span className="shrink-0 text-xs text-text-muted">
+                                                    {formatDateTime(item.createdAt)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="rounded-2xl border border-dashed border-border bg-bg-base px-4 py-10 text-center text-text-muted">
+                                        No recent activity yet.
+                                    </div>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={() => navigate("/tasks", { state: { selectedProjectId: projectId } })}
+                                className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
+                            >
+                                <span>Open task board</span>
+                                <MdArrowForward size={16} />
+                            </button>
+                        </section>
+
+                        <section className="rounded-3xl border border-border bg-panel px-6 py-6 shadow-soft">
+                            <div className="mb-5 flex items-center justify-between gap-4">
+                                <div>
+                                    <h2 className="text-2xl font-semibold text-text-primary">Discussion Board</h2>
+                                    <p className="mt-1 text-sm text-text-secondary">
+                                        Project updates, questions, and team discussion live here.
+                                    </p>
+                                </div>
+
+                                <span className="rounded-full border border-border bg-bg-base px-3 py-1 text-xs text-text-secondary">
+                                    {discussionMessages.length} message{discussionMessages.length === 1 ? "" : "s"}
+                                </span>
+                            </div>
+
+                            <div className="rounded-3xl border border-border bg-bg-base">
+                                <div className="max-h-[360px] overflow-y-auto border-b border-border p-4">
+                                    {discussionLoading ? (
+                                        <div className="py-10 text-center text-sm text-text-muted">
+                                            Loading discussion...
+                                        </div>
+                                    ) : discussionMessages.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {discussionMessages.map((msg) => (
+                                                <div
+                                                    key={msg._id || `${msg.createdAt}-${msg.text}`}
+                                                    className="rounded-2xl border border-border bg-panel px-4 py-4"
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
+                                                            {getInitials(msg?.sender?.name || msg?.sender?.email || "U")}
+                                                        </div>
+
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                                                <div>
+                                                                    <div className="text-sm font-semibold text-text-primary">
+                                                                        {msg?.sender?.name || msg?.sender?.email || "User"}
+                                                                    </div>
+                                                                    <div className="text-xs text-text-muted">
+                                                                        {formatDateTime(msg.createdAt)}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-text-secondary">
+                                                                {msg.text}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="py-10 text-center">
+                                            <MdForum size={32} className="mx-auto mb-3 text-text-muted" />
+                                            <p className="text-sm text-text-muted">
+                                                No messages yet. Start the team conversation.
                                             </p>
                                         </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="h-full flex items-center justify-center text-center">
-                                    <div>
-                                        <div className="text-4xl mb-3">💬</div>
-                                        <p className="text-sm text-gray-500">
-                                            No messages yet. Start the project discussion.
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <form onSubmit={handleSendDiscussionMessage} className="p-6 bg-white">
-                            {discussionError && (
-                                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                                    {discussionError}
-                                </div>
-                            )}
-
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Message
-                            </label>
-
-                            <textarea
-                                value={discussionText}
-                                onChange={(e) => setDiscussionText(e.target.value)}
-                                placeholder="Type a message for the project team..."
-                                rows={5}
-                                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                disabled={sendingDiscussion}
-                            />
-
-                            <div className="flex justify-end mt-4">
-                                <button
-                                    type="submit"
-                                    disabled={sendingDiscussion || !discussionText.trim()}
-                                    className="px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                                >
-                                    {sendingDiscussion ? "Sending..." : "Send Message"}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                {isCreateTaskModalOpen && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={handleCloseTaskModal}>
-                        <div className="bg-white rounded-xl shadow-large w-full max-w-2xl" onMouseDown={(e) => e.stopPropagation()}>
-                            <div className="px-6 py-5 flex justify-between items-center border-b border-gray-200">
-                                <h2 className="text-xl font-semibold text-gray-900">Create New Task</h2>
-                                <button onClick={handleCloseTaskModal} className="text-gray-500 hover:text-gray-800 transition-colors p-1 cursor-pointer">
-                                    <MdClose size={20} />
-                                </button>
-                            </div>
-
-                            <form onSubmit={handleCreateTask} className="p-6 space-y-6">
-                                {createTaskError && (
-                                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                                        {createTaskError}
-                                    </div>
-                                )}
-
-                                <div className="grid grid-cols-5 items-center">
-                                    <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
-                                    <input
-                                        type="text"
-                                        id="title"
-                                        name="title"
-                                        value={taskFormData.title}
-                                        onChange={handleTaskInputChange}
-                                        required
-                                        className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-blue-600"
-                                        placeholder="Enter task title"
-                                        disabled={createTaskLoading}
-                                    />
+                                    )}
                                 </div>
 
-                                <div className="grid grid-cols-5 items-center">
-                                    <label htmlFor="desc" className="block text-sm font-medium text-gray-700">Description</label>
+                                <form onSubmit={handleSendDiscussionMessage} className="p-4">
+                                    {discussionError && (
+                                        <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                            {discussionError}
+                                        </div>
+                                    )}
+
                                     <textarea
-                                        id="desc"
-                                        name="desc"
-                                        value={taskFormData.desc}
-                                        onChange={handleTaskInputChange}
-                                        className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-blue-600 resize-none"
-                                        placeholder="Enter task description"
-                                        disabled={createTaskLoading}
-                                        rows={3}
+                                        value={discussionText}
+                                        onChange={(e) => setDiscussionText(e.target.value)}
+                                        rows={4}
+                                        placeholder="Write a message to the team..."
+                                        className="w-full resize-none rounded-2xl border border-border bg-panel px-4 py-3 text-sm text-text-primary outline-none focus:border-border-hover"
                                     />
-                                </div>
 
-                                <div className="grid grid-cols-5 items-center">
-                                    <label htmlFor="priority" className="block text-sm font-medium text-gray-700">Priority</label>
-                                    <select
-                                        id="priority"
-                                        name="priority"
-                                        value={taskFormData.priority}
-                                        onChange={handleTaskInputChange}
-                                        className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-blue-600"
-                                        disabled={createTaskLoading}
-                                    >
-                                        <option value="Low">Low</option>
-                                        <option value="Medium">Medium</option>
-                                        <option value="High">High</option>
-                                    </select>
-                                </div>
-
-                                <div className="grid grid-cols-5 items-center">
-                                    <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700">Due Date</label>
-                                    <input
-                                        type="date"
-                                        id="dueDate"
-                                        name="dueDate"
-                                        value={taskFormData.dueDate}
-                                        onChange={handleTaskInputChange}
-                                        required
-                                        className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-blue-600 [color-scheme:light]"
-                                        disabled={createTaskLoading}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-5 items-center">
-                                    <label htmlFor="assignedTo" className="block text-sm font-medium text-gray-700">Assignee</label>
-                                    <select
-                                        id="assignedTo"
-                                        name="assignedTo"
-                                        value={taskFormData.assignedTo}
-                                        onChange={handleTaskInputChange}
-                                        className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-blue-600"
-                                        disabled={createTaskLoading}
-                                    >
-                                        <option value="">Unassigned</option>
-                                        {members.map((m) => (
-                                            <option key={m.memberId?._id || m.memberId} value={m.memberId?._id || m.memberId}>
-                                                {m.memberId?.name || m.memberId?.email || "Member"}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="grid grid-cols-5 items-center">
-                                    <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
-                                    <select
-                                        id="status"
-                                        name="status"
-                                        value={taskFormData.status}
-                                        onChange={handleTaskInputChange}
-                                        className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-gray-900 focus:outline-none focus:border-blue-600"
-                                        disabled={createTaskLoading}
-                                    >
-                                        <option value="UnAssigned">Unassigned</option>
-                                        <option value="Assigned">Assigned</option>
-                                        <option value="InProgress">In Progress</option>
-                                        <option value="Completed">Completed</option>
-                                        <option value="InComplete">Incomplete</option>
-                                    </select>
-                                </div>
-
-                                <div className="flex justify-between gap-4 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={handleCloseTaskModal}
-                                        className="w-1/2 py-4 text-lg font-medium rounded-2xl bg-red-500 text-white hover:bg-red-600"
-                                        disabled={createTaskLoading}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="w-1/2 py-4 text-lg font-medium rounded-2xl bg-blue-600 text-white hover:bg-blue-700"
-                                        disabled={createTaskLoading}
-                                    >
-                                        Create
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
-                {isEditTaskModalOpen && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={handleCloseEditTaskModal}>
-                        <div className="bg-white rounded-xl shadow-large w-full max-w-2xl" onMouseDown={(e) => e.stopPropagation()}>
-                            <div className="px-6 py-5 flex justify-between items-center border-b border-gray-200">
-                                <h2 className="text-xl font-semibold text-gray-900">Edit Task</h2>
-                                <button onClick={handleCloseEditTaskModal} className="text-gray-500 hover:text-gray-800 transition-colors p-1 cursor-pointer">
-                                    <MdClose size={20} />
-                                </button>
-                            </div>
-
-                            <form onSubmit={handleUpdateTask} className="p-6 space-y-6">
-                                {editTaskError && (
-                                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                                        {editTaskError}
+                                    <div className="mt-4 flex justify-end">
+                                        <button
+                                            type="submit"
+                                            disabled={sendingDiscussion || !discussionText.trim()}
+                                            className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                                        >
+                                            {sendingDiscussion ? "Sending..." : "Send Message"}
+                                        </button>
                                     </div>
-                                )}
-
-                                <div className="grid grid-cols-5 items-center">
-                                    <label className="block text-sm font-medium text-gray-700">Title</label>
-                                    <input
-                                        type="text"
-                                        name="title"
-                                        value={taskFormData.title}
-                                        onChange={handleTaskInputChange}
-                                        required
-                                        className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-gray-900"
-                                        disabled={editTaskLoading}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-5 items-center">
-                                    <label className="block text-sm font-medium text-gray-700">Description</label>
-                                    <textarea
-                                        name="desc"
-                                        value={taskFormData.desc}
-                                        onChange={handleTaskInputChange}
-                                        rows={3}
-                                        className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-gray-900 resize-none"
-                                        disabled={editTaskLoading}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-5 items-center">
-                                    <label className="block text-sm font-medium text-gray-700">Priority</label>
-                                    <select
-                                        name="priority"
-                                        value={taskFormData.priority}
-                                        onChange={handleTaskInputChange}
-                                        className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-gray-900"
-                                        disabled={editTaskLoading}
-                                    >
-                                        <option value="Low">Low</option>
-                                        <option value="Medium">Medium</option>
-                                        <option value="High">High</option>
-                                    </select>
-                                </div>
-
-                                <div className="grid grid-cols-5 items-center">
-                                    <label className="block text-sm font-medium text-gray-700">Due Date</label>
-                                    <input
-                                        type="date"
-                                        name="dueDate"
-                                        value={taskFormData.dueDate}
-                                        onChange={handleTaskInputChange}
-                                        required
-                                        className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-gray-900 [color-scheme:light]"
-                                        disabled={editTaskLoading}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-5 items-center">
-                                    <label className="block text-sm font-medium text-gray-700">Assignee</label>
-                                    <select
-                                        name="assignedTo"
-                                        value={taskFormData.assignedTo}
-                                        onChange={handleTaskInputChange}
-                                        className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-gray-900"
-                                        disabled={editTaskLoading}
-                                    >
-                                        <option value="">Unassigned</option>
-                                        {members.map((m) => (
-                                            <option key={m.memberId?._id || m.memberId} value={m.memberId?._id || m.memberId}>
-                                                {m.memberId?.name || m.memberId?.email || "Member"}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="grid grid-cols-5 items-center">
-                                    <label className="block text-sm font-medium text-gray-700">Status</label>
-                                    <select
-                                        name="status"
-                                        value={taskFormData.status}
-                                        onChange={handleTaskInputChange}
-                                        className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-gray-200 text-sm text-gray-900"
-                                        disabled={editTaskLoading}
-                                    >
-                                        <option value="UnAssigned">Unassigned</option>
-                                        <option value="Assigned">Assigned</option>
-                                        <option value="InProgress">In Progress</option>
-                                        <option value="Completed">Completed</option>
-                                        <option value="InComplete">Incomplete</option>
-                                    </select>
-                                </div>
-
-                                <div className="flex justify-between gap-4 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={handleCloseEditTaskModal}
-                                        className="w-1/2 py-4 text-lg font-medium rounded-2xl bg-red-500 text-white hover:bg-red-600"
-                                        disabled={editTaskLoading}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="w-1/2 py-4 text-lg font-medium rounded-2xl bg-blue-600 text-white hover:bg-blue-700"
-                                        disabled={editTaskLoading}
-                                    >
-                                        Update
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
-                {isDeleteModalOpen && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={handleCloseDeleteModal}>
-                        <div className="bg-white rounded-xl shadow-large w-full max-w-md p-6" onMouseDown={(e) => e.stopPropagation()}>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Task?</h3>
-                            <p className="text-sm text-gray-700 mb-6">
-                                Are you sure you want to delete <strong>{taskToDelete?.title}</strong>?
-                            </p>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={handleCloseDeleteModal}
-                                    className="flex-1 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleDeleteTask}
-                                    disabled={deleteTaskLoading}
-                                    className="flex-1 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
-                                >
-                                    {deleteTaskLoading ? "Deleting..." : "Delete"}
-                                </button>
+                                </form>
                             </div>
-                        </div>
+                        </section>
                     </div>
-                )}
+                </section>
+            </div>
 
-                {isAddMemberModalOpen && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={() => setIsAddMemberModalOpen(false)}>
-                        <div className="bg-white rounded-xl shadow-large w-full max-w-md p-6" onMouseDown={(e) => e.stopPropagation()}>
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-gray-900">Add Member</h3>
-                                <button className="text-gray-500 hover:text-gray-800" onClick={() => setIsAddMemberModalOpen(false)}>
-                                    <MdClose size={18} />
-                                </button>
+            {isAddMemberModalOpen && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4"
+                    onMouseDown={() => setIsAddMemberModalOpen(false)}
+                >
+                    <div
+                        className="w-full max-w-md rounded-3xl border border-gray-200 bg-white shadow-2xl"
+                        onMouseDown={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5">
+                            <div>
+                                <h3 className="text-xl font-semibold text-gray-900">Add Member</h3>
+                                <p className="mt-1 text-sm text-gray-500">Only the project admin can manage members.</p>
                             </div>
 
+                            <button
+                                className="rounded-xl p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                                onClick={() => setIsAddMemberModalOpen(false)}
+                            >
+                                <MdClose size={18} />
+                            </button>
+                        </div>
+
+                        <div className="px-6 py-6">
                             {addMemberError && (
-                                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
+                                <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                                     {addMemberError}
                                 </div>
                             )}
 
-                            <form onSubmit={handleAddMember} className="space-y-4">
+                            <form onSubmit={handleAddMember} className="grid gap-4">
                                 <input
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
-                                    placeholder="member@email.com"
                                     value={memberEmail}
                                     onChange={(e) => setMemberEmail(e.target.value)}
+                                    placeholder="member@email.com"
+                                    className="rounded-2xl border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
                                 />
+
                                 <button
-                                    disabled={addMemberLoading}
-                                    className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700 disabled:opacity-60"
                                     type="submit"
+                                    disabled={addMemberLoading}
+                                    className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
                                 >
                                     {addMemberLoading ? "Adding..." : "Add Member"}
                                 </button>
                             </form>
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-                {isRemoveMemberModalOpen && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={() => setIsRemoveMemberModalOpen(false)}>
-                        <div className="bg-white rounded-xl shadow-large w-full max-w-md p-6" onMouseDown={(e) => e.stopPropagation()}>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Remove Member?</h3>
-                            {memberActionError && (
-                                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
-                                    {memberActionError}
-                                </div>
-                            )}
-                            <p className="text-sm text-gray-700 mb-6">
+            {isRemoveMemberModalOpen && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4"
+                    onMouseDown={() => setIsRemoveMemberModalOpen(false)}
+                >
+                    <div
+                        className="w-full max-w-md rounded-3xl border border-gray-200 bg-white shadow-2xl"
+                        onMouseDown={(e) => e.stopPropagation()}
+                    >
+                        <div className="px-6 py-6">
+                            <h3 className="text-xl font-semibold text-gray-900">Remove Member?</h3>
+                            <p className="mt-3 text-sm text-gray-600">
                                 Remove <strong>{memberToRemove?.memberId?.email}</strong> from this project?
                             </p>
-                            <div className="flex gap-3">
+
+                            <div className="mt-6 flex gap-3">
                                 <button
                                     onClick={() => setIsRemoveMemberModalOpen(false)}
-                                    className="flex-1 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900"
+                                    className="flex-1 rounded-2xl border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
                                 >
                                     Cancel
                                 </button>
+
                                 <button
                                     onClick={handleRemoveMember}
                                     disabled={removeMemberLoading}
-                                    className="flex-1 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+                                    className="flex-1 rounded-2xl bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
                                 >
                                     {removeMemberLoading ? "Removing..." : "Remove"}
                                 </button>
                             </div>
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-                {isEditProjectModalOpen && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={handleCloseEditProjectModal}>
-                        <div className="bg-white rounded-xl shadow-large w-full max-w-lg p-6" onMouseDown={(e) => e.stopPropagation()}>
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-gray-900">Edit Project</h3>
-                                <button className="text-gray-500 hover:text-gray-800" onClick={handleCloseEditProjectModal}>
-                                    <MdClose size={18} />
-                                </button>
+            {isEditProjectModalOpen && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4"
+                    onMouseDown={handleCloseEditProjectModal}
+                >
+                    <div
+                        className="w-full max-w-2xl rounded-3xl border border-gray-200 bg-white shadow-2xl"
+                        onMouseDown={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5">
+                            <div>
+                                <h3 className="text-xl font-semibold text-gray-900">Edit Project</h3>
+                                <p className="mt-1 text-sm text-gray-500">Only the project admin can edit project details.</p>
                             </div>
 
+                            <button
+                                className="rounded-xl p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                                onClick={handleCloseEditProjectModal}
+                            >
+                                <MdClose size={18} />
+                            </button>
+                        </div>
+
+                        <div className="px-6 py-6">
                             {editProjectError && (
-                                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
+                                <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                                     {editProjectError}
                                 </div>
                             )}
 
-                            <form onSubmit={handleUpdateProject} className="space-y-4">
+                            <form onSubmit={handleUpdateProject} className="grid gap-4">
                                 <input
                                     name="name"
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
-                                    placeholder="Project name"
                                     value={projectFormData.name}
                                     onChange={handleProjectInputChange}
+                                    placeholder="Project name"
+                                    className="rounded-2xl border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
                                 />
+
                                 <textarea
                                     name="desc"
-                                    rows={3}
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 resize-none"
-                                    placeholder="Description"
+                                    rows={4}
                                     value={projectFormData.desc}
                                     onChange={handleProjectInputChange}
+                                    placeholder="Project description"
+                                    className="resize-none rounded-2xl border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
                                 />
+
                                 <input
                                     type="date"
                                     name="dueDate"
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 [color-scheme:light]"
                                     value={projectFormData.dueDate}
                                     onChange={handleProjectInputChange}
+                                    className="rounded-2xl border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500 [color-scheme:light]"
                                 />
 
                                 <button
-                                    disabled={editProjectLoading}
-                                    className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700 disabled:opacity-60"
                                     type="submit"
+                                    disabled={editProjectLoading}
+                                    className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
                                 >
                                     {editProjectLoading ? "Saving..." : "Save Changes"}
                                 </button>
                             </form>
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-                {isDeleteProjectModalOpen && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onMouseDown={handleCloseDeleteProjectModal}>
-                        <div className="bg-white rounded-xl shadow-large w-full max-w-md p-6" onMouseDown={(e) => e.stopPropagation()}>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Project?</h3>
+            {isDeleteProjectModalOpen && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4"
+                    onMouseDown={handleCloseDeleteProjectModal}
+                >
+                    <div
+                        className="w-full max-w-md rounded-3xl border border-gray-200 bg-white shadow-2xl"
+                        onMouseDown={(e) => e.stopPropagation()}
+                    >
+                        <div className="px-6 py-6">
+                            <h3 className="text-xl font-semibold text-gray-900">Delete Project?</h3>
+
                             {deleteProjectError && (
-                                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
+                                <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                                     {deleteProjectError}
                                 </div>
                             )}
-                            <p className="text-sm text-gray-700 mb-6">
-                                This will permanently delete <strong>{project.name}</strong>.
+
+                            <p className="mt-3 text-sm text-gray-600">
+                                This permanently deletes <strong>{project.name}</strong>.
                             </p>
-                            <div className="flex gap-3">
+
+                            <div className="mt-6 flex gap-3">
                                 <button
                                     onClick={handleCloseDeleteProjectModal}
-                                    className="flex-1 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900"
+                                    className="flex-1 rounded-2xl border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
                                 >
                                     Cancel
                                 </button>
+
                                 <button
                                     onClick={handleDeleteProject}
                                     disabled={deleteProjectLoading}
-                                    className="flex-1 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+                                    className="flex-1 rounded-2xl bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
                                 >
                                     {deleteProjectLoading ? "Deleting..." : "Delete"}
                                 </button>
                             </div>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }

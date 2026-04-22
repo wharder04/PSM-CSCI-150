@@ -7,10 +7,11 @@ import morgan from "morgan";
 import mongoose from "mongoose";
 
 import authRoutes from "./routes/authRoutes.js";
-import projectsRouter from "./routes/projects.js";
+import projectsRouter from "./routes/projectRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use("/api/projects/:projectId/tasks", taskRoutes); // nested
 app.use("/api/tasks", taskRoutes); // optional top-level
 app.use("/api/profile", profileRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/health", (_req, res) =>
   res.json({ ok: true, message: "Server is running!" })

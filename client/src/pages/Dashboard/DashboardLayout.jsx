@@ -1,159 +1,123 @@
-import { Link, useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext.jsx";
+import NotificationBanner from "../../components/NotificationBanner.jsx";
 
 import {
-  MdHome,
-  MdCheckCircle,
-  MdFolder,
-  MdVerifiedUser,
-  MdLogout,
-  MdCalendarMonth,
+    MdHome,
+    MdCheckCircle,
+    MdFolder,
+    MdVerifiedUser,
+    MdLogout,
 } from "react-icons/md";
 import { toast } from "react-toastify";
 
 export default function DashboardLayout({ children }) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { logout, user } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { logout, user } = useAuth();
 
-  const handleLogout = async (event) => {
-    event.preventDefault();
-    logout();
-    toast.success("User Logged Out Successfully!");
-    navigate("/");
-  };
+    const handleLogout = async (event) => {
+        event.preventDefault();
+        logout();
+        toast.success("User Logged Out Successfully!");
+        navigate("/");
+    };
 
-  const isActive = (path) => location.pathname === path;
+    const isActive = (path) => location.pathname === path;
 
-  return (
-    <div className="flex min-h-screen w-full bg-bg-main">
-      <aside className="fixed top-0 left-0 w-[220px] h-screen bg-bg-sidebar z-50 flex flex-col border-r border-border-default rounded-xl overflow-y-auto">
-        {/* <div className="p-6 border-b border-gray-200">
-          <div className="mb-4">
-            <div className="w-12 h-12 bg-accent-dark rounded-xl flex items-center justify-center text-white font-bold text-lg tracking-wide">
-              PMS
-            </div>
-          </div>
-          <h2 className="text-text-primary text-base font-semibold">Project Management</h2>
-        </div> */}
+    return (
+        <div className="flex min-h-screen w-full bg-bg-main">
+            <aside className="fixed top-0 left-0 w-[220px] h-screen bg-bg-sidebar z-50 flex flex-col border-r border-border-default rounded-xl overflow-y-auto">
+                <nav className="flex-1 p-4 flex flex-col gap-1 mt-32">
+                    <Link
+                        to="/home"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${isActive("/home")
+                                ? "bg-bg-surface text-text-primary font-semibold shadow-soft"
+                                : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80"
+                            } focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)]`}
+                    >
+                        <MdHome
+                            size={22}
+                            className={`text-icon-default transition-transform duration-200 ${isActive("/home") ? "" : "group-hover:scale-110"
+                                }`}
+                        />
+                        <span>Dashboard</span>
+                    </Link>
 
-        <nav className="flex-1 p-4 flex flex-col gap-1 mt-32">
-          <Link
-            to="/home"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${
-              isActive("/home")
-                ? "bg-bg-surface text-text-primary font-semibold shadow-soft"
-                : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80"
-            } focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)]`}
-          >
-            <MdHome
-              size={22}
-              className={`text-icon-default transition-transform duration-200 ${
-                isActive("/home") ? "" : "group-hover:scale-110"
-              }`}
-            />
-            <span>Dashboard</span>
-          </Link>
+                    <Link
+                        to="/projects"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${isActive("/projects")
+                                ? "bg-bg-surface text-text-primary font-semibold shadow-soft"
+                                : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80"
+                            } focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)]`}
+                    >
+                        <MdFolder
+                            size={22}
+                            className={`text-icon-default transition-transform duration-200 ${isActive("/projects") ? "" : "group-hover:scale-110"
+                                }`}
+                        />
+                        <span>Projects</span>
+                    </Link>
 
-          <Link
-            to="/projects"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${
-              isActive("/projects")
-                ? "bg-bg-surface text-text-primary font-semibold shadow-soft"
-                : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80"
-            } focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)]`}
-          >
-            <MdFolder
-              size={22}
-              className={`text-icon-default transition-transform duration-200 ${
-                isActive("/projects") ? "" : "group-hover:scale-110"
-              }`}
-            />
-            <span>Projects</span>
-          </Link>
+                    <Link
+                        to="/tasks"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${isActive("/tasks")
+                                ? "bg-bg-surface text-text-primary font-semibold shadow-soft"
+                                : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80"
+                            } focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)]`}
+                    >
+                        <MdCheckCircle
+                            size={22}
+                            className={`text-icon-default transition-transform duration-200 ${isActive("/tasks") ? "" : "group-hover:scale-110"
+                                }`}
+                        />
+                        <span>Tasks</span>
+                    </Link>
 
-          <Link
-            to="/tasks"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${
-              isActive("/tasks")
-                ? "bg-bg-surface text-text-primary font-semibold shadow-soft"
-                : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80"
-            } focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)]`}
-          >
-            <MdCheckCircle
-              size={22}
-              className={`text-icon-default transition-transform duration-200 ${
-                isActive("/tasks") ? "" : "group-hover:scale-110"
-              }`}
-            />
-            <span>Tasks</span>
-          </Link>
+                    <div className="mt-4 mb-4 h-32"></div>
+                </nav>
 
-          <Link
-            to="/calendar"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${
-              isActive("/calendar")
-                ? "bg-bg-surface text-text-primary font-semibold shadow-soft"
-                : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80"
-            } focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)]`}
-          >
-            <MdCalendarMonth
-              size={22}
-              className={`text-icon-default transition-transform duration-200 ${
-                isActive("/calendar") ? "" : "group-hover:scale-110"
-              }`}
-            />
-            <span>Calendar</span>
-          </Link>
+                <div className="p-4 border-t border-border-default">
+                    <div className="mb-4">
+                        <p className="text-text-primary text-sm">
+                            {user?.email || "user@example.com"}
+                        </p>
+                    </div>
 
-          {/* Large white rounded box placeholder */}
-          <div className="mt-4 mb-4 h-32"></div>
-        </nav>
+                    <div className="flex flex-col gap-1">
+                        <Link
+                            to="/profile"
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${isActive("/profile")
+                                    ? "bg-bg-surface text-text-primary font-semibold shadow-soft"
+                                    : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80"
+                                } focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)]`}
+                        >
+                            <MdVerifiedUser
+                                size={20}
+                                className={`text-icon-default transition-transform duration-200 ${isActive("/profile") ? "" : "group-hover:scale-110"
+                                    }`}
+                            />
+                            <span>Profile</span>
+                        </Link>
 
-        <div className="p-4 border-t border-border-default">
-          <div className="mb-4">
-            <p className="text-text-primary text-sm">
-              {/* <Link to="/profile_bkp">{user?.email || "user@example.com"}</Link> */}
-              {user?.email || "user@example.com"}
-            </p>
-          </div>
+                        <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80 transition-all duration-200 w-full text-left group focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)] cursor-pointer"
+                        >
+                            <MdLogout
+                                size={20}
+                                className="text-icon-default transition-transform duration-200 group-hover:scale-110"
+                            />
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                </div>
+            </aside>
 
-          <div className="flex flex-col gap-1">
-            <Link
-              to="/profile"
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 relative group ${
-                isActive("/profile")
-                  ? "bg-bg-surface text-text-primary font-semibold shadow-soft"
-                  : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80"
-              } focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)]`}
-            >
-              <MdVerifiedUser
-                size={20}
-                className={`text-icon-default transition-transform duration-200 ${
-                  isActive("/profile") ? "" : "group-hover:scale-110"
-                }`}
-              />
-              <span>Profile</span>
-            </Link>
-
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary hover:translate-x-1 hover:shadow-soft active:scale-95 active:bg-bg-surface-hover/80 transition-all duration-200 w-full text-left group focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:ring-offset-2 focus:ring-offset-[var(--color-bg-sidebar)] cursor-pointer"
-            >
-              <MdLogout
-                size={20}
-                className="text-icon-default transition-transform duration-200 group-hover:scale-110"
-              />
-              <span>Logout</span>
-            </button>
-          </div>
+            <main className="ml-[220px] w-[calc(100%-220px)] min-h-screen bg-bg-main overflow-x-hidden">
+                <NotificationBanner />
+                {children}
+            </main>
         </div>
-      </aside>
-
-      <main className="ml-[220px] w-[calc(100%-220px)] min-h-screen bg-bg-main overflow-x-hidden">
-        {children}
-      </main>
-    </div>
-  );
+    );
 }
