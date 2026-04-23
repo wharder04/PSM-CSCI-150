@@ -1,9 +1,4 @@
 import axios from "axios";
-import {
-  createTask,
-  getTask,
-  listTasks,
-} from "../../server/controllers/taskController";
 
 const API_BASE_URL = "http://localhost:5000/api";
 
@@ -12,17 +7,14 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // Enable cookies to be sent with requests
+  withCredentials: true,
 });
 
-// Add response interceptor to handle auth errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear user data from localStorage on 401
       localStorage.removeItem("user");
-      // Optionally redirect to login - but let components handle it
     }
     return Promise.reject(error);
   }
@@ -42,6 +34,7 @@ export const authService = {
       throw error;
     }
   },
+
   register: async (userData) => {
     try {
       const res = await api.post("/auth/register", userData);
@@ -51,6 +44,7 @@ export const authService = {
       throw error;
     }
   },
+
   logout: async () => {
     try {
       const res = await api.post("/auth/logout");
@@ -60,6 +54,7 @@ export const authService = {
       throw error;
     }
   },
+
   getCurrentUser: async () => {
     try {
       const res = await api.get("/auth/me");
@@ -69,6 +64,7 @@ export const authService = {
       throw error;
     }
   },
+
   forgotPassword: async (email) => {
     try {
       const res = await api.post("/auth/forgot-password", { email });
@@ -78,6 +74,7 @@ export const authService = {
       throw error;
     }
   },
+
   resetPassword: async (resetToken, password) => {
     try {
       const res = await api.put(`/auth/reset-password/${resetToken}`, {
@@ -89,6 +86,7 @@ export const authService = {
       throw error;
     }
   },
+
   verifyToken: async (resetToken) => {
     try {
       const res = await api.get(`/auth/verify-password/${resetToken}`);
@@ -112,34 +110,40 @@ export const projectService = {
       return res.data;
     } catch (error) {
       console.log("error obj", error);
+      throw error;
     }
   },
+
   myProjects: async () => {
     try {
-      const res = await api.get("/projects");
-      return res.data;
-    } catch (error) {
-      console.log("error obj", error);
-    }
-  },
-  getDashboardData: async (projectId) => {
-    try {
-      const url = projectId ? `/projects/dashboard?projectId=${projectId}` : "/projects/dashboard";
-      const res = await api.get(url);
+      const res = await api.get("/projects/mine");
       return res.data;
     } catch (error) {
       console.log("error obj", error);
       throw error;
     }
   },
+
+  getDashboardData: async () => {
+    try {
+      const res = await api.get("/projects/dashboard");
+      return res.data;
+    } catch (error) {
+      console.log("error obj", error);
+      throw error;
+    }
+  },
+
   getProject: async (projectId) => {
     try {
       const res = await api.get(`/projects/${projectId}`);
       return res.data;
     } catch (error) {
       console.log("error obj", error);
+      throw error;
     }
   },
+
   updateProject: async (projectId, projectData) => {
     try {
       const res = await api.put(`/projects/${projectId}`, projectData);
@@ -149,27 +153,33 @@ export const projectService = {
       throw error;
     }
   },
+
   deleteProject: async (projectId) => {
     try {
       const res = await api.delete(`/projects/${projectId}`);
       return res.data;
     } catch (error) {
       console.log("error obj", error);
+      throw error;
     }
   },
+
   listMembers: async (projectId) => {
     try {
       const res = await api.get(`/projects/${projectId}/members`);
       return res.data;
     } catch (error) {
       console.log("error obj", error);
+      throw error;
     }
   },
+
   addMember: async (projectId, emailOrId) => {
     try {
-      const body = emailOrId.includes("@")
-        ? { email: emailOrId }
-        : { memberId: emailOrId };
+      const body =
+        typeof emailOrId === "string" && emailOrId.includes("@")
+          ? { email: emailOrId }
+          : { memberId: emailOrId };
 
       const res = await api.post(`/projects/${projectId}/members`, body);
       return res.data;
@@ -178,19 +188,21 @@ export const projectService = {
       throw error;
     }
   },
+
   toggleMemberStatus: async (projectId, memberId) => {
     try {
-      const res = await api.patch(`/projects/${projectId}/members/${memberId}`);
+      const res = await api.patch(`/projects/${projectId}/members/${memberId}/status`);
       return res.data;
     } catch (error) {
       console.log("error obj", error);
       throw error;
     }
   },
-  removeMember: async (projectId, memberId) => {
+
+  toggleMemberTaskPermission: async (projectId, memberId) => {
     try {
-      const res = await api.delete(
-        `/projects/${projectId}/members/${memberId}`
+      const res = await api.patch(
+        `/projects/${projectId}/members/${memberId}/task-permission`
       );
       return res.data;
     } catch (error) {
@@ -198,6 +210,17 @@ export const projectService = {
       throw error;
     }
   },
+
+  removeMember: async (projectId, memberId) => {
+    try {
+      const res = await api.delete(`/projects/${projectId}/members/${memberId}`);
+      return res.data;
+    } catch (error) {
+      console.log("error obj", error);
+      throw error;
+    }
+  },
+
   getProgress: async (projectId) => {
     try {
       const res = await api.get(`/projects/progress/${projectId}`);
@@ -207,26 +230,36 @@ export const projectService = {
       throw error;
     }
   },
+
   getDiscussion: async (projectId) => {
-    const res = await api.get(`/projects/${projectId}/discussion`);
-    return res.data;
+    try {
+      const res = await api.get(`/projects/${projectId}/discussion`);
+      return res.data;
+    } catch (error) {
+      console.log("error obj", error);
+      throw error;
+    }
   },
 
   sendDiscussionMessage: async (projectId, text) => {
-    const res = await api.post(`/projects/${projectId}/discussion`, { text });
-    return res.data;
+    try {
+      const res = await api.post(`/projects/${projectId}/discussion`, { text });
+      return res.data;
+    } catch (error) {
+      console.log("error obj", error);
+      throw error;
+    }
   },
-
 };
 
 export const taskService = {
   listTasks: async (projectId) => {
     try {
-      const url = `/projects/${projectId}/tasks`;
-      const res = await api.get(url);
+      const res = await api.get(`/projects/${projectId}/tasks`);
       return res.data;
     } catch (error) {
       console.log("error obj", error);
+      throw error;
     }
   },
 
@@ -247,6 +280,7 @@ export const taskService = {
       return res.data;
     } catch (error) {
       console.log("error obj", error);
+      throw error;
     }
   },
 
@@ -260,15 +294,71 @@ export const taskService = {
     }
   },
 
- addComment: async (taskId, text) => {
-    const res = await api.post(`/tasks/${taskId}/comments`, { text });
-    return res.data;
+  addComment: async (taskId, text) => {
+    try {
+      const res = await api.post(`/tasks/${taskId}/comments`, { text });
+      return res.data;
+    } catch (error) {
+      console.log("error obj", error);
+      throw error;
+    }
   },
-
 
   deleteTask: async (taskId) => {
     try {
       const res = await api.delete(`/tasks/${taskId}`);
+      return res.data;
+    } catch (error) {
+      console.log("error obj", error);
+      throw error;
+    }
+  },
+};
+
+export const notificationService = {
+  getUnread: async () => {
+    try {
+      const res = await api.get("/notifications/unread");
+      return res.data;
+    } catch (error) {
+      console.log("error obj", error);
+      throw error;
+    }
+  },
+
+  getAll: async () => {
+    try {
+      const res = await api.get("/notifications");
+      return res.data;
+    } catch (error) {
+      console.log("error obj", error);
+      throw error;
+    }
+  },
+
+  markRead: async (notificationId) => {
+    try {
+      const res = await api.patch(`/notifications/${notificationId}/read`);
+      return res.data;
+    } catch (error) {
+      console.log("error obj", error);
+      throw error;
+    }
+  },
+
+  markAllRead: async () => {
+    try {
+      const res = await api.patch("/notifications/read-all");
+      return res.data;
+    } catch (error) {
+      console.log("error obj", error);
+      throw error;
+    }
+  },
+
+  deleteNotification: async (notificationId) => {
+    try {
+      const res = await api.delete(`/notifications/${notificationId}`);
       return res.data;
     } catch (error) {
       console.log("error obj", error);
@@ -298,3 +388,5 @@ export const profileService = {
     }
   },
 };
+
+export default api;
