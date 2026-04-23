@@ -3,6 +3,7 @@ import auth from "../middleware/auth.js";
 import {
   myProjects,
   getDashboardData,
+  getProgress,
   getProject,
   createProject,
   updateProject,
@@ -15,11 +16,12 @@ import {
   getDiscussion,
   addDiscussionMessage,
 } from "../controllers/projectsController.js";
+
 const router = Router();
 
 router.get("/dashboard", auth, getDashboardData);
 router.get("/mine", auth, myProjects);
-router.get("/dashboard", auth, getDashboardData);
+router.get("/progress/:projectId", auth, getProgress);
 router.post("/", auth, createProject);
 
 router.get("/:projectId", auth, getProject);
