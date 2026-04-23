@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 function formatDateInput(value) {
     if (!value) return "";
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return "";
-    return d.toISOString().slice(0, 10);
+    return d.toISOString().split("T")[0];
 }
 
 export default function CreateTaskModal({
@@ -17,8 +17,6 @@ export default function CreateTaskModal({
     defaultProjectId = "",
     initialTask = null,
 }) {
-    const isEdit = !!initialTask;
-
     const [form, setForm] = useState({
         projectId: defaultProjectId || "",
         title: "",
@@ -26,25 +24,37 @@ export default function CreateTaskModal({
         priority: "Medium",
         assignedTo: "",
         dueDate: "",
-        status: "UnAssigned",
     });
 
     const [error, setError] = useState("");
+    const isEdit = !!initialTask;
 
-    const memberOptions = useMemo(() => members || [], [members]);
+    const memberOptions = useMemo(() => {
+        return (members || [])
+            .map((m) => ({
+                _id: m?.memberId?._id || m?._id || m?.memberId || "",
+                name: m?.memberId?.name || m?.name || "",
+                email: m?.memberId?.email || m?.email || "",
+                isActive: m?.isActive ?? true,
+            }))
+            .filter((m) => !!m._id && m.isActive);
+    }, [members]);
 
     useEffect(() => {
         if (!isOpen) return;
 
         if (initialTask) {
             setForm({
-                projectId: initialTask.projectId || defaultProjectId || "",
-                title: initialTask.title || "",
-                desc: initialTask.desc || "",
-                priority: initialTask.priority || "Medium",
+                projectId:
+                    initialTask?.projectId?._id ||
+                    initialTask?.projectId ||
+                    defaultProjectId ||
+                    "",
+                title: initialTask?.title || "",
+                desc: initialTask?.desc || "",
+                priority: initialTask?.priority || "Medium",
                 assignedTo: initialTask?.assignedTo?._id || "",
-                dueDate: formatDateInput(initialTask.dueDate),
-                status: initialTask.status || "UnAssigned",
+                dueDate: formatDateInput(initialTask?.dueDate),
             });
         } else {
             setForm({
@@ -54,7 +64,6 @@ export default function CreateTaskModal({
                 priority: "Medium",
                 assignedTo: "",
                 dueDate: "",
-                status: "UnAssigned",
             });
         }
 
@@ -63,180 +72,184 @@ export default function CreateTaskModal({
 
     if (!isOpen) return null;
 
-    const update = (key, value) => setForm((p) => ({ ...p, [key]: value }));
+    const updateField = (key, value) => {
+        setForm((prev) => ({ ...prev, [key]: value }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
 
-        if (!form.projectId) return setError("Project is required.");
-        if (!form.title.trim()) return setError("Task title is required.");
-        if (!form.dueDate) return setError("Due date is required.");
+        if (!form.projectId) {
+            setError("Project is required.");
+            return;
+        }
+
+        if (!form.title.trim()) {
+            setError("Task title is required.");
+            return;
+        }
+
+        if (!form.dueDate) {
+            setError("Due date is required.");
+            return;
+        }
 
         const payload = {
             title: form.title.trim(),
             desc: form.desc?.trim() || "",
             priority: form.priority,
-            assignedTo: form.assignedTo || null,
+            assignedTo: form.assignedTo === "" ? null : form.assignedTo,
             dueDate: new Date(form.dueDate).toISOString(),
-            status: form.status || "UnAssigned",
         };
 
-        if (isEdit) {
-            await onUpdate?.(initialTask._id, payload);
-        } else {
-            await onCreate?.(form.projectId, payload);
+        try {
+            if (isEdit) {
+                await onUpdate?.(initialTask._id, payload);
+            } else {
+                await onCreate?.(form.projectId, payload);
+            }
+        } catch (err) {
+            console.error("CreateTaskModal submit error:", err);
+            setError(err?.response?.data?.error || err?.message || "Failed to save task.");
         }
     };
 
     return (
         <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4"
             onMouseDown={onClose}
         >
             <div
-                className="bg-white rounded-2xl shadow-xl w-[900px] max-w-[95vw] p-10"
+                className="w-full max-w-3xl rounded-3xl border border-gray-200 bg-white shadow-2xl"
                 onMouseDown={(e) => e.stopPropagation()}
             >
-                <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-3xl font-semibold text-gray-900">
-                        {isEdit ? "Edit Task" : "Create New Task"}
-                    </h2>
-                    <button className="text-gray-500 hover:text-gray-800 text-3xl" onClick={onClose}>
-                        ×
-                    </button>
+                <div className="border-b border-gray-200 px-8 py-6">
+                    <div className="flex items-center justify-between gap-4">
+                        <div>
+                            <h2 className="text-2xl font-semibold text-gray-900">
+                                {isEdit ? "Edit Task" : "Create Task"}
+                            </h2>
+                            <p className="mt-1 text-sm text-gray-500">
+                                Fill in the task details below.
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="rounded-xl px-3 py-2 text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                        >
+                            âœ•
+                        </button>
+                    </div>
                 </div>
 
-                {error && (
-                    <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                        {error}
-                    </div>
-                )}
+                <div className="px-8 py-7">
+                    {error ? (
+                        <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                            {error}
+                        </div>
+                    ) : null}
 
-                <form onSubmit={handleSubmit} className="space-y-10">
-                    <div className="space-y-8">
-                        <div className="grid grid-cols-5 items-center gap-6">
-                            <label className="text-gray-600 text-xl font-light">Project *</label>
+                    <form onSubmit={handleSubmit} className="grid gap-5">
+                        <div className="grid gap-2">
+                            <label className="text-sm font-medium text-gray-700">Project</label>
                             <select
-                                className="col-span-4 border-b border-gray-300 focus:border-blue-500 outline-none text-xl py-3 text-gray-900 bg-transparent"
                                 value={form.projectId}
-                                onChange={(e) => update("projectId", e.target.value)}
-                                required
+                                onChange={(e) => updateField("projectId", e.target.value)}
                                 disabled={isEdit}
+                                className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500 disabled:bg-gray-100"
                             >
-                                <option value="" disabled>
-                                    Select project
-                                </option>
-                                {projects.map((p) => (
-                                    <option key={p._id} value={p._id}>
-                                        {p.name}
+                                <option value="">Select project</option>
+                                {projects.map((project) => (
+                                    <option key={project._id} value={project._id}>
+                                        {project.name}
                                     </option>
                                 ))}
                             </select>
                         </div>
 
-                        <div className="grid grid-cols-5 items-center gap-6">
-                            <label className="text-gray-600 text-xl font-light">Task Title *</label>
+                        <div className="grid gap-2">
+                            <label className="text-sm font-medium text-gray-700">Task title</label>
                             <input
-                                className="col-span-4 border-b border-gray-300 focus:border-blue-500 outline-none text-xl py-3 text-gray-900 bg-transparent"
-                                placeholder="Enter task title"
                                 value={form.title}
-                                onChange={(e) => update("title", e.target.value)}
-                                required
+                                onChange={(e) => updateField("title", e.target.value)}
+                                placeholder="Enter task title"
+                                className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
                             />
                         </div>
 
-                        <div className="grid grid-cols-5 items-center gap-6">
-                            <label className="text-gray-600 text-xl font-light">Description</label>
+                        <div className="grid gap-2">
+                            <label className="text-sm font-medium text-gray-700">Description</label>
                             <textarea
-                                className="col-span-4 border-b border-gray-300 focus:border-blue-500 outline-none text-xl py-3 text-gray-900 bg-transparent resize-none"
-                                placeholder="Enter task description"
                                 value={form.desc}
-                                onChange={(e) => update("desc", e.target.value)}
-                                rows={3}
+                                onChange={(e) => updateField("desc", e.target.value)}
+                                rows={4}
+                                placeholder="Write a short description"
+                                className="resize-none rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
                             />
                         </div>
 
-                        <div className="grid grid-cols-5 items-center gap-6">
-                            <label className="text-gray-600 text-xl font-light">Priority *</label>
-                            <select
-                                className="col-span-4 border-b border-gray-300 focus:border-blue-500 outline-none text-xl py-3 text-gray-900 bg-transparent"
-                                value={form.priority}
-                                onChange={(e) => update("priority", e.target.value)}
-                                required
-                            >
-                                <option>High</option>
-                                <option>Medium</option>
-                                <option>Low</option>
-                            </select>
-                        </div>
+                        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium text-gray-700">Priority</label>
+                                <select
+                                    value={form.priority}
+                                    onChange={(e) => updateField("priority", e.target.value)}
+                                    className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
+                                >
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Low">Low</option>
+                                </select>
+                            </div>
 
-                        <div className="grid grid-cols-5 items-center gap-6">
-                            <label className="text-gray-600 text-xl font-light">Assignee</label>
-                            <select
-                                className="col-span-4 border-b border-gray-300 focus:border-blue-500 outline-none text-xl py-3 text-gray-900 bg-transparent"
-                                value={form.assignedTo}
-                                onChange={(e) => update("assignedTo", e.target.value)}
-                            >
-                                <option value="">Unassigned</option>
-                                {memberOptions.map((m) => {
-                                    const id = m?._id || m?.memberId?._id || m?.memberId;
-                                    const label = m?.name || m?.email || m?.memberId?.name || m?.memberId?.email;
-                                    if (!id) return null;
-
-                                    return (
-                                        <option key={id} value={id}>
-                                            {label}
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium text-gray-700">Assignee</label>
+                                <select
+                                    value={form.assignedTo}
+                                    onChange={(e) => updateField("assignedTo", e.target.value)}
+                                    className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
+                                >
+                                    <option value="">Unassigned</option>
+                                    {memberOptions.map((member) => (
+                                        <option key={member._id} value={member._id}>
+                                            {member.name || member.email}
                                         </option>
-                                    );
-                                })}
-                            </select>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium text-gray-700">Due date</label>
+                                <input
+                                    type="date"
+                                    value={form.dueDate}
+                                    onChange={(e) => updateField("dueDate", e.target.value)}
+                                    className="rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500 [color-scheme:light]"
+                                />
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-5 items-center gap-6">
-                            <label className="text-gray-600 text-xl font-light">Due Date *</label>
-                            <input
-                                type="date"
-                                className="col-span-4 border-b border-gray-300 focus:border-blue-500 outline-none text-xl py-3 text-gray-900 bg-transparent [color-scheme:light]"
-                                value={form.dueDate}
-                                onChange={(e) => update("dueDate", e.target.value)}
-                                required
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-5 items-center gap-6">
-                            <label className="text-gray-600 text-xl font-light">Status *</label>
-                            <select
-                                className="col-span-4 border-b border-gray-300 focus:border-blue-500 outline-none text-xl py-3 text-gray-900 bg-transparent"
-                                value={form.status}
-                                onChange={(e) => update("status", e.target.value)}
-                                required
+                        <div className="mt-3 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="rounded-2xl border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
                             >
-                                <option value="UnAssigned">Unassigned</option>
-                                <option value="Assigned">Assigned</option>
-                                <option value="InProgress">In Progress</option>
-                                <option value="Completed">Completed</option>
-                                <option value="InComplete">Incomplete</option>
-                            </select>
-                        </div>
-                    </div>
+                                Cancel
+                            </button>
 
-                    <div className="flex justify-between gap-6 pt-6">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="w-1/2 py-5 text-xl font-medium rounded-2xl bg-red-500 text-white hover:bg-red-600"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className="w-1/2 py-5 text-xl font-medium rounded-2xl bg-blue-600 text-white hover:bg-blue-700"
-                        >
-                            {isEdit ? "Save Changes" : "Create Task"}
-                        </button>
-                    </div>
-                </form>
+                            <button
+                                type="submit"
+                                className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+                            >
+                                {isEdit ? "Save Changes" : "Create Task"}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );
