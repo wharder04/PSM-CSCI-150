@@ -8,6 +8,10 @@ function sameId(a, b) {
   return String(a || "") === String(b || "");
 }
 
+function uniqueById(items) {
+  return Array.from(new Map(items.map((item) => [String(item._id), item])).values());
+}
+
 export async function myProjects(req, res, next) {
   try {
     const owner = await Project.find({ ownerId: req.user._id }).sort({ createdAt: -1 });
@@ -38,7 +42,7 @@ export async function myProjects(req, res, next) {
 
 export async function getDashboardData(req, res, next) {
   try {
-    const ownerProjects = await Project.find({ ownerId: req.user._id }).sort({ createdAt: -1 });
+    const owner = await Project.find({ ownerId: req.user._id }).sort({ createdAt: -1 });
 
     const memberships = await ProjectMember.find({
       memberId: req.user._id,
@@ -47,35 +51,84 @@ export async function getDashboardData(req, res, next) {
 
     const memberProjectIds = memberships.map((m) => m.projectId);
 
-    const memberProjects = await Project.find({
+    const memberOf = await Project.find({
       _id: { $in: memberProjectIds },
       ownerId: { $ne: req.user._id },
     }).sort({ createdAt: -1 });
 
-    const allProjects = [...ownerProjects, ...memberProjects];
-    const uniqueProjects = Array.from(
-      new Map(allProjects.map((p) => [String(p._id), p])).values()
-    );
-
-    const projectIds = uniqueProjects.map((p) => p._id);
+    const allProjects = uniqueById([...owner, ...memberOf]);
+    const projectIds = allProjects.map((project) => project._id);
 
     const tasks = projectIds.length
       ? await Task.find({ projectId: { $in: projectIds } })
       : [];
 
-    const activeProjects = uniqueProjects.filter(
-      (p) => (p.status || "Active") === "Active"
+    const activeProjects = allProjects.filter(
+      (project) => (project.status || "Active") === "Active"
     ).length;
 
-    const completedTasks = tasks.filter((t) => t.status === "Completed").length;
+    const completedProjects = allProjects.filter(
+      (project) => project.status === "Completed"
+    ).length;
+
+    const completedTasks = tasks.filter((task) => task.status === "Completed").length;
+    const inProgressTasks = tasks.filter((task) => task.status === "InProgress").length;
+    const assignedTasks = tasks.filter(
+      (task) => task.status === "Assigned" || task.status === "UnAssigned"
+    ).length;
+    const incompleteTasks = tasks.filter((task) => task.status === "InComplete").length;
+
+    const completionRate = tasks.length
+      ? Math.round((completedTasks / tasks.length) * 100)
+      : 0;
 
     res.json({
       success: true,
       data: {
-        totalProjects: uniqueProjects.length,
+        projects: {
+          owner,
+          memberOf,
+          total: allProjects.length,
+          active: activeProjects,
+          completed: completedProjects,
+          recent: allProjects.slice(0, 5),
+        },
+        taskStats: {
+          totalTasks: tasks.length,
+          assignedTasks,
+          inProgressTasks,
+          completedTasks,
+          incompleteTasks,
+          testingTasks: incompleteTasks,
+          completionRate,
+        },
+
+        totalProjects: allProjects.length,
         activeProjects,
         completedTasks,
-        recentProjects: uniqueProjects.slice(0, 5),
+        recentProjects: allProjects.slice(0, 5),
+      },
+    });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function getProgress(req, res, next) {
+  try {
+    const { projectId } = req.params;
+
+    const tasks = await Task.find({ projectId });
+
+    const total = tasks.length;
+    const completed = tasks.filter((task) => task.status === "Completed").length;
+
+    res.json({
+      success: true,
+      data: {
+        total,
+        completed,
+        percent: total ? Math.round((completed / total) * 100) : 0,
       },
     });
   } catch (e) {
@@ -85,7 +138,7 @@ export async function getDashboardData(req, res, next) {
 
 export async function createProject(req, res, next) {
   try {
-    const { name, desc, dueDate, status } = req.body;
+    const { name, desc, startDate, dueDate, status } = req.body;
 
     if (!name || !name.trim()) {
       return res.status(400).json({
@@ -97,6 +150,7 @@ export async function createProject(req, res, next) {
     const project = await Project.create({
       name: name.trim(),
       desc: desc || "",
+      startDate: startDate || null,
       dueDate: dueDate || null,
       status: status || "Active",
       ownerId: req.user._id,
@@ -147,7 +201,7 @@ export async function getProject(req, res, next) {
 export async function updateProject(req, res, next) {
   try {
     const { projectId } = req.params;
-    const { name, desc, dueDate, status } = req.body;
+    const { name, desc, startDate, dueDate, status } = req.body;
 
     const project = await Project.findById(projectId);
     if (!project) {
@@ -163,6 +217,7 @@ export async function updateProject(req, res, next) {
 
     if ("name" in req.body) project.name = name?.trim() || project.name;
     if ("desc" in req.body) project.desc = desc || "";
+    if ("startDate" in req.body) project.startDate = startDate || null;
     if ("dueDate" in req.body) project.dueDate = dueDate || null;
     if ("status" in req.body) project.status = status || project.status;
 
