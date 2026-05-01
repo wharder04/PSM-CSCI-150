@@ -1,6 +1,7 @@
 import Project from "../models/Project.js";
 import ProjectMember from "../models/ProjectMember.js";
 import User from "../models/User.js";
+import { isSystemPlaceholderUser } from "../utils/systemUsers.js";
 import Task from "../models/Task.js";
 import DiscussionMessage from "../models/DiscussionMessage.js";
 
@@ -284,7 +285,7 @@ export async function listMembers(req, res, next) {
     }
 
     const members = await ProjectMember.find({ projectId })
-      .populate("memberId", "name email")
+      .populate("memberId", "name email isSystemPlaceholder systemKey")
       .sort({ createdAt: -1 });
 
     return res.json({ success: true, data: members });
@@ -318,7 +319,7 @@ export async function addMember(req, res, next) {
       user = await User.findOne({ email: email.trim().toLowerCase() });
     }
 
-    if (!user) {
+    if (!user || isSystemPlaceholderUser(user)) {
       return res.status(404).json({ success: false, error: "User not found" });
     }
 

@@ -25,6 +25,9 @@ const userSchema = new Schema({
     minlength: [8, 'Password must be at least 8 characters'],
     select: false, // hide by default
   },
+  // System placeholders are fake users used by the app, not real login accounts.
+  isSystemPlaceholder: { type: Boolean, default: false, index: true },
+  systemKey: { type: String, default: null, index: true },
   // Profile
   bio: { type: String, default: '' },
   course: { type: String, default: '' },

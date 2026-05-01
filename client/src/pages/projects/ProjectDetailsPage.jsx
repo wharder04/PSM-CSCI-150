@@ -11,7 +11,6 @@ import {
     MdToggleOff,
     MdGroup,
     MdForum,
-    MdOutlineTaskAlt,
     MdCalendarToday,
     MdArrowForward,
 } from "react-icons/md";
@@ -491,11 +490,6 @@ export default function ProjectDetailsPage() {
                                 </div>
 
                                 <div className="inline-flex items-center gap-2 rounded-2xl border border-border bg-bg-base px-4 py-2">
-                                    <MdOutlineTaskAlt size={16} />
-                                    <span>{taskStats.total} total tasks</span>
-                                </div>
-
-                                <div className="inline-flex items-center gap-2 rounded-2xl border border-border bg-bg-base px-4 py-2">
                                     <MdCalendarToday size={16} />
                                     <span>{project.dueDate ? `Due ${formatDate(project.dueDate)}` : "No due date"}</span>
                                 </div>
@@ -542,43 +536,13 @@ export default function ProjectDetailsPage() {
                     </div>
                 </section>
 
-                <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    <div className="rounded-3xl border border-border bg-panel px-5 py-5 shadow-soft">
-                        <div className="text-xs font-semibold uppercase tracking-wide text-text-muted">Total Tasks</div>
-                        <div className="mt-2 text-3xl font-bold text-text-primary">{taskStats.total}</div>
-                        <p className="mt-2 text-sm text-text-secondary">All tasks in this project</p>
-                    </div>
-
-                    <div className="rounded-3xl border border-border bg-panel px-5 py-5 shadow-soft">
-                        <div className="text-xs font-semibold uppercase tracking-wide text-text-muted">In Progress</div>
-                        <div className="mt-2 text-3xl font-bold text-text-primary">
-                            {tasks.filter((t) => t.status === "InProgress").length}
-                        </div>
-                        <p className="mt-2 text-sm text-text-secondary">Currently being worked on</p>
-                    </div>
-
-                    <div className="rounded-3xl border border-border bg-panel px-5 py-5 shadow-soft">
-                        <div className="text-xs font-semibold uppercase tracking-wide text-text-muted">Completed</div>
-                        <div className="mt-2 text-3xl font-bold text-text-primary">{taskStats.completed}</div>
-                        <p className="mt-2 text-sm text-text-secondary">
-                            {taskStats.total ? Math.round((taskStats.completed / taskStats.total) * 100) : 0}% completion rate
-                        </p>
-                    </div>
-
-                    <div className="rounded-3xl border border-border bg-panel px-5 py-5 shadow-soft">
-                        <div className="text-xs font-semibold uppercase tracking-wide text-text-muted">Overdue</div>
-                        <div className="mt-2 text-3xl font-bold text-red-500">{taskStats.overdue}</div>
-                        <p className="mt-2 text-sm text-text-secondary">Need attention soonest</p>
-                    </div>
-                </section>
-
                 <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr,0.8fr]">
                     <div className="rounded-3xl border border-border bg-panel px-6 py-6 shadow-soft">
                         <div className="mb-5 flex items-center justify-between gap-4">
                             <div>
                                 <h2 className="text-2xl font-semibold text-text-primary">Team Members</h2>
                                 <p className="mt-1 text-sm text-text-secondary">
-                                    Assigned work, completion, overdue load, and task permissions.
+                                    Project members and task permissions.
                                 </p>
                             </div>
 
@@ -708,7 +672,7 @@ export default function ProjectDetailsPage() {
                                 <div>
                                     <h2 className="text-2xl font-semibold text-text-primary">Recent Activity</h2>
                                     <p className="mt-1 text-sm text-text-secondary">
-                                        Latest discussion and task updates.
+                                        Latest task comments, discussion posts, and project updates.
                                     </p>
                                 </div>
                             </div>

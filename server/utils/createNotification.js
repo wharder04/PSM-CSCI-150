@@ -1,4 +1,6 @@
 import Notification from "../models/Notificationmodel.js";
+import User from "../models/User.js";
+import { isSystemPlaceholderUser, isValidObjectId, sameId } from "./systemUsers.js";
 
 export default async function createNotification({
   user,
@@ -8,36 +10,23 @@ export default async function createNotification({
   type,
   message,
 }) {
-  console.log("createNotification called with:", {
-    user,
-    actor,
-    project,
-    task,
-    type,
-    message,
-  });
+  const userId = user?._id || user;
+  const actorId = actor?._id || actor;
 
-  if (!user || !actor || !type || !message) {
-    console.log("Notification skipped: missing required field");
-    return null;
-  }
+  if (!userId || !actorId || !type || !message) return null;
+  if (!isValidObjectId(userId) || !isValidObjectId(actorId)) return null;
+  if (sameId(userId, actorId)) return null;
 
-  if (String(user) === String(actor)) {
-    console.log("Notification skipped: user and actor are the same");
-    return null;
-  }
+  const notificationUser = await User.findById(userId).select("email isSystemPlaceholder systemKey");
+  if (!notificationUser || isSystemPlaceholderUser(notificationUser)) return null;
 
-  const created = await Notification.create({
-    user,
-    actor,
+  return Notification.create({
+    user: userId,
+    actor: actorId,
     project,
     task,
     type,
     message,
     isRead: false,
   });
-
-  console.log("Notification created:", created._id);
-
-  return created;
 }

@@ -7,9 +7,11 @@ export default function TaskColumn({
     tasks = [],
     onEditTask,
     onCommentTask,
+    onDeleteTask,
     canDragTask,
     isAssignedToCurrentUser,
     canEditTask,
+    canDeleteTask,
 }) {
     const { setNodeRef, isOver } = useDroppable({
         id: String(column.id),
@@ -50,9 +52,11 @@ export default function TaskColumn({
                                 task={task}
                                 onEdit={onEditTask}
                                 onComment={onCommentTask}
+                                onDelete={onDeleteTask}
                                 canDrag={canDragTask(task)}
                                 isAssignedToCurrentUser={isAssignedToCurrentUser(task)}
                                 canEditTask={canEditTask}
+                                canDeleteTask={canDeleteTask(task)}
                             />
                         ))
                     ) : (

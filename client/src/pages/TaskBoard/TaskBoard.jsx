@@ -17,7 +17,7 @@ import CreateTaskModal from "../../components/tasks/CreateTaskModal.jsx";
 import TaskCommentsModal from "../../components/tasks/TaskCommentsModal.jsx";
 import TaskColumn from "../../components/tasks/TaskColumn.jsx";
 import TaskCard from "../../components/tasks/TaskCard.jsx";
-import { COLUMNS, STATUS } from "../../components/tasks/taskUtils.js";
+import { COLUMNS, STATUS, getTaskAssignedUser, getTaskAssignedUserId, isSystemUnassignedUser } from "../../components/tasks/taskUtils.js";
 
 function normalizeStatusForColumns(status) {
     if (status === STATUS.IN_PROGRESS) return STATUS.IN_PROGRESS;
@@ -221,7 +221,7 @@ export default function TaskBoard() {
             const priorityOk =
                 priorityFilters.length === 0 || priorityFilters.includes(task.priority);
 
-            const assignedToId = safeId(task?.assignedTo?._id || task?.assignedTo);
+            const assignedToId = getTaskAssignedUserId(task);
             const assigneeOk =
                 assigneeFilters.length === 0 || assigneeFilters.includes(assignedToId);
 
@@ -416,6 +416,24 @@ export default function TaskBoard() {
         }
     };
 
+    const onDeleteTask = async (task) => {
+        if (!task?._id) return;
+
+        try {
+            const res = await taskService.deleteTask(task._id);
+
+            if (!res?.success) {
+                throw new Error(res?.error || "Failed to delete task");
+            }
+
+            setTasks((prev) => prev.filter((item) => item._id !== task._id));
+            toast.success("Task deleted");
+        } catch (error) {
+            console.error(error);
+            toast.error(error?.response?.data?.error || error?.message || "Failed to delete task");
+        }
+    };
+
     const onAddComment = async (taskId, text) => {
         try {
             setSavingComment(true);
@@ -450,14 +468,20 @@ export default function TaskBoard() {
     };
 
     const isAssignedToCurrentUser = (task) => {
-        const assignedId = safeId(task?.assignedTo?._id || task?.assignedTo);
+        const assignedId = getTaskAssignedUserId(task);
         return assignedId && assignedId === safeId(user?._id);
     };
 
     const canDragTask = (task) => {
         if (!task) return false;
-        if (!task?.assignedTo?._id && !task?.assignedTo) return false;
+        if (isSystemUnassignedUser(task?.assignedTo)) return false;
         return isAssignedToCurrentUser(task);
+    };
+
+    const canDeleteTask = (task) => {
+        if (!task) return false;
+        if (canCurrentUserManageTasks) return true;
+        return safeId(task?.createdBy?._id || task?.createdBy) === safeId(user?._id);
     };
 
     const persistTaskMove = async (taskId, nextStatus, nextOrder) => {
@@ -486,7 +510,7 @@ export default function TaskBoard() {
         }
 
         if (!canDragTask(task)) {
-            if (!task?.assignedTo?._id && !task?.assignedTo) {
+            if (isSystemUnassignedUser(task?.assignedTo)) {
                 toast.info("Assign this task before moving it.");
             } else {
                 toast.info("Only the assigned user can move this task.");
@@ -896,9 +920,11 @@ export default function TaskBoard() {
                                         tasks={columnsToTasks[column.id] || []}
                                         onEditTask={openEditModal}
                                         onCommentTask={openCommentModal}
+                                        onDeleteTask={onDeleteTask}
                                         canDragTask={canDragTask}
                                         isAssignedToCurrentUser={isAssignedToCurrentUser}
                                         canEditTask={canCurrentUserManageTasks}
+                                        canDeleteTask={canDeleteTask}
                                     />
                                 ))}
                             </div>
@@ -910,9 +936,11 @@ export default function TaskBoard() {
                                             task={activeTask}
                                             onEdit={openEditModal}
                                             onComment={openCommentModal}
+                                            onDelete={onDeleteTask}
                                             canDrag={canDragTask(activeTask)}
                                             isAssignedToCurrentUser={isAssignedToCurrentUser(activeTask)}
                                             canEditTask={canCurrentUserManageTasks}
+                                            canDeleteTask={canDeleteTask(activeTask)}
                                         />
                                     </div>
                                 ) : null}

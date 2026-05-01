@@ -9,11 +9,11 @@ import AccountCreate from "./pages/auth/AccountCreate.jsx";
 import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 import ProjectsPage from "./pages/projects/ProjectsPage.jsx";
 import ProjectDetailsPage from "./pages/projects/ProjectDetailsPage.jsx";
-import Dashboard from "./pages/dashboard/DashboardPage.jsx";
+import Dashboard from "./pages/Dashboard/DashboardPage.jsx";
 import TaskBoard from "./pages/TaskBoard/TaskBoard.jsx";
-import DashboardLayout from "./pages/dashboard/DashboardLayout.jsx";
+import DashboardLayout from "./pages/Dashboard/DashboardLayout.jsx";
 import ProfilePage from "./pages/profile/ProfilePage.jsx";
-import Profile from "./pages/dashboard/Profile.jsx";
+import Profile from "./pages/Dashboard/Profile.jsx";
 import CalendarView from "./pages/Calendar/CalendarView.jsx";
 
 const RouteProtection = () => {

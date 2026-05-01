@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
@@ -8,17 +9,22 @@ import {
     MdLock,
     MdPersonOutline,
     MdOutlineCheckCircle,
+    MdDeleteOutline,
 } from "react-icons/md";
-import { formatNiceDate, isTaskOverdue, priorityPillClasses } from "./taskUtils";
+import { formatNiceDate, isTaskOverdue, priorityPillClasses, getTaskAssignedUser } from "./taskUtils";
 
 export default function TaskCard({
     task,
     onEdit,
     onComment,
+    onDelete,
     canDrag = false,
     isAssignedToCurrentUser = false,
     canEditTask = true,
+    canDeleteTask = true,
 }) {
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+
     if (!task || !task._id) return null;
 
     const {
@@ -39,10 +45,11 @@ export default function TaskCard({
         opacity: isDragging ? 0.65 : 1,
     };
 
-    const assignedToName = task?.assignedTo?.name || "";
+    const assignedUser = getTaskAssignedUser(task);
+    const assignedToName = assignedUser?.name || "";
     const commentCount = Array.isArray(task?.comments) ? task.comments.length : 0;
     const overdue = isTaskOverdue(task);
-    const isUnassigned = !task?.assignedTo?._id && !task?.assignedTo;
+    const isUnassigned = !assignedUser;
 
     const lockedReason = isUnassigned
         ? "Assign this task before it can move"
@@ -54,6 +61,26 @@ export default function TaskCard({
         e.preventDefault();
         e.stopPropagation();
         fn?.(task);
+    };
+
+    const openDeleteConfirm = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!canDeleteTask) return;
+        setConfirmDeleteOpen(true);
+    };
+
+    const cancelDelete = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setConfirmDeleteOpen(false);
+    };
+
+    const confirmDelete = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setConfirmDeleteOpen(false);
+        onDelete?.(task);
     };
 
     return (
@@ -119,6 +146,16 @@ export default function TaskCard({
 
                     <button
                         type="button"
+                        onClick={openDeleteConfirm}
+                        disabled={!canDeleteTask}
+                        className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 p-2 text-red-600 transition hover:border-red-300 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        title={canDeleteTask ? "Delete task" : "You are not allowed to delete this task"}
+                    >
+                        <MdDeleteOutline size={16} />
+                    </button>
+
+                    <button
+                        type="button"
                         className={`inline-flex items-center justify-center rounded-xl border p-2 transition ${canDrag
                                 ? "cursor-grab border-border-default bg-bg-main text-text-secondary hover:border-border-hover hover:text-text-primary active:cursor-grabbing"
                                 : "cursor-not-allowed border-border-default bg-bg-main text-text-muted"
@@ -157,6 +194,34 @@ export default function TaskCard({
                     </span>
                 </div>
             </div>
+
+            {confirmDeleteOpen ? (
+                <div
+                    className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <p className="text-sm font-semibold text-red-700">Delete this task?</p>
+                    <p className="mt-1 text-xs text-red-600">This action cannot be undone.</p>
+
+                    <div className="mt-3 flex items-center justify-end gap-2">
+                        <button
+                            type="button"
+                            onClick={cancelDelete}
+                            className="rounded-xl border border-border-default bg-white px-3 py-1.5 text-xs font-semibold text-text-secondary hover:text-text-primary"
+                        >
+                            No
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={confirmDelete}
+                            className="rounded-xl bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
+                        >
+                            Yes, delete
+                        </button>
+                    </div>
+                </div>
+            ) : null}
         </div>
     );
 }

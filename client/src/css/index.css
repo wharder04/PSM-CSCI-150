@@ -35,16 +35,6 @@
   --theme-status-success-bg: #1c3329;
   --theme-status-success-border: #23a559;
   --theme-status-success-text: #a1e0b5;
-
-  /*Project Colors*/
-  --project1-color: #E57373;
-  --project2-color: #F06292;
-  --project3-color: #BA68C8;
-  --project4-color: #64B5F6;
-  --project5-color: #4DB6AC;
-  --project6-color: #81C784;
-  --project7-color: #FFD54F;
-  --project8-color: #FF8A65;
 }
 
 :root[data-theme="light"] {
@@ -80,16 +70,6 @@
   --theme-status-success-bg: #f0fdf4;
   --theme-status-success-border: #bbf7d0;
   --theme-status-success-text: #15803d;
-
-  /*Project Colors*/
-  --project1-color: #D32F2F;
-  --project2-color: #C2185B;
-  --project3-color: #7B1FA2;
-  --project4-color: #1976D2;
-  --project5-color: #00796B;
-  --project6-color: #388E3C;
-  --project7-color: #FBC02D;
-  --project8-color: #E64A19;
 }
 
 @theme {
@@ -126,16 +106,6 @@
   --color-status-success-bg: var(--theme-status-success-bg); /* background for success */
   --color-status-success-border: var(--theme-status-success-border); /* border for success */
   --color-status-success-text: var(--theme-status-success-text); /* text for success */
-
-  /* Project Colors */
-  --project1-color: var(--project1-color);
-  --project2-color: var(--project2-color);
-  --project3-color: var(--project3-color);
-  --project4-color: var(--project4-color);
-  --project5-color: var(--project5-color);
-  --project6-color: var(--project6-color);
-  --project7-color: var(--project7-color);
-  --project8-color: var(--project8-color);
 }
 
 * {
@@ -238,4 +208,85 @@ body {
   font-weight: 600;
   font-size: 1.2rem;
   color: var(--color-text-primary);
+}
+
+/* Final project polish */
+body {
+  overflow-x: hidden;
+}
+
+.rbc-event,
+.rbc-day-slot .rbc-background-event {
+  background-color: var(--color-accent-primary) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 2px 6px !important;
+  color: var(--color-text-on-accent) !important;
+  font-size: 12px !important;
+}
+
+.rbc-show-more {
+  color: var(--color-accent-highlight) !important;
+  background: transparent !important;
+}
+
+.rbc-date-cell {
+  padding: 6px !important;
+}
+
+/* Extra UX polish for final project cleanup */
+button, a, select, input, textarea {
+  font-family: inherit;
+}
+
+button, a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-accent-highlight);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent-primary) 55%, transparent);
+  color: var(--color-text-on-accent);
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.app-shell {
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent-primary) 14%, transparent), transparent 34rem),
+    var(--color-bg-main);
+}
+
+@media (max-width: 900px) {
+  .app-sidebar {
+    position: sticky;
+    width: 100%;
+    height: auto;
+  }
+}
+
+.rbc-calendar {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.rbc-month-view {
+  border-radius: 18px;
+}
+
+.rbc-event-content {
+  font-weight: 700;
 }

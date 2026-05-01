@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { isSystemUnassignedUser } from "./taskUtils.js";
 
 function formatDateInput(value) {
     if (!value) return "";
@@ -37,7 +38,7 @@ export default function CreateTaskModal({
                 email: m?.memberId?.email || m?.email || "",
                 isActive: m?.isActive ?? true,
             }))
-            .filter((m) => !!m._id && m.isActive);
+            .filter((m) => !!m._id && m.isActive && !isSystemUnassignedUser(m));
     }, [members]);
 
     useEffect(() => {
@@ -53,7 +54,7 @@ export default function CreateTaskModal({
                 title: initialTask?.title || "",
                 desc: initialTask?.desc || "",
                 priority: initialTask?.priority || "Medium",
-                assignedTo: initialTask?.assignedTo?._id || "",
+                assignedTo: isSystemUnassignedUser(initialTask?.assignedTo) ? "" : (initialTask?.assignedTo?._id || ""),
                 dueDate: formatDateInput(initialTask?.dueDate),
             });
         } else {

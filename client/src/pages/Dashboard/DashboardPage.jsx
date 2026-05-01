@@ -1,680 +1,975 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
-import { projectService, profileService } from "../../../services/api";
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import {
+    projectService,
+    profileService,
+    notificationService,
+} from "../../../services/api";
+import {
+    PieChart,
+    Pie,
+    Cell,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
+} from "recharts";
+
 import ProgressComparisonChart from "../../components/ProgressComparisonChart";
 import TeamMembers from "../../components/TeamMembers";
+
 import {
-  MdTrendingUp,
-  MdFolder,
-  MdCheckCircle,
-  MdCalendarToday,
-  MdAdd,
-  MdNotificationsNone,
-  MdFormatListBulleted,
-  MdGroup,
+    MdTrendingUp,
+    MdFolder,
+    MdCheckCircle,
+    MdCalendarToday,
+    MdAdd,
+    MdNotificationsNone,
+    MdFormatListBulleted,
+    MdGroup,
 } from "react-icons/md";
 
 function Dashboard() {
-  const [dashboardData, setDashboardData] = useState(null);
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [statusLoading, setStatusLoading] = useState(false);
-  const { user, login } = useAuth();
-  const navigate = useNavigate();
-  const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
-  const [selectedProjectName, setSelectedProjectName] = useState("Select a project");
-  const [selectedProjectId, setSelectedProjectId] = useState("");
-  const [actualTeamMembers, setActualTeamMembers] = useState([]);
+    const [dashboardData, setDashboardData] = useState(null);
+    const [projects, setProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-  const fetchDashboardData = async (projId, showLoading = false) => {
-    try {
-      if (showLoading) setLoading(true);
-      setError(null);
-      const response = await projectService.getDashboardData(projId);
-      if (response && response.success) {
-        setDashboardData(response.data);
-      } else {
-        if (showLoading) setError("Failed to load dashboard data");
-      }
-    } catch (err) {
-      console.error("Error fetching dashboard data:", err);
-      if (showLoading) setError("Failed to load dashboard data. Please try again.");
-    } finally {
-      if (showLoading) setLoading(false);
-    }
-  };
+    const [statusLoading, setStatusLoading] = useState(false);
+    const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
+    const [selectedProjectName, setSelectedProjectName] =
+        useState("Select a project");
+    const [selectedProjectId, setSelectedProjectId] = useState("");
+    const [actualTeamMembers, setActualTeamMembers] = useState([]);
 
-  useEffect(() => {
-    fetchDashboardData(selectedProjectId, true);
+    const [notifications, setNotifications] = useState([]);
+    const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    const notificationRef = useRef(null);
 
-    const fetchTeamMembers = async () => {
-      if (!selectedProjectId) {
-        setActualTeamMembers([]);
-        return;
-      }
-      try {
-        const response = await projectService.listMembers(selectedProjectId);
-        if (response && response.success) {
-          setActualTeamMembers(response.data || []);
-        }
-      } catch (err) {
-        console.error('Error fetching team members:', err);
-      }
-    };
+    const { user, login } = useAuth();
+    const navigate = useNavigate();
 
-    fetchTeamMembers();
-
-    const interval = setInterval(() => {
-      fetchDashboardData(selectedProjectId, false);
-      fetchTeamMembers();
-    }, 10000); // 10 seconds realtime polling
-
-    return () => clearInterval(interval);
-  }, [selectedProjectId]);
-
-  const totalProjects = dashboardData?.projects?.total || 0;
-  const totalTasks = dashboardData?.taskStats?.totalTasks || 0;
-  const totalTasksCompleted = dashboardData?.taskStats?.completedTasks || 0;
-  const activeProjects = projects.length;
-  const remainingTasks = totalTasks - totalTasksCompleted;
-  const completionRate = dashboardData?.taskStats?.completionRate || 0;
-
-  const activeProjectObj = projects.find((p) => p._id === selectedProjectId);
-
-  const getExpectedProgress = (project) => {
-    if (!project || !project.dueDate) return 0;
-    const start = new Date(project.startDate || project.createdAt).getTime();
-    const end = new Date(project.dueDate).getTime();
-    const now = new Date().getTime();
-
-    if (now >= end) return 100;
-    if (now <= start) return 0;
-
-    const totalDuration = end - start;
-    const elapsed = now - start;
-    return Math.round((elapsed / totalDuration) * 100);
-  };
-
-  const comparisonData = selectedProjectId 
-    ? (activeProjectObj ? [
-        {
-          name: activeProjectObj.name || 'Project',
-          projectProgress: activeProjectObj.name === 'Nebula Orchard' ? 67 : (activeProjectObj.progress || 0),
-          personalProgress: activeProjectObj.name === 'Nebula Orchard' ? 50 : (activeProjectObj.personalProgress || 0)
-        }
-      ] : [])
-    : projects.map((p) => ({
-        name: p.name,
-        projectProgress: p.name === 'Nebula Orchard' ? 67 : (p.progress || 0),
-        personalProgress: p.name === 'Nebula Orchard' ? 50 : (p.personalProgress || 0)
-      }));
-
-  const teamMembersList = actualTeamMembers.map(member => ({
-    name: member.memberId?.name || member.name || 'Unknown User',
-    role: member.role || 'Member'
-  }));
-
-  const completedTasks = dashboardData?.taskStats?.completedTasks || 0;
-  const inProgressTasks = dashboardData?.taskStats?.inProgressTasks || 0;
-  const toDoTasks = (dashboardData?.taskStats?.assignedTasks || 0) + (dashboardData?.taskStats?.testingTasks || 0);
-  const totalChartTasks = completedTasks + inProgressTasks + toDoTasks;
-  
-  const chartData = [
-    { name: 'Completed', value: completedTasks, color: '#10b981' }, 
-    { name: 'In Progress', value: inProgressTasks, color: '#3b82f6' }, 
-    { name: 'To Do', value: toDoTasks, color: '#f59e0b' } 
-  ].filter(item => item.value > 0);
-  
-  const renderCustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      const percent = totalChartTasks > 0 ? Math.round((data.value / totalChartTasks) * 100) : 0;
-      return (
-        <div className="bg-[#25252b] border border-border-default p-3 rounded-lg shadow-lg">
-          <p className="text-white text-sm font-semibold">{`${data.name}: ${data.value} Task${data.value !== 1 ? 's' : ''}`}</p>
-          <p className="text-[#e0e0e0] text-xs mt-1">{`${percent}% of total`}</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 18) return "Good Afternoon";
-    return "Good Evening";
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Active":
-        return "bg-green-100 text-green-700 border-green-200";
-      case "Busy":
-        return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "In a Meeting":
-        return "bg-blue-100 text-blue-700 border-blue-200";
-      case "Offline":
-        return "bg-gray-100 text-gray-700 border-gray-200";
-      default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
-    }
-  };
-
-  const handleStatusChange = async (e) => {
-    const newStatus = e.target.value;
-    if (newStatus === user?.status) return;
-
-    setStatusLoading(true);
-    try {
-      const response = await profileService.updateProfile({
-        status: newStatus,
-      });
-      if (response && response.ok) {
-        // Update AuthContext with new user data
-        const updatedUser = {
-          ...user,
-          status: newStatus,
-        };
-        login(updatedUser);
-      } else {
-        console.error("Failed to update status");
-      }
-    } catch (err) {
-      console.error("Error updating status:", err);
-    } finally {
-      setStatusLoading(false);
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return `${
-      months[date.getMonth()]
-    } ${date.getDate()}, ${date.getFullYear()}`;
-  };
-
-  useEffect(() => {
-    const fetchProjectProgress = async () => {
-      if (!dashboardData) return;
-
-      const allProjects = [
-        ...(dashboardData.projects.owner || []),
-        ...(dashboardData.projects.memberOf || []),
-      ];
-
-      if (allProjects.length === 0) {
-        setProjects([]);
-        return;
-      }
-
-      const progressPromises = allProjects.map(async (project) => {
+    const fetchDashboardData = async (projId, showLoading = false) => {
         try {
-          const progressResponse = await projectService.getProgress(
-            project._id
-          );
-          if (progressResponse && progressResponse.success) {
-            return {
-              ...project,
-              progress: progressResponse.data.percent || 0,
-              totalTasks: progressResponse.data.total || 0,
-              completedTasks: progressResponse.data.completed || 0,
-            };
-          }
-          return { ...project, progress: 0, totalTasks: 0, completedTasks: 0 };
-        } catch (err) {
-          console.error(
-            `Error fetching progress for project ${project._id}:`,
-            err
-          );
-          return { ...project, progress: 0, totalTasks: 0, completedTasks: 0 };
-        }
-      });
+            if (showLoading) setLoading(true);
+            setError(null);
 
-      const projectsWithProgress = await Promise.all(progressPromises);
-      setProjects(projectsWithProgress);
+            const response = await projectService.getDashboardData(projId);
+
+            if (response && response.success) {
+                setDashboardData(response.data);
+            } else if (showLoading) {
+                setError("Failed to load dashboard data");
+            }
+        } catch (err) {
+            console.error("Error fetching dashboard data:", err);
+            if (showLoading) {
+                setError("Failed to load dashboard data. Please try again.");
+            }
+        } finally {
+            if (showLoading) setLoading(false);
+        }
     };
 
-    fetchProjectProgress();
-  }, [dashboardData]);
+    const fetchNotifications = async () => {
+        try {
+            const response = await notificationService.getNotifications();
 
-  if (loading) {
+            const list = Array.isArray(response)
+                ? response
+                : response?.notifications || response?.data || [];
+
+            setNotifications(list);
+        } catch (err) {
+            console.error("Error fetching notifications:", err);
+        }
+    };
+
+    useEffect(() => {
+        fetchDashboardData(selectedProjectId, true);
+
+        const fetchTeamMembers = async () => {
+            if (!selectedProjectId) {
+                setActualTeamMembers([]);
+                return;
+            }
+
+            try {
+                const response = await projectService.listMembers(selectedProjectId);
+
+                if (response && response.success) {
+                    setActualTeamMembers(response.data || []);
+                }
+            } catch (err) {
+                console.error("Error fetching team members:", err);
+            }
+        };
+
+        fetchTeamMembers();
+
+        const interval = setInterval(() => {
+            fetchDashboardData(selectedProjectId, false);
+            fetchTeamMembers();
+        }, 10000);
+
+        return () => clearInterval(interval);
+    }, [selectedProjectId]);
+
+    useEffect(() => {
+        fetchNotifications();
+
+        const interval = setInterval(() => {
+            fetchNotifications();
+        }, 10000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                notificationRef.current &&
+                !notificationRef.current.contains(event.target)
+            ) {
+                setIsNotificationOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        const fetchProjectProgress = async () => {
+            if (!dashboardData) return;
+
+            const allProjects = [
+                ...(dashboardData.projects?.owner || []),
+                ...(dashboardData.projects?.memberOf || []),
+            ];
+
+            if (allProjects.length === 0) {
+                setProjects([]);
+                return;
+            }
+
+            const progressPromises = allProjects.map(async (project) => {
+                try {
+                    const progressResponse = await projectService.getProgress(
+                        project._id
+                    );
+
+                    if (progressResponse && progressResponse.success) {
+                        return {
+                            ...project,
+                            progress: progressResponse.data.percent || 0,
+                            totalTasks: progressResponse.data.total || 0,
+                            completedTasks: progressResponse.data.completed || 0,
+                        };
+                    }
+
+                    return {
+                        ...project,
+                        progress: 0,
+                        totalTasks: 0,
+                        completedTasks: 0,
+                    };
+                } catch (err) {
+                    console.error(
+                        `Error fetching progress for project ${project._id}:`,
+                        err
+                    );
+
+                    return {
+                        ...project,
+                        progress: 0,
+                        totalTasks: 0,
+                        completedTasks: 0,
+                    };
+                }
+            });
+
+            const projectsWithProgress = await Promise.all(progressPromises);
+            setProjects(projectsWithProgress);
+        };
+
+        fetchProjectProgress();
+    }, [dashboardData]);
+
+    const isNotificationRead = (notification) => Boolean(notification?.isRead ?? notification?.read);
+    const getNotificationProjectId = (notification) => notification?.project?._id || notification?.project || notification?.projectId;
+    const getNotificationTaskId = (notification) => notification?.task?._id || notification?.task || notification?.taskId;
+
+    const unreadNotifications = notifications.filter((n) => !isNotificationRead(n));
+    const unreadCount = unreadNotifications.length;
+
+    const handleNotificationClick = async (notification) => {
+        try {
+            if (notification._id && !isNotificationRead(notification)) {
+                await notificationService.markOneRead(notification._id);
+            }
+
+            setNotifications((prev) =>
+                prev.map((n) =>
+                    n._id === notification._id ? { ...n, read: true, isRead: true } : n
+                )
+            );
+
+            setIsNotificationOpen(false);
+
+            const taskId = getNotificationTaskId(notification);
+            const projectId = getNotificationProjectId(notification);
+
+            if (taskId) {
+                navigate("/tasks");
+            } else if (projectId) {
+                navigate("/projects/" + projectId);
+            } else {
+                navigate("/home");
+            }
+        } catch (err) {
+            console.error("Error opening notification:", err);
+        }
+    };
+
+    const handleMarkAllRead = async () => {
+        try {
+            await notificationService.markAllRead();
+            setNotifications((prev) => prev.map((n) => ({ ...n, read: true, isRead: true })));
+        } catch (err) {
+            console.error("Error marking notifications read:", err);
+        }
+    };
+
+    const totalTasks = dashboardData?.taskStats?.totalTasks || 0;
+    const totalTasksCompleted = dashboardData?.taskStats?.completedTasks || 0;
+    const activeProjects = projects.length;
+    const remainingTasks = totalTasks - totalTasksCompleted;
+    const completionRate = dashboardData?.taskStats?.completionRate || 0;
+
+    const activeProjectObj = projects.find((p) => p._id === selectedProjectId);
+
+    const comparisonData = selectedProjectId
+        ? activeProjectObj
+            ? [
+                {
+                    name: activeProjectObj.name || "Project",
+                    projectProgress:
+                        activeProjectObj.name === "Nebula Orchard"
+                            ? 67
+                            : activeProjectObj.progress || 0,
+                    personalProgress:
+                        activeProjectObj.name === "Nebula Orchard"
+                            ? 50
+                            : activeProjectObj.personalProgress || 0,
+                },
+            ]
+            : []
+        : projects.map((p) => ({
+            name: p.name,
+            projectProgress:
+                p.name === "Nebula Orchard" ? 67 : p.progress || 0,
+            personalProgress:
+                p.name === "Nebula Orchard" ? 50 : p.personalProgress || 0,
+        }));
+
+    const teamMembersList = actualTeamMembers.map((member) => ({
+        name: member.memberId?.name || member.name || "Unknown User",
+        role: member.role || "Member",
+    }));
+
+    const completedTasks = dashboardData?.taskStats?.completedTasks || 0;
+    const inProgressTasks = dashboardData?.taskStats?.inProgressTasks || 0;
+    const toDoTasks =
+        (dashboardData?.taskStats?.assignedTasks || 0) +
+        (dashboardData?.taskStats?.testingTasks || 0);
+
+    const totalChartTasks = completedTasks + inProgressTasks + toDoTasks;
+
+    const chartData = [
+        { name: "Completed", value: completedTasks, color: "#10b981" },
+        { name: "In Progress", value: inProgressTasks, color: "#3b82f6" },
+        { name: "To Do", value: toDoTasks, color: "#f59e0b" },
+    ].filter((item) => item.value > 0);
+
+    const renderCustomTooltip = ({ active, payload }) => {
+        if (active && payload && payload.length) {
+            const data = payload[0].payload;
+            const percent =
+                totalChartTasks > 0
+                    ? Math.round((data.value / totalChartTasks) * 100)
+                    : 0;
+
+            return (
+                <div className="bg-[#25252b] border border-border-default p-3 rounded-lg shadow-lg">
+                    <p className="text-white text-sm font-semibold">
+                        {`${data.name}: ${data.value} Task${data.value !== 1 ? "s" : ""
+                            }`}
+                    </p>
+                    <p className="text-[#e0e0e0] text-xs mt-1">
+                        {`${percent}% of total`}
+                    </p>
+                </div>
+            );
+        }
+
+        return null;
+    };
+
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+
+        if (hour < 12) return "Good Morning";
+        if (hour < 18) return "Good Afternoon";
+        return "Good Evening";
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case "Active":
+                return "bg-green-100 text-green-700 border-green-200";
+            case "Busy":
+                return "bg-yellow-100 text-yellow-700 border-yellow-200";
+            case "In a Meeting":
+                return "bg-blue-100 text-blue-700 border-blue-200";
+            case "Offline":
+                return "bg-gray-100 text-gray-700 border-gray-200";
+            default:
+                return "bg-gray-100 text-gray-700 border-gray-200";
+        }
+    };
+
+    const handleStatusChange = async (e) => {
+        const newStatus = e.target.value;
+
+        if (newStatus === user?.status) return;
+
+        setStatusLoading(true);
+
+        try {
+            const response = await profileService.updateProfile({
+                status: newStatus,
+            });
+
+            if (response && response.ok) {
+                login({
+                    ...user,
+                    status: newStatus,
+                });
+            } else {
+                console.error("Failed to update status");
+            }
+        } catch (err) {
+            console.error("Error updating status:", err);
+        } finally {
+            setStatusLoading(false);
+        }
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "";
+
+        const date = new Date(dateString);
+
+        const months = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+        ];
+
+        return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen w-full p-2 bg-bg-main flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-primary mb-4"></div>
+                    <p className="text-sm text-text-secondary">Loading dashboard...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen w-full p-2 bg-bg-main flex items-center justify-center">
+                <div className="text-center">
+                    <div className="text-6xl mb-4">⚠️</div>
+                    <h3 className="text-xl font-semibold text-text-primary mb-2">
+                        Error loading dashboard
+                    </h3>
+                    <p className="text-sm text-text-secondary mb-4">{error}</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
-      <div className="min-h-screen w-full p-2 bg-bg-main flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-primary mb-4"></div>
-          <p className="text-sm text-text-secondary">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
+        <div className="min-h-screen w-full p-2 bg-bg-main">
+            <div className="mb-8 max-w-7xl">
+                <div className="flex items-center justify-between mb-4">
+                    {activeProjectObj ? (
+                        <div>
+                            <h1 className="text-3xl font-bold text-text-primary mb-2 tracking-tight">
+                                {activeProjectObj.name}
+                            </h1>
 
-  if (error) {
-    return (
-      <div className="min-h-screen w-full p-2 bg-bg-main flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">⚠️</div>
-          <h3 className="text-xl font-semibold text-text-primary mb-2">
-            Error loading dashboard
-          </h3>
-          <p className="text-sm text-text-secondary mb-4">{error}</p>
-        </div>
-      </div>
-    );
-  }
+                            <p className="text-base text-text-secondary max-w-2xl">
+                                {activeProjectObj.desc || "No description provided."}
+                            </p>
 
-  return (
-    <div className="min-h-screen w-full p-2 bg-bg-main">
-      <div className="mb-8 max-w-7xl">
-        <div className="flex items-center justify-between mb-4">
-          {activeProjectObj ? (
-            <div>
-              <h1 className="text-3xl font-bold text-text-primary mb-2 tracking-tight">
-                {activeProjectObj.name}
-              </h1>
-              <p className="text-base text-text-secondary max-w-2xl">
-                {activeProjectObj.desc || "No description provided."}
-              </p>
-              <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-text-secondary">
-                <div className="flex items-center gap-1.5 bg-bg-surface px-3 py-1.5 rounded-lg border border-border-default shadow-sm">
-                  <MdGroup size={16} className="text-text-muted" />
-                  <span className="font-semibold text-text-primary">{activeProjectObj.memberCount || 1}</span> members
-                </div>
-                {activeProjectObj.dueDate && (
-                  <div className="flex items-center gap-1.5 bg-bg-surface px-3 py-1.5 rounded-lg border border-border-default shadow-sm">
-                    <MdCalendarToday size={16} className="text-text-muted" />
-                    <span>Due:</span> <span className="font-semibold text-text-primary">{formatDate(activeProjectObj.dueDate)}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-1.5 bg-bg-surface px-3 py-1.5 rounded-lg border border-border-default shadow-sm">
-                  <span className="font-semibold text-accent-highlight">{activeProjectObj.progress || 0}%</span>
-                  <span>Progress</span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <h1 className="text-3xl font-bold text-text-primary mb-2 tracking-tight">
-                {getGreeting()}, {user?.name || "User"}!
-              </h1>
-              <p className="text-base text-text-secondary">
-                Here's what's happening with your projects today
-              </p>
-            </div>
-          )}
-          <div className="flex items-center gap-4">
-            {/* Project Selection Dropdown */}
-            <div className="relative hidden md:flex items-center">
-              <div 
-                className="flex items-center bg-bg-surface border border-border-default rounded-lg px-3 py-2 cursor-pointer hover:border-border-hover transition-colors w-48"
-                onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
-              >
-                <MdFolder className="text-text-secondary mr-2 flex-shrink-0" size={18} />
-                <span className="text-sm font-medium text-text-primary truncate flex-1">
-                  {selectedProjectName}
-                </span>
-                <div className="text-text-secondary text-xs ml-2 pointer-events-none">
-                  ▼
-                </div>
-              </div>
+                            <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-text-secondary">
+                                <div className="flex items-center gap-1.5 bg-bg-surface px-3 py-1.5 rounded-lg border border-border-default shadow-sm">
+                                    <MdGroup size={16} className="text-text-muted" />
+                                    <span className="font-semibold text-text-primary">
+                                        {activeProjectObj.memberCount || 1}
+                                    </span>{" "}
+                                    members
+                                </div>
 
-              {isProjectDropdownOpen && (
-                <>
-                  <div 
-                    className="fixed inset-0 z-40" 
-                    onClick={() => setIsProjectDropdownOpen(false)}
-                  ></div>
-                  <div className="absolute top-full left-0 mt-2 w-full bg-[#1e1e26] border border-border-default shadow-lg rounded-lg z-50 overflow-hidden py-1">
-                    <ul className="max-h-60 overflow-y-auto">
-                      <li 
-                        className="px-4 py-2 text-sm text-[#e0e0e0] hover:bg-accent-primary hover:text-white cursor-pointer transition-colors"
-                        onClick={() => { setSelectedProjectName("Select a project"); setSelectedProjectId(""); setIsProjectDropdownOpen(false); }}
-                      >
-                        Select a project
-                      </li>
-                      {projects.map((p) => (
-                        <li 
-                          key={p._id} 
-                          className="px-4 py-2 text-sm text-[#e0e0e0] hover:bg-accent-primary hover:text-white cursor-pointer transition-colors truncate"
-                          onClick={() => { setSelectedProjectName(p.name); setSelectedProjectId(p._id); setIsProjectDropdownOpen(false); }}
-                        >
-                          {p.name}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </>
-              )}
-            </div>
+                                {activeProjectObj.dueDate && (
+                                    <div className="flex items-center gap-1.5 bg-bg-surface px-3 py-1.5 rounded-lg border border-border-default shadow-sm">
+                                        <MdCalendarToday
+                                            size={16}
+                                            className="text-text-muted"
+                                        />
+                                        <span>Due:</span>
+                                        <span className="font-semibold text-text-primary">
+                                            {formatDate(activeProjectObj.dueDate)}
+                                        </span>
+                                    </div>
+                                )}
 
-            {/* Notification Bell */}
-            <div className="relative p-2.5 bg-bg-surface border border-border-default rounded-lg cursor-pointer hover:border-border-hover transition-colors flex items-center justify-center">
-              <MdNotificationsNone className="text-text-primary" size={20} />
-              <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-bg-main shadow-sm">
-                3
-              </div>
-            </div>
+                                <div className="flex items-center gap-1.5 bg-bg-surface px-3 py-1.5 rounded-lg border border-border-default shadow-sm">
+                                    <span className="font-semibold text-accent-highlight">
+                                        {activeProjectObj.progress || 0}%
+                                    </span>
+                                    <span>Progress</span>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div>
+                            <h1 className="text-3xl font-bold text-text-primary mb-2 tracking-tight">
+                                {getGreeting()}, {user?.name || "User"}!
+                            </h1>
 
-            <div className="h-8 w-px bg-border-default mx-2 hidden sm:block"></div>
-
-            <div className="flex items-center gap-2">
-              <label
-                htmlFor="status-select"
-                className="text-sm font-medium text-text-secondary hidden sm:block"
-              >
-                Status:
-              </label>
-              <select
-                id="status-select"
-                value={user?.status || "Active"}
-                onChange={handleStatusChange}
-                disabled={statusLoading}
-                className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${getStatusColor(
-                  user?.status || "Active"
-                )}`}
-              >
-                <option value="Active">Active</option>
-                <option value="Busy">Busy</option>
-                <option value="In a Meeting">In a Meeting</option>
-                <option value="Offline">Offline</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 max-w-7xl">
-        {activeProjectObj ? (
-          <>
-            {/* Project Progress Card */}
-            <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-semibold text-text-primary">Project Progress</h3>
-                <MdTrendingUp size={20} className="text-accent-highlight" />
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-accent-highlight mb-1">{completionRate}%</p>
-                <p className="text-xs text-text-secondary mb-3">Overall completion</p>
-              </div>
-            </div>
-
-            {/* Pending Tasks Card */}
-            <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-semibold text-text-primary">Pending Tasks</h3>
-                <MdFormatListBulleted size={20} className="text-text-secondary" />
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-text-primary mb-1">{(dashboardData?.taskStats?.assignedTasks || 0) + (dashboardData?.taskStats?.testingTasks || 0)}</p>
-                <p className="text-xs text-text-secondary mb-3">Tasks in progress</p>
-              </div>
-            </div>
-
-            {/* Completed Tasks Card */}
-            <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-semibold text-text-primary">Tasks Completed</h3>
-                <MdCheckCircle size={20} className="text-green-500" />
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-text-primary mb-1">{dashboardData?.taskStats?.completedTasks || 0}</p>
-                <p className="text-xs text-text-secondary mb-3">Total resolved tasks</p>
-              </div>
-            </div>
-
-            {/* Team Size Card */}
-            <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-semibold text-text-primary">Team Size</h3>
-                <MdGroup size={20} className="text-text-secondary" />
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-text-primary mb-1">{activeProjectObj.memberCount || 1}</p>
-                <p className="text-xs text-text-secondary mb-3">Active members</p>
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Active Projects Card */}
-            <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-semibold text-text-primary">Active Projects</h3>
-                <MdFolder size={20} className="text-text-secondary" />
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-text-primary mb-1">{activeProjects}</p>
-                <p className="text-xs text-text-secondary mb-3">Currently enrolled</p>
-                <p className="text-xs text-green-500 font-medium">↑ 12% from last week</p>
-              </div>
-            </div>
-
-            {/* Assigned Tasks Card */}
-            <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-semibold text-text-primary">Assigned Tasks</h3>
-                <MdFormatListBulleted size={20} className="text-text-secondary" />
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-text-primary mb-1">{remainingTasks}</p>
-                <p className="text-xs text-text-secondary mb-3">Tasks to complete</p>
-                <p className="text-xs text-red-500 font-medium">↓ 5% from last week</p>
-              </div>
-            </div>
-
-            {/* Completed Tasks Card */}
-            <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-semibold text-text-primary">Completed Tasks</h3>
-                <MdCheckCircle size={20} className="text-text-secondary" />
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-text-primary mb-1">{totalTasksCompleted}</p>
-                <p className="text-xs text-text-secondary mb-3">This semester</p>
-                <p className="text-xs text-green-500 font-medium">↑ 18% from last week</p>
-              </div>
-            </div>
-
-            {/* Overall Progress Card */}
-            <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-sm font-semibold text-text-primary">Overall Progress</h3>
-                <MdTrendingUp size={20} className="text-text-secondary" />
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-text-primary mb-1">{completionRate}%</p>
-                <p className="text-xs text-text-secondary mb-3">Average completion rate</p>
-                <p className="text-xs text-green-500 font-medium">↑ 8% from last week</p>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mb-10">
-        <div className="bg-[#1e1e26] rounded-2xl p-6 shadow-soft border border-border-default flex flex-col">
-          <h2 className="text-xl font-bold text-white mb-6">
-            Task Status Distribution
-            {selectedProjectId && <span className="text-sm font-normal text-[#e0e0e0] ml-2">({selectedProjectName})</span>}
-          </h2>
-          
-          <div className="flex-1 w-full min-h-[300px] flex items-center justify-center">
-            {totalChartTasks > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={chartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={3}
-                    dataKey="value"
-                    label={({ x, y, cx, name, percent }) => (
-                      <text 
-                        x={x} 
-                        y={y} 
-                        fill="#ffffff" 
-                        textAnchor={x > cx ? 'start' : 'end'} 
-                        dominantBaseline="central" 
-                        fontSize="12" 
-                        fontWeight="500"
-                      >
-                        {`${name}: ${(percent * 100).toFixed(0)}%`}
-                      </text>
+                            <p className="text-base text-text-secondary">
+                                Here's what's happening with your projects today
+                            </p>
+                        </div>
                     )}
-                    labelLine={false}
-                    className="text-xs"
-                  >
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} stroke="#1e1e26" strokeWidth={2} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={renderCustomTooltip} />
-                  <Legend 
-                    verticalAlign="bottom" 
-                    height={36} 
-                    iconType="square"
-                    formatter={(value) => <span className="text-[#e0e0e0] text-sm ml-1">{value}</span>}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-[#e0e0e0] flex flex-col items-center">
-                <MdFormatListBulleted size={48} className="text-text-muted mb-2 opacity-20" />
-                <p>No tasks available to visualize.</p>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default flex flex-col">
-          <h2 className="text-xl font-bold text-text-primary mb-6">Project Status Overview</h2>
-          <div className="flex-1 w-full relative min-h-[300px]">
-            <ProgressComparisonChart data={comparisonData} />
-          </div>
-        </div>
-        
-      </div>
-      
-      {selectedProjectId && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mb-10">
-          <TeamMembers members={teamMembersList} />
-        </div>
-      )}
 
-      {!selectedProjectId && (
-        <div className="max-w-7xl">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-text-primary mb-1">
-              Recent Projects
-            </h2>
-            <p className="text-sm text-text-secondary">
-              Overview of your active projects
-            </p>
-          </div>
-          <button
-            onClick={() => navigate("/projects")}
-            className="flex items-center gap-2 px-6 py-3 bg-accent-primary text-text-on-accent rounded-xl text-sm font-semibold shadow-medium hover:-translate-y-0.5 hover:shadow-large transition-all duration-200 cursor-pointer"
-          >
-            <MdAdd size={20} />
-            <span>New Project</span>
-          </button>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          {projects.length > 0 ? (
-            projects.map((project) => {
-              const remainingTasks =
-                (project.totalTasks || 0) - (project.completedTasks || 0);
-              return (
-                <div
-                  key={project._id}
-                  onClick={() => navigate(`/projects/${project._id}`)}
-                  className="bg-bg-surface rounded-2xl p-5 shadow-soft border border-border-default hover:-translate-y-1 hover:shadow-large transition-all duration-300 flex flex-col gap-4 cursor-pointer hover:bg-bg-surface-hover hover:border-border-hover w-full relative"
-                >
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    {/* Left: Title & Badge */}
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-xl font-bold text-text-primary hover:text-accent-highlight truncate">
-                        {project.name}
-                      </h3>
-                      <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-bg-surface-hover text-text-secondary border border-border-default">
-                        Active
-                      </span>
-                    </div>
-
-                    {/* Meta Data on Right */}
-                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-medium text-[#e0e0e0] lg:justify-end">
-                      <div className="flex items-center gap-1.5 opacity-80">
-                        <MdGroup size={16} className="text-text-muted" />
-                        <span>{project.memberCount || 1} members</span>
-                      </div>
-                      
-                      {project.dueDate && (
-                        <div className="flex items-center gap-1.5 opacity-80">
-                          <MdCalendarToday size={16} className="text-text-muted" />
-                          <span>Due {formatDate(project.dueDate)}</span>
-                        </div>
-                      )}
-                      
-                      {remainingTasks > 0 && (
-                        <div className="flex items-center gap-1.5 whitespace-nowrap opacity-80">
-                          <span>{remainingTasks} tasks remaining</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="flex flex-col w-full gap-1.5">
-                    <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">Progress</span>
                     <div className="flex items-center gap-4">
-                      <div className="flex-1 h-2 rounded-full bg-border-track overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-accent-highlight transition-all duration-300 shadow-[0_0_8px_rgba(59,130,246,0.6)]"
-                          style={{ width: `${project.progress || 0}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-bold text-[#ffffff] min-w-[36px] text-right">
-                        {project.progress || 0}%
-                      </span>
+                        <div className="relative hidden md:flex items-center">
+                            <div
+                                className="flex items-center bg-bg-surface border border-border-default rounded-lg px-3 py-2 cursor-pointer hover:border-border-hover transition-colors w-48"
+                                onClick={() =>
+                                    setIsProjectDropdownOpen(!isProjectDropdownOpen)
+                                }
+                            >
+                                <MdFolder
+                                    className="text-text-secondary mr-2 flex-shrink-0"
+                                    size={18}
+                                />
+
+                                <span className="text-sm font-medium text-text-primary truncate flex-1">
+                                    {selectedProjectName}
+                                </span>
+
+                                <div className="text-text-secondary text-xs ml-2 pointer-events-none">
+                                    ▼
+                                </div>
+                            </div>
+
+                            {isProjectDropdownOpen && (
+                                <>
+                                    <div
+                                        className="fixed inset-0 z-40"
+                                        onClick={() => setIsProjectDropdownOpen(false)}
+                                    ></div>
+
+                                    <div className="absolute top-full left-0 mt-2 w-full bg-[#1e1e26] border border-border-default shadow-lg rounded-lg z-50 overflow-hidden py-1">
+                                        <ul className="max-h-60 overflow-y-auto">
+                                            <li
+                                                className="px-4 py-2 text-sm text-[#e0e0e0] hover:bg-accent-primary hover:text-white cursor-pointer transition-colors"
+                                                onClick={() => {
+                                                    setSelectedProjectName("Select a project");
+                                                    setSelectedProjectId("");
+                                                    setIsProjectDropdownOpen(false);
+                                                }}
+                                            >
+                                                Select a project
+                                            </li>
+
+                                            {projects.map((p) => (
+                                                <li
+                                                    key={p._id}
+                                                    className="px-4 py-2 text-sm text-[#e0e0e0] hover:bg-accent-primary hover:text-white cursor-pointer transition-colors truncate"
+                                                    onClick={() => {
+                                                        setSelectedProjectName(p.name);
+                                                        setSelectedProjectId(p._id);
+                                                        setIsProjectDropdownOpen(false);
+                                                    }}
+                                                >
+                                                    {p.name}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        <div className="relative" ref={notificationRef}>
+                            <button
+                                type="button"
+                                onClick={() => setIsNotificationOpen((prev) => !prev)}
+                                className="relative p-2.5 bg-bg-surface border border-border-default rounded-lg cursor-pointer hover:border-border-hover transition-colors flex items-center justify-center"
+                            >
+                                <MdNotificationsNone
+                                    className="text-text-primary"
+                                    size={20}
+                                />
+
+                                {unreadCount > 0 && (
+                                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold min-w-5 h-5 px-1 flex items-center justify-center rounded-full border-2 border-bg-main shadow-sm">
+                                        {unreadCount}
+                                    </div>
+                                )}
+                            </button>
+
+                            {isNotificationOpen && (
+                                <div className="absolute right-0 top-12 w-80 max-h-96 overflow-y-auto bg-bg-surface border border-border-default rounded-xl shadow-large z-[9999] p-3">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h3 className="text-sm font-bold text-text-primary">
+                                            Notifications
+                                        </h3>
+
+                                        {unreadCount > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={handleMarkAllRead}
+                                                className="text-xs text-accent-highlight hover:underline"
+                                            >
+                                                Mark all read
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {notifications.length === 0 ? (
+                                        <p className="text-sm text-text-secondary">
+                                            No new notifications.
+                                        </p>
+                                    ) : (
+                                        <div className="flex flex-col gap-2">
+                                            {notifications.map((notification) => (
+                                                <button
+                                                    key={notification._id}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleNotificationClick(notification)
+                                                    }
+                                                    className={`text-left p-3 rounded-lg border transition-colors ${isNotificationRead(notification)
+                                                            ? "bg-bg-main border-border-default"
+                                                            : "bg-blue-500/10 border-blue-400"
+                                                        } hover:bg-bg-surface-hover`}
+                                                >
+                                                    <p className="text-sm font-semibold text-text-primary mb-1">
+                                                        {notification.title || "New update"}
+                                                    </p>
+
+                                                    <p className="text-xs text-text-secondary">
+                                                        {notification.message ||
+                                                            "There was a recent project or task update."}
+                                                    </p>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="h-8 w-px bg-border-default mx-2 hidden sm:block"></div>
+
+                        <div className="flex items-center gap-2">
+                            <label
+                                htmlFor="status-select"
+                                className="text-sm font-medium text-text-secondary hidden sm:block"
+                            >
+                                Status:
+                            </label>
+
+                            <select
+                                id="status-select"
+                                value={user?.status || "Active"}
+                                onChange={handleStatusChange}
+                                disabled={statusLoading}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${getStatusColor(
+                                    user?.status || "Active"
+                                )}`}
+                            >
+                                <option value="Active">Active</option>
+                                <option value="Busy">Busy</option>
+                                <option value="In a Meeting">In a Meeting</option>
+                                <option value="Offline">Offline</option>
+                            </select>
+                        </div>
                     </div>
-                  </div>
                 </div>
-              );
-            })
-          ) : (
-            <div className="w-full text-center py-12 bg-bg-surface rounded-2xl border border-border-default border-dashed">
-              <p className="text-text-secondary">
-                No projects found. Create your first project to get started.
-              </p>
             </div>
-          )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 max-w-7xl">
+                {activeProjectObj ? (
+                    <>
+                        <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-sm font-semibold text-text-primary">
+                                    Project Progress
+                                </h3>
+                                <MdTrendingUp size={20} className="text-accent-highlight" />
+                            </div>
+                            <p className="text-3xl font-bold text-accent-highlight mb-1">
+                                {completionRate}%
+                            </p>
+                            <p className="text-xs text-text-secondary mb-3">
+                                Overall completion
+                            </p>
+                        </div>
+
+                        <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-sm font-semibold text-text-primary">
+                                    Pending Tasks
+                                </h3>
+                                <MdFormatListBulleted
+                                    size={20}
+                                    className="text-text-secondary"
+                                />
+                            </div>
+                            <p className="text-3xl font-bold text-text-primary mb-1">
+                                {(dashboardData?.taskStats?.assignedTasks || 0) +
+                                    (dashboardData?.taskStats?.testingTasks || 0)}
+                            </p>
+                            <p className="text-xs text-text-secondary mb-3">
+                                Tasks in progress
+                            </p>
+                        </div>
+
+                        <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-sm font-semibold text-text-primary">
+                                    Tasks Completed
+                                </h3>
+                                <MdCheckCircle size={20} className="text-green-500" />
+                            </div>
+                            <p className="text-3xl font-bold text-text-primary mb-1">
+                                {dashboardData?.taskStats?.completedTasks || 0}
+                            </p>
+                            <p className="text-xs text-text-secondary mb-3">
+                                Total resolved tasks
+                            </p>
+                        </div>
+
+                        <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-sm font-semibold text-text-primary">
+                                    Team Size
+                                </h3>
+                                <MdGroup size={20} className="text-text-secondary" />
+                            </div>
+                            <p className="text-3xl font-bold text-text-primary mb-1">
+                                {activeProjectObj.memberCount || 1}
+                            </p>
+                            <p className="text-xs text-text-secondary mb-3">
+                                Active members
+                            </p>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-sm font-semibold text-text-primary">
+                                    Active Projects
+                                </h3>
+                                <MdFolder size={20} className="text-text-secondary" />
+                            </div>
+                            <p className="text-3xl font-bold text-text-primary mb-1">
+                                {activeProjects}
+                            </p>
+                            <p className="text-xs text-text-secondary mb-3">
+                                Currently enrolled
+                            </p>
+                            <p className="text-xs text-green-500 font-medium">
+                                ↑ 12% from last week
+                            </p>
+                        </div>
+
+                        <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-sm font-semibold text-text-primary">
+                                    Assigned Tasks
+                                </h3>
+                                <MdFormatListBulleted
+                                    size={20}
+                                    className="text-text-secondary"
+                                />
+                            </div>
+                            <p className="text-3xl font-bold text-text-primary mb-1">
+                                {remainingTasks}
+                            </p>
+                            <p className="text-xs text-text-secondary mb-3">
+                                Tasks to complete
+                            </p>
+                            <p className="text-xs text-red-500 font-medium">
+                                ↓ 5% from last week
+                            </p>
+                        </div>
+
+                        <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-sm font-semibold text-text-primary">
+                                    Completed Tasks
+                                </h3>
+                                <MdCheckCircle size={20} className="text-text-secondary" />
+                            </div>
+                            <p className="text-3xl font-bold text-text-primary mb-1">
+                                {totalTasksCompleted}
+                            </p>
+                            <p className="text-xs text-text-secondary mb-3">
+                                This semester
+                            </p>
+                            <p className="text-xs text-green-500 font-medium">
+                                ↑ 18% from last week
+                            </p>
+                        </div>
+
+                        <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 transition-all duration-300">
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-sm font-semibold text-text-primary">
+                                    Overall Progress
+                                </h3>
+                                <MdTrendingUp size={20} className="text-text-secondary" />
+                            </div>
+                            <p className="text-3xl font-bold text-text-primary mb-1">
+                                {completionRate}%
+                            </p>
+                            <p className="text-xs text-text-secondary mb-3">
+                                Average completion rate
+                            </p>
+                            <p className="text-xs text-green-500 font-medium">
+                                ↑ 8% from last week
+                            </p>
+                        </div>
+                    </>
+                )}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mb-10">
+                <div className="bg-[#1e1e26] rounded-2xl p-6 shadow-soft border border-border-default flex flex-col">
+                    <h2 className="text-xl font-bold text-white mb-6">
+                        Task Status Distribution
+                        {selectedProjectId && (
+                            <span className="text-sm font-normal text-[#e0e0e0] ml-2">
+                                ({selectedProjectName})
+                            </span>
+                        )}
+                    </h2>
+
+                    <div className="flex-1 w-full min-h-[300px] flex items-center justify-center">
+                        {totalChartTasks > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={chartData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={100}
+                                        paddingAngle={3}
+                                        dataKey="value"
+                                        label={({ x, y, cx, name, percent }) => (
+                                            <text
+                                                x={x}
+                                                y={y}
+                                                fill="#ffffff"
+                                                textAnchor={x > cx ? "start" : "end"}
+                                                dominantBaseline="central"
+                                                fontSize="12"
+                                                fontWeight="500"
+                                            >
+                                                {`${name}: ${(percent * 100).toFixed(0)}%`}
+                                            </text>
+                                        )}
+                                        labelLine={false}
+                                        className="text-xs"
+                                    >
+                                        {chartData.map((entry, index) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={entry.color}
+                                                stroke="#1e1e26"
+                                                strokeWidth={2}
+                                            />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip content={renderCustomTooltip} />
+                                    <Legend
+                                        verticalAlign="bottom"
+                                        height={36}
+                                        iconType="square"
+                                        formatter={(value) => (
+                                            <span className="text-[#e0e0e0] text-sm ml-1">
+                                                {value}
+                                            </span>
+                                        )}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="text-[#e0e0e0] flex flex-col items-center">
+                                <MdFormatListBulleted
+                                    size={48}
+                                    className="text-text-muted mb-2 opacity-20"
+                                />
+                                <p>No tasks available to visualize.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default flex flex-col">
+                    <h2 className="text-xl font-bold text-text-primary mb-6">
+                        Project Status Overview
+                    </h2>
+
+                    <div className="flex-1 w-full relative min-h-[300px]">
+                        <ProgressComparisonChart data={comparisonData} />
+                    </div>
+                </div>
+            </div>
+
+            {selectedProjectId && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mb-10">
+                    <TeamMembers members={teamMembersList} />
+                </div>
+            )}
+
+            {!selectedProjectId && (
+                <div className="max-w-7xl">
+                    <div className="flex justify-between items-start mb-6">
+                        <div>
+                            <h2 className="text-2xl font-bold text-text-primary mb-1">
+                                Recent Projects
+                            </h2>
+                            <p className="text-sm text-text-secondary">
+                                Overview of your active projects
+                            </p>
+                        </div>
+
+                        <button
+                            onClick={() => navigate("/projects")}
+                            className="flex items-center gap-2 px-6 py-3 bg-accent-primary text-text-on-accent rounded-xl text-sm font-semibold shadow-medium hover:-translate-y-0.5 hover:shadow-large transition-all duration-200 cursor-pointer"
+                        >
+                            <MdAdd size={20} />
+                            <span>New Project</span>
+                        </button>
+                    </div>
+
+                    <div className="flex flex-col gap-4">
+                        {projects.length > 0 ? (
+                            projects.map((project) => {
+                                const projectRemainingTasks =
+                                    (project.totalTasks || 0) - (project.completedTasks || 0);
+
+                                return (
+                                    <div
+                                        key={project._id}
+                                        onClick={() => navigate(`/projects/${project._id}`)}
+                                        className="bg-bg-surface rounded-2xl p-5 shadow-soft border border-border-default hover:-translate-y-1 hover:shadow-large transition-all duration-300 flex flex-col gap-4 cursor-pointer hover:bg-bg-surface-hover hover:border-border-hover w-full relative"
+                                    >
+                                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                                            <div className="flex items-center gap-3 mb-1">
+                                                <h3 className="text-xl font-bold text-text-primary hover:text-accent-highlight truncate">
+                                                    {project.name}
+                                                </h3>
+
+                                                <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-bg-surface-hover text-text-secondary border border-border-default">
+                                                    Active
+                                                </span>
+                                            </div>
+
+                                            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-medium text-[#e0e0e0] lg:justify-end">
+                                                <div className="flex items-center gap-1.5 opacity-80">
+                                                    <MdGroup size={16} className="text-text-muted" />
+                                                    <span>{project.memberCount || 1} members</span>
+                                                </div>
+
+                                                {project.dueDate && (
+                                                    <div className="flex items-center gap-1.5 opacity-80">
+                                                        <MdCalendarToday
+                                                            size={16}
+                                                            className="text-text-muted"
+                                                        />
+                                                        <span>Due {formatDate(project.dueDate)}</span>
+                                                    </div>
+                                                )}
+
+                                                {projectRemainingTasks > 0 && (
+                                                    <div className="flex items-center gap-1.5 whitespace-nowrap opacity-80">
+                                                        <span>
+                                                            {projectRemainingTasks} tasks remaining
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col w-full gap-1.5">
+                                            <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">
+                                                Progress
+                                            </span>
+
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex-1 h-2 rounded-full bg-border-track overflow-hidden">
+                                                    <div
+                                                        className="h-full rounded-full bg-accent-highlight transition-all duration-300 shadow-[0_0_8px_rgba(59,130,246,0.6)]"
+                                                        style={{ width: `${project.progress || 0}%` }}
+                                                    ></div>
+                                                </div>
+
+                                                <span className="text-sm font-bold text-[#ffffff] min-w-[36px] text-right">
+                                                    {project.progress || 0}%
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        ) : (
+                            <div className="w-full text-center py-12 bg-bg-surface rounded-2xl border border-border-default border-dashed">
+                                <p className="text-text-secondary">
+                                    No projects found. Create your first project to get started.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
-        </div>
-      )}
-    </div>
-  );
+    );
 }
 
 export default Dashboard;

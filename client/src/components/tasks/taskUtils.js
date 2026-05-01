@@ -64,3 +64,30 @@ export function isTaskOverdue(task) {
 
   return due < new Date();
 }
+
+export const UNASSIGNED_SYSTEM_EMAIL = "unassigned@system.local";
+export const UNASSIGNED_SYSTEM_KEY = "UNASSIGNED_PLACEHOLDER";
+
+export function isSystemUnassignedUser(value) {
+  if (!value) return true;
+  if (typeof value === "string") {
+    const text = value.trim().toLowerCase();
+    return text === "" || text === "unassigned" || text === "unassignee" || text === UNASSIGNED_SYSTEM_EMAIL;
+  }
+
+  return (
+    value.isSystemPlaceholder === true ||
+    value.systemKey === UNASSIGNED_SYSTEM_KEY ||
+    String(value.email || "").toLowerCase() === UNASSIGNED_SYSTEM_EMAIL
+  );
+}
+
+export function getTaskAssignedUser(task) {
+  const user = task?.assignedTo || task?.assignee || null;
+  return isSystemUnassignedUser(user) ? null : user;
+}
+
+export function getTaskAssignedUserId(task) {
+  const user = getTaskAssignedUser(task);
+  return user?._id || (typeof user === "string" ? user : "") || "";
+}

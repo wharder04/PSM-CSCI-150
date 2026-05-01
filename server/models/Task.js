@@ -17,6 +17,8 @@ const taskCommentSchema = new Schema(
       _id: { type: Schema.Types.ObjectId, ref: "User" },
       email: { type: String },
       name: { type: String },
+      isSystemPlaceholder: { type: Boolean, default: false },
+      systemKey: { type: String, default: null },
     },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
@@ -44,11 +46,15 @@ const taskSchema = new Schema(
       _id: { type: Schema.Types.ObjectId, ref: "User" },
       email: { type: String },
       name: { type: String },
+      isSystemPlaceholder: { type: Boolean, default: false },
+      systemKey: { type: String, default: null },
     },
     assignedTo: {
       _id: { type: Schema.Types.ObjectId, ref: "User" },
       email: { type: String },
       name: { type: String },
+      isSystemPlaceholder: { type: Boolean, default: false },
+      systemKey: { type: String, default: null },
     },
     createdBy: {
       type: Schema.Types.ObjectId,

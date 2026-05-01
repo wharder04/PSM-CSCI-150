@@ -1,218 +1,108 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { projectService } from "../../../services/api";
 import { useAuth } from "../../AuthContext";
-import {
-  MdSearch,
-  MdCalendarToday,
-  MdAdd,
-  MdFilterList,
-  MdClose,
-  MdEvent,
-} from "react-icons/md";
+import { MdAdd, MdCalendarToday, MdClose, MdFolder, MdSearch, MdTune } from "react-icons/md";
 
-function ProjectCard({
-  id,
-  _id,
-  name,
-  className,
-  desc,
-  dueDate,
-  status,
-  progress,
-  remainingTasks,
-  totalTasks,
-  completedTasks,
-}) {
+function normalizeProjects(response) {
+  const owner = response?.data?.owner || response?.owner || [];
+  const memberOf = response?.data?.memberOf || response?.memberOf || [];
+  return [...owner, ...memberOf].filter(Boolean);
+}
+
+function formatDate(dateString) {
+  if (!dateString) return "No due date";
+  return new Date(dateString).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+function projectStatus(project) {
+  const progress = project.progress || 0;
+  if (progress >= 100) return "Completed";
+  if (project.dueDate && new Date(project.dueDate) < new Date()) return "Overdue";
+  return "Active";
+}
+
+function ProjectCard({ project }) {
   const navigate = useNavigate();
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return `${
-      months[date.getMonth()]
-    } ${date.getDate()}, ${date.getFullYear()}`;
-  };
-
-  const handleCardClick = () => {
-    navigate(`/projects/${_id || id}`);
-  };
-
-  const projectProgress = progress || 0;
-  const tasksRemaining =
-    remainingTasks !== undefined
-      ? remainingTasks
-      : (totalTasks || 0) - (completedTasks || 0);
+  const status = projectStatus(project);
+  const remaining = Math.max((project.totalTasks || 0) - (project.completedTasks || 0), 0);
+  const badgeClass = status === "Completed" ? "bg-green-500/15 text-green-300" : status === "Overdue" ? "bg-red-500/15 text-red-300" : "bg-blue-500/15 text-blue-300";
 
   return (
-    <div
-      onClick={handleCardClick}
-      className="bg-bg-surface rounded-2xl p-6 shadow-soft border border-border-default hover:-translate-y-1 hover:shadow-large transition-all duration-300 flex flex-col justify-between gap-2 cursor-pointer  hover:bg-bg-surface-hover hover:border-border-hover"
+    <button
+      type="button"
+      onClick={() => navigate(`/projects/${project._id}`)}
+      className="group flex min-h-[210px] flex-col rounded-3xl border border-border-default bg-bg-surface p-5 text-left shadow-soft transition hover:border-border-hover hover:bg-bg-surface-hover hover:shadow-large"
     >
-      <div className="flex justify-between items-start gap-4 mb-8">
-        <div className="flex-1">
-          <h3 className="text-xl font-bold text-text-primary mb-1 hover:text-accent-highlight">
-            {name}
-          </h3>
-          <p className="text-sm text-text-secondary">
-            {desc || className || "No description"}
-          </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent-primary/15 text-accent-highlight">
+            <MdFolder size={26} />
+          </div>
+          <div className="min-w-0">
+            <h3 className="truncate text-xl font-bold text-text-primary group-hover:text-accent-highlight">{project.name}</h3>
+            <p className="mt-1 line-clamp-2 text-sm text-text-secondary">{project.desc || "No description provided."}</p>
+          </div>
         </div>
-        <span className="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide flex-shrink-0 bg-bg-surface-hover text-text-secondary">
-          Active
-        </span>
+        <span className={`shrink-0 rounded-xl px-3 py-1 text-xs font-bold uppercase tracking-wide ${badgeClass}`}>{status}</span>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div className="flex justify-between items-center">
-          <span className="text-xs text-text-secondary font-medium">
-            Progress
-          </span>
-          <span className="text-sm text-text-primary font-bold">
-            {projectProgress}%
-          </span>
+      <div className="mt-auto pt-6">
+        <div className="mb-2 flex items-center justify-between text-sm">
+          <span className="font-semibold text-text-secondary">Progress</span>
+          <span className="font-bold text-text-primary">{project.progress || 0}%</span>
         </div>
-        <div className="w-full h-2 rounded-full bg-border-track overflow-hidden">
-          <div
-            className="h-full rounded-full bg-accent-highlight transition-all duration-300"
-            style={{ width: `${projectProgress}%` }}
-          ></div>
+        <div className="h-2 overflow-hidden rounded-full bg-border-track">
+          <div className="h-full rounded-full bg-accent-highlight transition-all" style={{ width: `${project.progress || 0}%` }} />
         </div>
-      </div>
 
-      <div className="flex justify-between items-center pt-4 border-t border-border-default">
-        {dueDate && (
-          <div className="flex items-center gap-2 text-text-secondary text-xs">
-            <MdCalendarToday size={16} className="text-text-muted" />
-            <span>Due: {formatDate(dueDate)}</span>
-          </div>
-        )}
-        {tasksRemaining > 0 && (
-          <div className="text-xs text-text-secondary font-medium">
-            {tasksRemaining} tasks remaining
-          </div>
-        )}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border-default pt-4 text-xs text-text-secondary">
+          <span className="inline-flex items-center gap-1.5"><MdCalendarToday size={16} /> {formatDate(project.dueDate)}</span>
+          <span>{remaining} task{remaining === 1 ? "" : "s"} remaining</span>
+        </div>
       </div>
-    </div>
+    </button>
   );
 }
 
 export default function ProjectsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [createLoading, setCreateLoading] = useState(false);
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState("All");
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState(null);
-  const userName = user?.name || "User";
-
-  // Form state
-  const [formData, setFormData] = useState({
-    name: "",
-    desc: "",
-    dueDate: "",
-  });
+  const [formData, setFormData] = useState({ name: "", desc: "", dueDate: "" });
 
   const fetchProjects = async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await projectService.myProjects();
-
-      if (response && response.success) {
-        // Combine owner and memberOf projects
-        const allProjects = [
-          ...(response.data.owner || []),
-          ...(response.data.memberOf || []),
-        ];
-
-        if (allProjects.length === 0) {
-          setProjects([]);
-          setLoading(false);
-          return;
-        }
-
-        // Fetch progress for each project (matching DashboardPage logic)
-        const progressPromises = allProjects.map(async (project) => {
+      const base = normalizeProjects(response);
+      const enriched = await Promise.all(
+        base.map(async (project) => {
           try {
-            const progressResponse = await projectService.getProgress(
-              project._id
-            );
-            if (progressResponse && progressResponse.success) {
-              return {
-                ...project,
-                progress: progressResponse.data.percent || 0,
-                totalTasks: progressResponse.data.total || 0,
-                completedTasks: progressResponse.data.completed || 0,
-              };
-            }
+            const progress = await projectService.getProgress(project._id);
             return {
               ...project,
-              progress: 0,
-              totalTasks: 0,
-              completedTasks: 0,
+              progress: progress?.data?.percent || 0,
+              totalTasks: progress?.data?.total || 0,
+              completedTasks: progress?.data?.completed || 0,
             };
-          } catch (err) {
-            console.error(
-              `Error fetching progress for project ${project._id}:`,
-              err
-            );
-            return {
-              ...project,
-              progress: 0,
-              totalTasks: 0,
-              completedTasks: 0,
-            };
+          } catch {
+            return { ...project, progress: 0, totalTasks: 0, completedTasks: 0 };
           }
-        });
-
-        const projectsWithProgress = await Promise.all(progressPromises);
-
-        // Map to component format
-        const mappedProjects = projectsWithProgress.map((project) => ({
-          id: project._id,
-          _id: project._id,
-          name: project.name,
-          className: project.desc || "No description",
-          desc: project.desc,
-          dueDate: project.dueDate,
-          status: "Active",
-          progress: project.progress || 0,
-          totalTasks: project.totalTasks || 0,
-          completedTasks: project.completedTasks || 0,
-          remainingTasks:
-            (project.totalTasks || 0) - (project.completedTasks || 0),
-          incompleteTasks:
-            (project.totalTasks || 0) - (project.completedTasks || 0),
-          startDate: project.startDate,
-          description: project.desc,
-        }));
-
-        setProjects(mappedProjects);
-      } else {
-        setError("Failed to fetch projects");
-      }
+        })
+      );
+      setProjects(enriched);
     } catch (err) {
-      console.error("Error fetching projects:", err);
-      setError("Failed to load projects. Please try again.");
+      console.error("Projects load failed:", err);
+      setError("Could not load projects. Make sure the server is running.");
     } finally {
       setLoading(false);
     }
@@ -222,331 +112,132 @@ export default function ProjectsPage() {
     fetchProjects();
   }, []);
 
-  const handleCreateProject = async (e) => {
-    e.preventDefault();
-    setCreateError(null);
+  const filteredProjects = useMemo(() => {
+    const search = query.trim().toLowerCase();
+    return projects.filter((project) => {
+      const matchesSearch = !search || project.name?.toLowerCase().includes(search) || project.desc?.toLowerCase().includes(search);
+      const status = projectStatus(project);
+      const matchesFilter = filter === "All" || status === filter;
+      return matchesSearch && matchesFilter;
+    });
+  }, [projects, query, filter]);
 
-    // Validation
+  const counts = useMemo(() => {
+    return {
+      total: projects.length,
+      active: projects.filter((p) => projectStatus(p) === "Active").length,
+      completed: projects.filter((p) => projectStatus(p) === "Completed").length,
+      overdue: projects.filter((p) => projectStatus(p) === "Overdue").length,
+    };
+  }, [projects]);
+
+  const handleCreate = async (event) => {
+    event.preventDefault();
+    setCreateError(null);
     if (!formData.name.trim()) {
-      setCreateError("Project name is required");
+      setCreateError("Project name is required.");
       return;
     }
-
-    setCreateLoading(true);
     try {
-      // Format dates to ISO string if provided
-      const payload = {
-        name: formData.name.trim(),
-        desc: formData.desc.trim() || undefined,
-        dueDate: formData.dueDate
-          ? new Date(formData.dueDate).toISOString()
-          : undefined,
-      };
-
+      setCreating(true);
       const response = await projectService.createProject(
-        payload.name,
-        payload.desc,
+        formData.name.trim(),
+        formData.desc.trim() || undefined,
         undefined,
-        payload.dueDate
+        formData.dueDate ? new Date(formData.dueDate).toISOString() : undefined
       );
-
-      if (response && response.success) {
-        // Reset form
-        setFormData({
-          name: "",
-          desc: "",
-          dueDate: "",
-        });
-        setIsCreateModalOpen(false);
-        setCreateError(null);
-
-        // Refresh projects list
-        fetchProjects();
+      if (response?.success) {
+        setFormData({ name: "", desc: "", dueDate: "" });
+        setIsCreateOpen(false);
+        await fetchProjects();
       } else {
-        setCreateError(response?.error || "Failed to create project");
+        setCreateError(response?.error || "Project could not be created.");
       }
     } catch (err) {
-      console.error("Error creating project:", err);
-      setCreateError(
-        err.response?.data?.error ||
-          err.message ||
-          "Failed to create project. Please try again."
-      );
+      setCreateError(err.response?.data?.error || "Project could not be created.");
     } finally {
-      setCreateLoading(false);
+      setCreating(false);
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleCloseModal = () => {
-    setIsCreateModalOpen(false);
-    setFormData({
-      name: "",
-      desc: "",
-      dueDate: "",
-    });
-    setCreateError(null);
-  };
-
-  const filteredProjects = projects.filter((project) => {
-    // Filter logic - all projects are "Active" now, so filter by completion status
-    const matchesFilter =
-      activeFilter === "All" ||
-      (activeFilter === "Active" && (project.progress || 0) < 100) ||
-      (activeFilter === "Completed" && (project.progress || 0) === 100);
-
-    const matchesSearch =
-      !searchQuery ||
-      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (project.desc &&
-        project.desc.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (project.className &&
-        project.className.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    return matchesFilter && matchesSearch;
-  });
-
   return (
-    <div className="min-h-screen w-full p-2 bg-bg-main">
-      <div className="mb-8 max-w-7xl">
-        <h1 className="text-3xl font-bold text-text-primary mb-2 tracking-tight">
-          Hello {userName}!
-        </h1>
-        <p className="text-base text-text-secondary">
-          Manage and track all your projects in one place
-        </p>
-      </div>
-
-      <div className="flex gap-5 mb-8 flex-wrap items-center max-w-7xl">
-        <div className="relative flex-1 min-w-[300px] max-w-[500px]">
-          <MdSearch
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-            size={20}
-          />
-          <input
-            type="search"
-            placeholder="Search projects..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 bg-bg-surface border border-border-default rounded-xl text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-highlight focus:border-transparent transition-all"
-          />
-        </div>
-
-        <div className="flex items-center gap-3 bg-bg-surface px-2 py-2 rounded-xl border border-border-default">
-          <MdFilterList size={20} className="text-text-secondary ml-2" />
-          <div className="flex gap-1">
-            {["All", "Active", "Completed"].map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
-                  activeFilter === filter
-                    ? "bg-accent-primary text-text-on-accent font-semibold"
-                    : "text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary"
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl">
-        <h2 className="text-2xl font-bold text-text-primary mb-6 mr-2">
-          My Projects{" "}
-          <span className="text-sm font-medium">
-            {loading ? "Loading..." : `(${filteredProjects.length})`}
-          </span>
-        </h2>
-
-        {loading ? (
-          <div className="text-center py-20 bg-bg-surface rounded-2xl border border-border-default">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent-primary mb-4"></div>
-            <p className="text-sm text-text-secondary">Loading projects...</p>
-          </div>
-        ) : error ? (
-          <div className="text-center py-20 bg-bg-surface rounded-2xl border border-border-default">
-            <div className="text-6xl mb-4">⚠️</div>
-            <h3 className="text-xl font-semibold text-text-primary mb-2">
-              Error loading projects
-            </h3>
-            <p className="text-sm text-text-secondary mb-4">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-accent-primary text-text-on-accent rounded-lg text-sm font-medium hover:bg-accent-highlight transition-colors cursor-pointer"
-            >
-              Retry
+    <div className="min-h-screen bg-bg-main p-5 lg:p-8">
+      <div className="mx-auto max-w-[1500px] space-y-7">
+        <section className="rounded-3xl border border-border-default bg-bg-surface p-6 shadow-soft">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="mb-2 text-sm font-bold uppercase tracking-[0.18em] text-accent-highlight">Projects</p>
+              <h1 className="text-3xl font-bold tracking-tight text-text-primary ">Hello {user?.name || "there"}</h1>
+              <p className="mt-2 max-w-2xl text-text-secondary">Create projects, track progress, add members, and keep every task connected to one place.</p>
+            </div>
+            <button onClick={() => setIsCreateOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-accent-primary px-5 py-3 text-sm font-bold text-text-on-accent shadow-soft hover:opacity-90">
+              <MdAdd size={20} /> Create Project
             </button>
           </div>
-        ) : filteredProjects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-            {filteredProjects.map((project) => (
-              <ProjectCard
-                key={project._id || project.id}
-                id={project.id}
-                _id={project._id}
-                name={project.name}
-                className={project.className}
-                desc={project.desc}
-                dueDate={project.dueDate}
-                status={project.status}
-                progress={project.progress}
-                remainingTasks={project.remainingTasks}
-                totalTasks={project.totalTasks}
-                completedTasks={project.completedTasks}
+        </section>
+
+        <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="rounded-2xl border border-border-default bg-bg-surface p-4"><p className="text-sm text-text-secondary">Total</p><p className="text-3xl font-bold text-text-primary">{counts.total}</p></div>
+          <div className="rounded-2xl border border-border-default bg-bg-surface p-4"><p className="text-sm text-text-secondary">Active</p><p className="text-3xl font-bold text-blue-300">{counts.active}</p></div>
+          <div className="rounded-2xl border border-border-default bg-bg-surface p-4"><p className="text-sm text-text-secondary">Completed</p><p className="text-3xl font-bold text-green-300">{counts.completed}</p></div>
+          <div className="rounded-2xl border border-border-default bg-bg-surface p-4"><p className="text-sm text-text-secondary">Overdue</p><p className="text-3xl font-bold text-red-300">{counts.overdue}</p></div>
+        </section>
+
+        <section className="rounded-3xl border border-border-default bg-bg-surface p-5 shadow-soft">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="relative flex-1">
+              <MdSearch className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={22} />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search project names or descriptions..."
+                className="w-full rounded-2xl border border-border-default bg-bg-main py-3 pl-12 pr-4 text-sm font-medium text-text-primary outline-none focus:border-accent-highlight"
               />
-            ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-2xl border border-border-default bg-bg-main px-4 py-3 text-sm font-bold text-text-secondary"><MdTune /> Filter</span>
+              {["All", "Active", "Completed", "Overdue"].map((item) => (
+                <button key={item} onClick={() => setFilter(item)} className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${filter === item ? "bg-accent-primary text-text-on-accent" : "bg-bg-main text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary"}`}>{item}</button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {loading ? (
+          <div className="rounded-3xl border border-border-default bg-bg-surface p-10 text-center text-text-secondary">Loading projects...</div>
+        ) : error ? (
+          <div className="rounded-3xl border border-red-500/40 bg-red-500/10 p-6 text-red-200">{error}</div>
+        ) : filteredProjects.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-border-default bg-bg-surface p-12 text-center shadow-soft">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-bg-surface-hover text-accent-highlight"><MdFolder size={30} /></div>
+            <h2 className="text-xl font-bold text-text-primary">No projects found</h2>
+            <p className="mt-2 text-text-secondary">Try a different search/filter, or create a new project.</p>
+            <button onClick={() => setIsCreateOpen(true)} className="mt-5 rounded-2xl bg-accent-primary px-5 py-3 text-sm font-bold text-text-on-accent">Create Project</button>
           </div>
         ) : (
-          <div className="text-center py-20 bg-bg-surface rounded-2xl border border-border-default">
-            <div className="text-6xl mb-4">📁</div>
-            <h3 className="text-xl font-semibold text-text-primary mb-2">
-              No projects found
-            </h3>
-            <p className="text-sm text-text-secondary">
-              {searchQuery
-                ? "Try adjusting your search or filters"
-                : "Get started by creating your first project"}
-            </p>
-          </div>
+          <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {filteredProjects.map((project) => <ProjectCard key={project._id} project={project} />)}
+          </section>
         )}
       </div>
 
-      <button
-        onClick={() => setIsCreateModalOpen(true)}
-        className="fixed bottom-8 right-8 flex items-center gap-2.5 px-6 py-4 bg-accent-primary cursor-pointer text-text-on-accent rounded-2xl text-sm font-semibold shadow-large hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 z-50"
-      >
-        <MdAdd size={24} />
-        <span>Create New Project</span>
-      </button>
-
-      {/* Create Project Modal */}
-      {isCreateModalOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-end z-50 cursor-pointer"
-          onClick={handleCloseModal}
-        >
-          <div
-            className="bg-bg-surface rounded-xl  shadow-large w-full max-w-xl h-full max-h-[90vh] overflow-y-none"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="sticky top-0 rounded-tl-xl px-6 py-5 flex justify-between items-center bg-bg-surface border-b border-border-default">
-              <h2 className="text-xl font-semibold text-text-primary">
-                Create New Project
-              </h2>
-              <button
-                onClick={handleCloseModal}
-                className="text-text-muted hover:text-text-primary transition-colors p-1 cursor-pointer"
-              >
-                <MdClose size={20} />
-              </button>
+      {isCreateOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4" onMouseDown={() => setIsCreateOpen(false)}>
+          <div className="w-full max-w-xl rounded-3xl border border-border-default bg-bg-surface p-6 shadow-large" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-text-primary">Create project</h2>
+                <p className="text-sm text-text-secondary">Add the basic details. You can edit this later.</p>
+              </div>
+              <button onClick={() => setIsCreateOpen(false)} className="rounded-xl bg-bg-surface-hover p-2 text-text-secondary hover:text-text-primary"><MdClose size={22} /></button>
             </div>
 
-            <form
-              onSubmit={handleCreateProject}
-              className="p-6 space-y-6 bg-bg-surface h-full overflow-y-none"
-            >
-              {createError && (
-                <div className="bg-status-error-bg border border-status-error-border text-status-error-text px-4 py-3 rounded-lg text-sm">
-                  {createError}
-                </div>
-              )}
-
-              <div className="grid grid-cols-5 items-center">
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-text-primary mb-1"
-                >
-                  Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border-default text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
-                  placeholder="Enter project name"
-                  disabled={createLoading}
-                />
-              </div>
-
-              <div className="grid grid-cols-5 items-center">
-                <label
-                  htmlFor="desc"
-                  className="block text-sm font-medium text-text-primary mb-1"
-                >
-                  Description
-                </label>
-                <textarea
-                  id="desc"
-                  name="desc"
-                  value={formData.desc}
-                  onChange={handleInputChange}
-                  className="col-span-4 w-full px-0 py-2 bg-transparent border-0 border-b-2 border-border-default text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
-                  placeholder="Enter project description"
-                  disabled={createLoading}
-                  required
-                  rows={5}
-                  maxLength={500}
-                />
-              </div>
-
-              <div className="grid grid-cols-5 items-center">
-                <label
-                  htmlFor="dueDate"
-                  className="block text-sm font-medium text-text-primary mb-1"
-                >
-                  Due Date
-                </label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    id="dueDate"
-                    name="dueDate"
-                    value={formData.dueDate}
-                    onChange={handleInputChange}
-                    className=" col-span-4 px-0 py-2 pr-8 bg-transparent border-0 border-b-2 border-border-default text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
-                    placeholder="dd-mm-yyyy"
-                    disabled={createLoading}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-6">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  disabled={createLoading}
-                  className="flex-1 px-4 py-2.5 bg-bg-surface-hover text-text-primary rounded-lg text-sm font-medium hover:bg-border-default transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={createLoading || !formData.name.trim()}
-                  className="flex-1 px-4 py-2.5 bg-accent-primary text-text-on-accent rounded-lg text-sm font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  {createLoading ? (
-                    <>
-                      <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-text-on-accent"></div>
-                      <span>Creating...</span>
-                    </>
-                  ) : (
-                    "Create"
-                  )}
-                </button>
-              </div>
+            <form onSubmit={handleCreate} className="space-y-4">
+              {createError && <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">{createError}</div>}
+              <label className="block"><span className="mb-2 block text-sm font-bold text-text-primary">Project name</span><input value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} className="w-full rounded-2xl border border-border-default bg-bg-main px-4 py-3 text-text-primary outline-none focus:border-accent-highlight" placeholder="Example: Final PSM Project" /></label>
+              <label className="block"><span className="mb-2 block text-sm font-bold text-text-primary">Description</span><textarea value={formData.desc} onChange={(e) => setFormData((p) => ({ ...p, desc: e.target.value }))} rows={4} className="w-full resize-none rounded-2xl border border-border-default bg-bg-main px-4 py-3 text-text-primary outline-none focus:border-accent-highlight" placeholder="What is this project for?" /></label>
+              <label className="block"><span className="mb-2 block text-sm font-bold text-text-primary">Due date</span><input type="date" value={formData.dueDate} onChange={(e) => setFormData((p) => ({ ...p, dueDate: e.target.value }))} className="w-full rounded-2xl border border-border-default bg-bg-main px-4 py-3 text-text-primary outline-none focus:border-accent-highlight" /></label>
+              <div className="flex gap-3 pt-2"><button type="button" onClick={() => setIsCreateOpen(false)} className="flex-1 rounded-2xl border border-border-default px-4 py-3 font-bold text-text-secondary hover:bg-bg-surface-hover">Cancel</button><button disabled={creating} className="flex-1 rounded-2xl bg-accent-primary px-4 py-3 font-bold text-text-on-accent disabled:opacity-60">{creating ? "Creating..." : "Create Project"}</button></div>
             </form>
           </div>
         </div>
